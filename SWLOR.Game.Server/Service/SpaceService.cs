@@ -916,7 +916,8 @@ namespace SWLOR.Game.Server.Service
             player.AssignCommand(() => { ActionUnequipItem(player.RightHand); });
             ApplyEffectToObject(DurationType.Permanent, EffectCutsceneGhost(), player);
             ApplyEffectToObject(DurationType.Permanent, EffectInvisibility(InvisibilityType.Normal), player);
-            ApplyEffectToObject(DurationType.Permanent, EffectMovementSpeedIncrease(200), player);
+            ApplyEffectToObject(DurationType.Permanent, EffectMovementSpeedIncrease(99), player);
+            ApplyEffectToObject(DurationType.Permanent, EffectHaste(), player);
 
             ship.SetLocalObject("GUNNER", player);
 
@@ -950,6 +951,7 @@ namespace SWLOR.Game.Server.Service
             {
                 player.RemoveEffect(EffectType.CutsceneGhost);
                 player.RemoveEffect(EffectType.Invisibility);
+                player.RemoveEffect(EffectType.Haste);
             });
 
             copy.Area.DeleteLocalObject("GUNNER");
@@ -1162,7 +1164,7 @@ namespace SWLOR.Game.Server.Service
                             if (targetHP <= 0)
                             {
                                 // Boom!
-                                ApplyEffectAtLocation(DurationType.Temporary, EffectVisualEffect(Vfx.Fnf_Implosion), player.Location, 2.0f);
+                                ApplyEffectAtLocation(DurationType.Temporary, EffectVisualEffect(Vfx.Fnf_Fireball), player.Location, 2.0f);
                                 ApplyEffectToObject(DurationType.Instant, EffectDeath(), player);
                             }
                             else
@@ -1345,7 +1347,7 @@ namespace SWLOR.Game.Server.Service
                 if (targetHP <= 0)
                 {
                     // Boom!
-                    ApplyEffectAtLocation(DurationType.Temporary, EffectVisualEffect(Vfx.Fnf_Implosion), target.Location, 2.0f);
+                    ApplyEffectAtLocation(DurationType.Temporary, EffectVisualEffect(Vfx.Fnf_Fireball), target.Location, 2.0f);
                     ApplyEffectToObject(DurationType.Instant, EffectDeath(), target);
                 }
                 else
