@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using SWLOR.Game.Server.NWScript.Enumerations;
 using SWLOR.Game.Server.Service;
+using SWLOR.Game.Server.NWScript;
 using _ = SWLOR.Game.Server.NWScript._;
 using Skill = SWLOR.Game.Server.Enumeration.Skill;
 
@@ -161,10 +162,13 @@ namespace SWLOR.Game.Server.Perk.ForceSense
             _.ApplyEffectToObject(DurationType.Temporary, effect, creature, 6.1f);
             _.ApplyEffectToObject(DurationType.Instant, _.EffectVisualEffect(Vfx.Vfx_Dur_Magic_Resistance), target);
 
-            // Register players to all combat targets for Force Sense.
-            if (creature.IsPlayer)
+            // Check to see if player is in combat, is so, reward xp.
+            if (_.GetIsInCombat(creature))
             {
-                SkillService.RegisterPCToAllCombatTargetsForSkill(creature.Object, Skill.ForceSense, null);
+                if (creature.IsPlayer)
+                {
+                    SkillService.GiveSkillXP(creature.Object, Skill.ForceSense, (perkLevel * 50));
+                }
             }
 
             EnmityService.AdjustEnmityOnAllTaggedCreatures(creature, 4);

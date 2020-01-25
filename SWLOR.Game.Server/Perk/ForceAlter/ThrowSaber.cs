@@ -130,6 +130,13 @@ namespace SWLOR.Game.Server.Perk.ForceAlter
                 }, 2.5f);
                 */
 
+            // Resistance handle
+            var result = CombatService.CalculateAbilityResistance(player, target.Object, Skill.ForceAlter, ForceBalanceType.Universal, true);
+
+            // +/- percent change based on resistance
+            float delta = 0.01f * result.Delta;
+            iDamage = iDamage + (int)(iDamage * delta);
+
             // Handle effects for differing spellTier values
             switch (spellTier)
             {
@@ -262,6 +269,7 @@ namespace SWLOR.Game.Server.Perk.ForceAlter
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(spellTier));
+
             }
         }
 
@@ -341,13 +349,13 @@ namespace SWLOR.Game.Server.Perk.ForceAlter
             {
                 2, new List<PerkFeat>
                 {
-                    new PerkFeat {Feat = Feat.ThrowSaber2, BaseFPCost = 5, ConcentrationFPCost = 0, ConcentrationTickInterval = 0}
+                    new PerkFeat {Feat = Feat.ThrowSaber2, BaseFPCost = 6, ConcentrationFPCost = 0, ConcentrationTickInterval = 0}
                 }
             },
             {
                 3, new List<PerkFeat>
                 {
-                    new PerkFeat {Feat = Feat.ThrowSaber3, BaseFPCost = 16, ConcentrationFPCost = 0, ConcentrationTickInterval = 0}
+                    new PerkFeat {Feat = Feat.ThrowSaber3, BaseFPCost = 7, ConcentrationFPCost = 0, ConcentrationTickInterval = 0}
                 }
             },
             {

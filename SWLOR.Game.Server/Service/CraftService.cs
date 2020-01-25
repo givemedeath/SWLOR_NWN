@@ -263,13 +263,13 @@ namespace SWLOR.Game.Server.Service
             float adjustedSpeed = 1.0f;
 
             // Identify which perk to use for this skill.
-            if (skill == Skill.Weaponsmith) perkType = PerkType.SpeedyWeaponsmith;
-            else if (skill == Skill.Armorsmith) perkType = PerkType.SpeedyArmorsmith;
-            else if (skill == Skill.Cooking) perkType = PerkType.SpeedyCooking;
-            else if (skill == Skill.Engineering) perkType = PerkType.SpeedyEngineering;
-            else if (skill == Skill.Fabrication) perkType = PerkType.SpeedyFabrication;
-            else if (skill == Skill.Medicine) perkType = PerkType.SpeedyMedicine;
-            else if (skill == Skill.Harvesting) perkType = PerkType.SpeedyReassembly;
+            if (skill == Skill.Weaponsmith) perkType = PerkType.SpeedyCrafting;
+            else if (skill == Skill.Armorsmith) perkType = PerkType.SpeedyCrafting;
+            else if (skill == Skill.Cooking) perkType = PerkType.SpeedyCrafting;
+            else if (skill == Skill.Engineering) perkType = PerkType.SpeedyCrafting;
+            else if (skill == Skill.Fabrication) perkType = PerkType.SpeedyCrafting;
+            else if (skill == Skill.Medicine) perkType = PerkType.SpeedyCrafting;
+            else if (skill == Skill.Harvesting) perkType = PerkType.SpeedyCrafting;
             else return BaseCraftDelay;
 
             int perkLevel = PerkService.GetCreaturePerkLevel(oPC, perkType);

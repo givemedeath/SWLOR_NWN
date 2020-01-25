@@ -57,20 +57,29 @@ namespace SWLOR.Game.Server.Service
 
             NWPlayer player = data.Damager;
             NWItem weapon = _.GetLastWeaponUsed(player);
-            
-            if (weapon.CustomItemType == CustomItemType.BlasterPistol ||
-                weapon.CustomItemType == CustomItemType.BlasterRifle)
+
+            if (weapon.CustomItemType == CustomItemType.BlasterPistol)
             {
                 int statBonus = (int)(player.DexterityModifier * 0.5f);
                 data.Base += statBonus;
             }
-            else if (weapon.CustomItemType == CustomItemType.Lightsaber ||
-                     weapon.CustomItemType == CustomItemType.Saberstaff ||
-                     weapon.GetLocalBoolean("LIGHTSABER") == true)
+            else if (weapon.CustomItemType == CustomItemType.BlasterRifle)
             {
-                int statBonus = (int) (player.CharismaModifier * 0.25f);
+                int statBonus = (int)(player.DexterityModifier * 0.75f);
                 data.Base += statBonus;
             }
+            else if (weapon.CustomItemType == CustomItemType.Lightsaber ||
+                     weapon.GetLocalBoolean("LIGHTSABER") == true)
+            {
+                int statBonus = (int)(player.CharismaModifier * 0.25f);
+                data.Base += statBonus;
+            }
+            else if (weapon.CustomItemType == CustomItemType.Saberstaff ||
+                     weapon.GetLocalBoolean("LIGHTSABER") == true)
+            { 
+                int statBonus = (int)(player.CharismaModifier * 0.4f);
+                data.Base += statBonus;
+        }
 
             NWNXDamage.SetDamageEventData(data);
         }
@@ -189,7 +198,7 @@ namespace SWLOR.Game.Server.Service
                 float perkBonus = 0.02f * perkLevel;
 
                 // DI = 10% + 1% / 3 AC bonuses on the shield + 2% per perk bonus. 
-                reduction = (0.1 + 0.01 * shield.AC / 3) + perkBonus;
+                reduction = (0.1 + 0.01 * shield.AC / 3) + (shield.CustomAC *.01) + perkBonus;
             }
             // Calculate Absorb Energy concentration effect reduction.
             if (concentrationEffect.Type == PerkType.AbsorbEnergy)
@@ -205,6 +214,15 @@ namespace SWLOR.Game.Server.Service
                     SkillService.GiveSkillXP(target.Object, Skill.ForceControl, xp);
                     // Play a visual effect signifying the ability was activated.
                     _.ApplyEffectToObject(DurationType.Temporary, EffectVisualEffect(Vfx.Dur_Blur), target, 0.5f);
+                }
+            }
+            //Shield Oath Damage Immunity
+            NWPlayer player = NWGameObject.OBJECT_SELF;
+            if (target.IsPC)
+            {
+                if (CustomEffectService.GetCurrentStanceType(player) == CustomEffectType.ShieldOath)
+                {
+                    reduction += 0.2f;
                 }
             }
 

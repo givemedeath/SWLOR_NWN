@@ -201,9 +201,13 @@ namespace SWLOR.Game.Server.Perk.ForceAlter
                 _.ApplyEffectToObject(DurationType.Instant, _.EffectHeal(amount), creature);
             }
 
-            if (creature.IsPlayer)
+            // Check to see if player is in combat, is so, reward xp.
+            if (_.GetIsInCombat(creature))
             {
-                SkillService.RegisterPCToNPCForSkill(creature.Object, target, Skill.ForceAlter);
+                if (creature.IsPlayer)
+                {
+                    SkillService.GiveSkillXP(creature.Object, Skill.ForceAlter, (amount * 2));
+                }
             }
 
             _.ApplyEffectToObject(DurationType.Instant, _.EffectVisualEffect(Vfx.Vfx_Com_Hit_Negative), target);

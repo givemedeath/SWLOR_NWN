@@ -49,6 +49,12 @@ namespace SWLOR.Game.Server.Perk.ForceControl
         public void OnImpact(NWCreature creature, NWObject target, int perkLevel, int spellTier)
         {
             ApplyEffect(creature, target, spellTier);
+
+            // Give Control XP, if player.
+            if (creature.IsPlayer)
+            {
+                SkillService.GiveSkillXP(creature.Object, Skill.ForceControl, (spellTier * 200 + 10));
+            }
         }
 
         public void OnPurchased(NWCreature creature, int newLevel)

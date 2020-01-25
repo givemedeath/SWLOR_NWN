@@ -183,9 +183,12 @@ namespace SWLOR.Game.Server.Perk.ForceAlter
                 _.ApplyEffectToObject(DurationType.Instant, _.EffectDamage(amount, DamageType.Electrical), target);
             });
 
-            if (creature.IsPlayer)
+            if (_.GetIsInCombat(creature))
             {
-                SkillService.RegisterPCToNPCForSkill(creature.Object, target, Skill.ForceAlter);
+                if (creature.IsPlayer)
+                {
+                    SkillService.GiveSkillXP(creature.Object, Skill.ForceAlter, (amount * 2));
+                }
             }
 
             _.ApplyEffectToObject(DurationType.Instant, _.EffectVisualEffect(Vfx.Vfx_Imp_Lightning_S), target);

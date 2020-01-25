@@ -1334,19 +1334,19 @@ namespace SWLOR.Game.Server.Service
                 // Calculate max reinforced fuel if structure is a Stronidium Silo
                 if (baseStructure.BaseStructureType == BaseStructureType.StronidiumSilo)
                 {
-                    reinforcedSiloBonus += (baseStructure.Storage + structure.StructureBonus) * 0.01d;
+                    reinforcedSiloBonus += (baseStructure.Storage + structure.StructureBonus) * 0.05d;
                 }
 
                 // Calculate max fuel if structure is a fuel silo.
                 if (baseStructure.BaseStructureType == BaseStructureType.FuelSilo)
                 {
-                    fuelSiloBonus += (baseStructure.Storage + structure.StructureBonus) * 0.01d;
+                    fuelSiloBonus += (baseStructure.Storage + structure.StructureBonus) * 0.05d;
                 }
 
                 // Calculate max resource capacity if structure is a resource silo
                 if (baseStructure.BaseStructureType == BaseStructureType.ResourceSilo)
                 {
-                    resourceSiloBonus += (baseStructure.Storage + structure.StructureBonus) * 0.01d;
+                    resourceSiloBonus += (baseStructure.Storage + structure.StructureBonus) * 0.10d;
                 }
             }
 

@@ -6,7 +6,7 @@ using SWLOR.Game.Server.Service;
 
 namespace SWLOR.Game.Server.ChatCommand
 {
-    [CommandDetails("Customizes your character appearance. Only available for use in the entry area or DM customization area.", CommandPermissionType.Player)]
+    [CommandDetails("Customizes your character appearance. Only available for use in the entry area or DM customization area.", CommandPermissionType.Player | CommandPermissionType.DM | CommandPermissionType.Admin)]
     public class Customize: IChatCommand
     {
         /// <summary>
@@ -28,6 +28,12 @@ namespace SWLOR.Game.Server.ChatCommand
             if (areaResref != "ooc_area" && areaResref != "customize_char")
             {
                 return "Customization can only occur in the starting area or the DM customization area. You can't use this command any more.";
+            }
+
+            
+            if (!user.IsPlayer)
+            { 
+                    return "You can only customize on a player character.";
             }
 
             return string.Empty;

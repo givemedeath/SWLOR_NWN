@@ -13,7 +13,7 @@ namespace SWLOR.Game.Server.Perk.Stances
         public PerkType PerkType => PerkType.ShieldOath;
         public string Name => "Shield Oath";
         public bool IsActive => true;
-        public string Description => "Increases AC and enmity generation but reduces damage while active. Only one stance may be active at a time.";
+        public string Description => "Increases Damage Immunity but reduces damage while active. Only one stance may be active at a time.";
         public PerkCategoryType Category => PerkCategoryType.Stances;
         public PerkCooldownGroup CooldownGroup => PerkCooldownGroup.Stance;
         public PerkExecutionType ExecutionType => PerkExecutionType.Stance;

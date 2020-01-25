@@ -6,6 +6,7 @@ using SWLOR.Game.Server.Enumeration;
 using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.NWScript;
 using SWLOR.Game.Server.NWScript.Enumerations;
+using SWLOR.Game.Server.Service;
 using static SWLOR.Game.Server.NWScript._;
 using _ = SWLOR.Game.Server.NWScript._;
 using Skill = SWLOR.Game.Server.Enumeration.Skill;
@@ -76,6 +77,7 @@ namespace SWLOR.Game.Server.Perk.ForceSense
             return false;
         }
 
+
         public Dictionary<int, PerkLevel> PerkLevels => new Dictionary<int, PerkLevel>
         {
             {
@@ -107,19 +109,19 @@ namespace SWLOR.Game.Server.Perk.ForceSense
             {
                 1, new List<PerkFeat>
                 {
-                    new PerkFeat {Feat = Feat.BattleInsight1, BaseFPCost = 0, ConcentrationFPCost = 3, ConcentrationTickInterval = 6}
+                    new PerkFeat {Feat = Feat.BattleInsight1, BaseFPCost = 0, ConcentrationFPCost = 5, ConcentrationTickInterval = 6}
                 }
             },
             {
                 2, new List<PerkFeat>
                 {
-                    new PerkFeat {Feat = Feat.BattleInsight2, BaseFPCost = 0, ConcentrationFPCost = 4, ConcentrationTickInterval = 6}
+                    new PerkFeat {Feat = Feat.BattleInsight2, BaseFPCost = 0, ConcentrationFPCost = 6, ConcentrationTickInterval = 6}
                 }
             },
             {
                 3, new List<PerkFeat>
                 {
-                    new PerkFeat {Feat = Feat.BattleInsight3, BaseFPCost = 0, ConcentrationFPCost = 5, ConcentrationTickInterval = 6}
+                    new PerkFeat {Feat = Feat.BattleInsight3, BaseFPCost = 0, ConcentrationFPCost = 7, ConcentrationTickInterval = 6}
                 }
             },
         };
@@ -207,6 +209,21 @@ namespace SWLOR.Game.Server.Perk.ForceSense
                 targetCreature = _.GetNearestCreature((int)CreatureType.IsAlive, 1, creature, nth);
             }
 
+            // Check to see if player/party is in combat, is so, reward xp.
+
+            NWArea pcArea = creature.Area;
+            foreach (NWCreature member in creature.PartyMembers)
+            {
+                if (!member.Area.Equals(pcArea)) continue;
+
+                if (member.IsInCombat)
+                {
+                if (creature.IsPlayer)
+                {
+                    SkillService.GiveSkillXP(creature.Object, Skill.ForceSense, (perkLevel * 50));
+                }  
+                }
+            }
         }
     }
 }

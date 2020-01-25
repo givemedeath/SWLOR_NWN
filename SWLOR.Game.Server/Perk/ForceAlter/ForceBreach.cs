@@ -52,19 +52,19 @@ namespace SWLOR.Game.Server.Perk.ForceAlter
             switch (spellTier)
             {
                 case 1:
-                    damage = 100;
+                    damage = 75;
                     break;
                 case 2:
-                    damage = 125;
+                    damage = 100;
                     break;
                 case 3:
-                    damage = 160;
+                    damage = 125;
                     break;
                 case 4:
-                    damage = 200;
+                    damage = 150;
                     break;
                 case 5:
-                    damage = 250;
+                    damage = 175;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(spellTier));
@@ -117,35 +117,35 @@ namespace SWLOR.Game.Server.Perk.ForceAlter
         public Dictionary<int, PerkLevel> PerkLevels => new Dictionary<int, PerkLevel>
         {
             {
-                1, new PerkLevel(4, "Deals 100 damage to a single target.", SpecializationType.Consular,
+                1, new PerkLevel(4, "Deals 75 damage to a single target.", SpecializationType.Consular,
                 new Dictionary<Skill, int>
                 {
                     { Skill.ForceAlter, 50},
                 })
             },
             {
-                2, new PerkLevel(5, "Deals 125 damage to a single target.", SpecializationType.Consular,
+                2, new PerkLevel(5, "Deals 100 damage to a single target.", SpecializationType.Consular,
                 new Dictionary<Skill, int>
                 {
                     { Skill.ForceAlter, 60},
                 })
             },
             {
-                3, new PerkLevel(6, "Deals 160 damage to a single target.", SpecializationType.Consular,
+                3, new PerkLevel(6, "Deals 125 damage to a single target.", SpecializationType.Consular,
                 new Dictionary<Skill, int>
                 {
                     { Skill.ForceAlter, 70},
                 })
             },
             {
-                4, new PerkLevel(7, "Deals 200 damage to a single target.", SpecializationType.Consular,
+                4, new PerkLevel(7, "Deals 150 damage to a single target.", SpecializationType.Consular,
                 new Dictionary<Skill, int>
                 {
                     { Skill.ForceAlter, 80},
                 })
             },
             {
-                5, new PerkLevel(8, "Deals 250 damage to a single target.", SpecializationType.Consular,
+                5, new PerkLevel(8, "Deals 175 damage to a single target.", SpecializationType.Consular,
                 new Dictionary<Skill, int>
                 {
                     { Skill.ForceAlter, 90},

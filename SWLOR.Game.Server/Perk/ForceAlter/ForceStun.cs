@@ -152,10 +152,7 @@ namespace SWLOR.Game.Server.Perk.ForceAlter
             },
         };
 
-        public void OnConcentrationTick(NWCreature creature, NWObject target, int perkLevel, int tick)
-        {
-            ApplyEffect(creature, target, perkLevel);
-        }
+
 
         private void RunEffect(NWCreature creature, NWObject target)
         {
@@ -193,10 +190,7 @@ namespace SWLOR.Game.Server.Perk.ForceAlter
                 });
             }
 
-            if (creature.IsPlayer)
-            {
-                SkillService.RegisterPCToNPCForSkill(creature.Object, target, Skill.ForceAlter);
-            }
+
 
             EnmityService.AdjustEnmity(target.Object, creature, 1);
         }
@@ -244,6 +238,25 @@ namespace SWLOR.Game.Server.Perk.ForceAlter
                 default:
                     throw new ArgumentOutOfRangeException(nameof(spellTier));
             }
+        }
+        public void OnConcentrationTick(NWCreature creature, NWObject target, int perkLevel, int tick)
+        {
+            // Check to see if player/party is in combat, is so, reward xp.
+
+            NWArea pcArea = creature.Area;
+            foreach (NWCreature member in creature.PartyMembers)
+            {
+                if (!member.Area.Equals(pcArea)) continue;
+
+                if (member.IsInCombat)
+                {
+                    if (creature.IsPlayer)
+                    {
+                        SkillService.GiveSkillXP(creature.Object, Skill.ForceAlter, (perkLevel * 75));
+                    }
+                }
+            }
+            ApplyEffect(creature, target, perkLevel);
         }
     }
 }

@@ -8,7 +8,7 @@ using _ = SWLOR.Game.Server.NWScript._;
 
 namespace SWLOR.Game.Server.ChatCommand
 {
-    [CommandDetails("Manually saves your character. Your character also saves automatically every few minutes.", CommandPermissionType.Player)]
+    [CommandDetails("Manually saves your character. Your character also saves automatically every few minutes.", CommandPermissionType.Player | CommandPermissionType.DM | CommandPermissionType.Admin)]
     public class Save: IChatCommand
     {
         /// <summary>
@@ -28,6 +28,10 @@ namespace SWLOR.Game.Server.ChatCommand
 
         public string ValidateArguments(NWPlayer user, params string[] args)
         {
+            if (!user.IsPlayer)
+            {
+                return "You can only save on a player character.";
+            }
             return string.Empty;
         }
 

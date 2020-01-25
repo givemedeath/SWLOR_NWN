@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using NWN;
 using SWLOR.Game.Server.Enumeration;
@@ -15,7 +16,7 @@ namespace SWLOR.Game.Server.Perk.ForceControl
         public string Description => "Absorbs a percentage of damage that the caster would take, from all sources.";
         public PerkCategoryType Category => PerkCategoryType.ForceControl;
         public PerkCooldownGroup CooldownGroup => PerkCooldownGroup.AbsorbEnergy;
-        public PerkExecutionType ExecutionType => PerkExecutionType.ForceAbility;
+        public PerkExecutionType ExecutionType => PerkExecutionType.ConcentrationAbility;
         public bool IsTargetSelfOnly => true;
         public int Enmity => 20;
         public EnmityAdjustmentRuleType EnmityAdjustmentType => EnmityAdjustmentRuleType.AllTaggedTargets;
@@ -148,7 +149,6 @@ namespace SWLOR.Game.Server.Perk.ForceControl
 
         public void OnConcentrationTick(NWCreature creature, NWObject target, int perkLevel, int tick)
         {
-
         }
     }
 }
