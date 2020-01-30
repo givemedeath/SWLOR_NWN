@@ -1,8 +1,11 @@
+using System;
 using System.Collections.Generic;
 using SWLOR.Game.Server.Enumeration;
 using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.NWScript.Enumerations;
+using SWLOR.Game.Server.NWScript;
 using Skill = SWLOR.Game.Server.Enumeration.Skill;
+using SWLOR.Game.Server.Service;
 
 namespace SWLOR.Game.Server.Perk.ForceSense
 {
@@ -10,11 +13,11 @@ namespace SWLOR.Game.Server.Perk.ForceSense
     {
         public PerkType PerkType => PerkType.Premonition;
         public string Name => "Premonition";
-        public bool IsActive => false;
-        public string Description => "The caster sees a short way into the future, allowing them to avoid an untimely fate.";
+        public bool IsActive => true;
+        public string Description => "The caster sees a short way into the future, allowing them to prepare to ward against their foes.";
         public PerkCategoryType Category => PerkCategoryType.ForceSense;
         public PerkCooldownGroup CooldownGroup => PerkCooldownGroup.Premonition;
-        public PerkExecutionType ExecutionType => PerkExecutionType.ForceAbility;
+        public PerkExecutionType ExecutionType => PerkExecutionType.ConcentrationAbility;
         public bool IsTargetSelfOnly => true;
         public int Enmity => 0;
         public EnmityAdjustmentRuleType EnmityAdjustmentType => EnmityAdjustmentRuleType.None;
@@ -101,26 +104,63 @@ namespace SWLOR.Game.Server.Perk.ForceSense
             {
                 1, new List<PerkFeat>
                 {
-                    new PerkFeat {Feat = Feat.Premonition1, BaseFPCost = 0, ConcentrationFPCost = 0, ConcentrationTickInterval = 0}
+                    new PerkFeat {Feat = Feat.Premonition1, BaseFPCost = 10, ConcentrationFPCost = 5, ConcentrationTickInterval = 6}
                 }
             },
             {
                 2, new List<PerkFeat>
                 {
-                    new PerkFeat {Feat = Feat.Premonition2, BaseFPCost = 0, ConcentrationFPCost = 0, ConcentrationTickInterval = 0}
+                    new PerkFeat {Feat = Feat.Premonition2, BaseFPCost = 10, ConcentrationFPCost = 6, ConcentrationTickInterval = 6}
                 }
             },
             {
                 3, new List<PerkFeat>
                 {
-                    new PerkFeat {Feat = Feat.Premonition3, BaseFPCost = 0, ConcentrationFPCost = 0, ConcentrationTickInterval = 0}
+                    new PerkFeat {Feat = Feat.Premonition3, BaseFPCost = 10, ConcentrationFPCost = 7, ConcentrationTickInterval = 6}
                 }
             },
         };
 
         public void OnConcentrationTick(NWCreature creature, NWObject target, int perkLevel, int tick)
         {
+            Effect effect;
+            float duration = 6.1f;
+            int concealment;
+            int hitpoints;
 
+            switch (perkLevel)
+            {
+
+                case 1:
+                    hitpoints = 10;
+                    effect = _.EffectTemporaryHitpoints(hitpoints);
+                    break;
+                case 2:
+                    hitpoints = 20;
+                    effect = _.EffectTemporaryHitpoints(hitpoints);
+                    break;
+                case 3:
+                    concealment = 5;
+                    hitpoints = 30;
+                    effect = _.EffectConcealment(concealment);
+                    effect = _.EffectLinkEffects(effect, _.EffectTemporaryHitpoints(hitpoints));
+                    break;
+                default:
+                    throw new ArgumentException(nameof(perkLevel) + " invalid. Value " + perkLevel + " is unhandled.");
+
+
+            }
+
+            _.ApplyEffectToObject(DurationType.Temporary, effect, creature, duration);
+            _.ApplyEffectToObject(DurationType.Temporary, _.EffectVisualEffect(Vfx.Vfx_Dur_Aura_Purple), creature, duration);
+
+            if (_.GetIsInCombat(creature))
+            {
+                if (creature.IsPlayer)
+                {
+                    SkillService.GiveSkillXP(creature.Object, Skill.ForceSense, (perkLevel * 50));
+                }
+            }
         }
     }
 }

@@ -5,7 +5,7 @@ using SWLOR.Game.Server.Service;
 
 namespace SWLOR.Game.Server.ChatCommand
 {
-    [CommandDetails("Tells you what concentration ability you have active. Follow with 'end' (no quotes) to turn your concentration ability off.", CommandPermissionType.Player)]
+    [CommandDetails("Tells you what concentration ability you have active. Follow with 'end' (no quotes) to turn your concentration ability off.", CommandPermissionType.Player | CommandPermissionType.DM | CommandPermissionType.Admin)]
     public class Concentration: IChatCommand
     {
         public void DoAction(NWPlayer user, NWObject target, NWLocation targetLocation, params string[] args)
@@ -37,7 +37,10 @@ namespace SWLOR.Game.Server.ChatCommand
         public bool RequiresTarget => false;
         public string ValidateArguments(NWPlayer user, params string[] args)
         {
-            return null;
+            if (!user.IsPlayer)
+                return "You can only toggle them on player.";
+
+            return string.Empty;
         }
     }
 }
