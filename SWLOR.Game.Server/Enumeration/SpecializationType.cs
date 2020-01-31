@@ -5,6 +5,8 @@
         None = 0,
         Guardian = 1,
         Consular = 2,
-        Sentinel = 3
+        Sentinel = 3,
+        ForceCloak = 4,
+        ForceDetection =5
     }
 }

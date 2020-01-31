@@ -11,7 +11,7 @@ namespace SWLOR.Game.Server.ChatCommand
     [CommandDetails("Sets the Force Specialization of the target player. 0 = None, 1 = Guardian, 2 = Consular, 3 = Sentinel.", CommandPermissionType.DM | CommandPermissionType.Admin)]
     public class SetForceSpecialization: IChatCommand
     {
-        private const int MaxAmount = 3;
+        private const int MaxAmount = 5;
 
         public void DoAction(NWPlayer user, NWObject target, NWLocation targetLocation, params string[] args)
         {
@@ -34,19 +34,19 @@ namespace SWLOR.Game.Server.ChatCommand
             // Missing an amount argument?
             if (args.Length <= 0)
             {
-                return "Please specify the Force Specialization to to on the target. 0 = None, 1 = Guardian, 2 = Consular, 3 = Sentinel." + MaxAmount;
+                return "Please specify the Force Specialization to to on the target. 0 = None, 1 = Guardian, 2 = Consular, 3 = Sentinel, 4+ See DM Forums" + MaxAmount;
             }
 
             // Can't parse the amount?
             if(!int.TryParse(args[0], out int amount))
             {
-                return "Please specify a valid valid parameter. 0 = None, 1 = Guardian, 2 = Consular, 3 = Sentinel.";
+                return "Please specify a valid valid parameter. 0 = None, 1 = Guardian, 2 = Consular, 3 = Sentinel, 4+ See DM Forums";
             }
 
             // Amount is outside of our allowed range?
             if (amount < 0 || amount > MaxAmount)
             {
-                return "Please specify a valid parameter. 0 = None, 1 = Guardian, 2 = Consular, 3 = Sentinel.";
+                return "Please specify a valid parameter. 0 = None, 1 = Guardian, 2 = Consular, 3 = Sentinel, 4+ See DM Forums";
             }
 
             return null;

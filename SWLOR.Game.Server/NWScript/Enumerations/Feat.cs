@@ -1157,6 +1157,7 @@
         Skewer = 1247,
         ForceInsight1 = 1248,
         ForceInsight2 = 1249,
-        ForceInsight3 = 1250
+        ForceInsight3 = 1250,
+        ForceCloak1 = 1251
     }
 }

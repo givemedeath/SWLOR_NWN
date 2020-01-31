@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using SWLOR.Game.Server.Enumeration;
 using SWLOR.Game.Server.GameObject;
@@ -8,19 +8,19 @@ using Skill = SWLOR.Game.Server.Enumeration.Skill;
 
 namespace SWLOR.Game.Server.Perk.ForceSense
 {
-    public class ForceDetection : IPerk
+    public class ForceCloak : IPerk
     {
-        public PerkType PerkType => PerkType.ForceDetection;
-        public string Name => "Force Detection";
+        public PerkType PerkType => PerkType.ForceCloak;
+        public string Name => "Force Cloak";
         public bool IsActive => true;
-        public string Description => "The caster senses nearby hidden creatures.";
-        public PerkCategoryType Category => PerkCategoryType.ForceSense;
-        public PerkCooldownGroup CooldownGroup => PerkCooldownGroup.ForceDetection;
+        public string Description => "The Force user is able to hide theirselves from view.";
+        public PerkCategoryType Category => PerkCategoryType.ForceAlter;
+        public PerkCooldownGroup CooldownGroup => PerkCooldownGroup.None;
         public PerkExecutionType ExecutionType => PerkExecutionType.ConcentrationAbility;
-        public bool IsTargetSelfOnly => false;
+        public bool IsTargetSelfOnly => true;
         public int Enmity => 0;
         public EnmityAdjustmentRuleType EnmityAdjustmentType => EnmityAdjustmentRuleType.None;
-        public ForceBalanceType ForceBalanceType => ForceBalanceType.Universal;
+        public ForceBalanceType ForceBalanceType => ForceBalanceType.Light;
         public Animation CastAnimation => Animation.Invalid;
 
         public string CanCastSpell(NWCreature oPC, NWObject oTarget, int spellTier)
@@ -75,7 +75,7 @@ namespace SWLOR.Game.Server.Perk.ForceSense
         public Dictionary<int, PerkLevel> PerkLevels => new Dictionary<int, PerkLevel>
         {
             {
-                1, new PerkLevel(2, "The caster gets improved detection of hidden creatures while they concentrate. DM Granted Ability.", SpecializationType.ForceDetection,
+                1, new PerkLevel(4, "The Force user is able to hide theirselves from view. DM Granted Ability", SpecializationType.ForceCloak,
                 new Dictionary<Skill, int>
                 {
                     { Skill.ForceSense, 0},
@@ -83,12 +83,13 @@ namespace SWLOR.Game.Server.Perk.ForceSense
             },
         };
 
+
         public Dictionary<int, List<PerkFeat>> PerkFeats { get; } = new Dictionary<int, List<PerkFeat>>
         {
             {
                 1, new List<PerkFeat>
                 {
-                    new PerkFeat {Feat = Feat.ForceDetection1, BaseFPCost = 0, ConcentrationFPCost = 5, ConcentrationTickInterval = 6}
+                    new PerkFeat {Feat = Feat.ForceCloak1, BaseFPCost = 10, ConcentrationFPCost = 5, ConcentrationTickInterval = 6}
                 }
             },
         };
@@ -101,7 +102,7 @@ namespace SWLOR.Game.Server.Perk.ForceSense
             switch (perkLevel)
             {
                 case 1:
-                    effect = _.EffectSeeInvisible();
+                    effect = _.EffectInvisibility(InvisibilityType.Normal);
                     break;
                 default:
                     throw new ArgumentException(nameof(perkLevel) + " invalid. Value " + perkLevel + " is unhandled.");

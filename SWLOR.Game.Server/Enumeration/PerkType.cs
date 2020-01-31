@@ -3,7 +3,7 @@
     public enum PerkType
     {
         None = 0,
-        //1 is free
+        ForceCloak = 1,
         FabricationBlueprints = 2, 
         ForceSpeed = 3,
         AbsorbEnergy = 4,
