@@ -28,11 +28,6 @@ namespace SWLOR.Game.Server.Conversation
             }
         }
 
-        private class Model
-        {
-            public List<Song> Songs { get; set; } = new List<Song>();
-        }
-
         private static readonly Dictionary<int, Song> _songs = new Dictionary<int, Song>();
         static Jukebox()
         {
@@ -61,7 +56,6 @@ namespace SWLOR.Game.Server.Conversation
 
         private static void LoadSongs()
         {
-            var model = new Model();
             const string File = "ambientmusic";
             int rowCount = NWNXUtil.Get2DARowCount(File);
 
@@ -79,7 +73,7 @@ namespace SWLOR.Game.Server.Conversation
                     displayName : 
                     _.GetStringByStrRef(Convert.ToInt32(description));
 
-                model.Songs.Add(new Song(row, name, resource));
+                _songs.Add(row, new Song(row, name, resource));
             }
         }
 
