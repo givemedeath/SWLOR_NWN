@@ -43,7 +43,7 @@ namespace SWLOR.Game.Server.Conversation
         {
             PlayerDialog dialog = new PlayerDialog("MainPage");
 
-            DialogPage mainPage = new DialogPage("Please select a song.\n\n((Music files are a separate download that must be installed manually. Refer to our website for downloading and installing these files: https://starwarsnwn.com/ ))"); // Responses dynamically generated
+            DialogPage mainPage = new DialogPage("Please select a song.\n\n"); // Responses dynamically generated
 
             dialog.AddPage("MainPage", mainPage);
             return dialog;
