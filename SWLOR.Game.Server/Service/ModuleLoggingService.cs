@@ -1,6 +1,7 @@
 ﻿using System;
 using NWN;
 using SWLOR.Game.Server.Data.Entity;
+using SWLOR.Game.Server.Enumeration;
 using SWLOR.Game.Server.Event.DM;
 using SWLOR.Game.Server.Event.Module;
 using SWLOR.Game.Server.Event.SWLOR;
@@ -24,8 +25,8 @@ namespace SWLOR.Game.Server.Service
             MessageHub.Instance.Subscribe<OnModuleNWNXChat>(message => OnModuleNWNXChat());
             MessageHub.Instance.Subscribe<OnModuleRespawn>(message => OnModuleRespawn());
             MessageHub.Instance.Subscribe<OnModuleDeath>(message => OnModuleDeath());
-            MessageHub.Instance.Subscribe<OnStoreBankItem>(message => OnStoreBankItem(message.Player, message.Entity));
-            MessageHub.Instance.Subscribe<OnRemoveBankItem>(message => OnRemoveBankItem(message.Player, message.Entity));
+            MessageHub.Instance.Subscribe<OnStoreBankItem>(message => OnStoreBankItem(message.Player, message.BankID, message.Entity));
+            MessageHub.Instance.Subscribe<OnRemoveBankItem>(message => OnRemoveBankItem(message.Player, message.BankID, message.Entity));
             MessageHub.Instance.Subscribe<OnStoreStructureItem>(message => OnStoreStructureItem(message.Player, message.Entity));
             MessageHub.Instance.Subscribe<OnRemoveStructureItem>(message => OnRemoveStructureItem(message.Player, message.Entity));
             MessageHub.Instance.Subscribe<OnPurchaseLand>(OnPurchaseLand);
@@ -216,15 +217,15 @@ namespace SWLOR.Game.Server.Service
             Audit.Write(AuditGroup.Death, details);
         }
 
-        private static void OnStoreBankItem(NWPlayer player, BankItem entity)
+        private static void OnStoreBankItem(NWPlayer player, Bank bankID, BankItem entity)
         {
-            var details = $"STORE ITEM - {GetPCPublicCDKey(player)} - {GetPCPlayerName(player)} - Bank #{entity.BankID} - {player.Name} - Item ID {entity.ItemID} - Item Tag {entity.ItemTag} - Item Resref {entity.ItemResref}";
+            var details = $"STORE ITEM - {GetPCPublicCDKey(player)} - {GetPCPlayerName(player)} - Bank #{bankID} - {player.Name} - Item ID {entity.ItemID} - Item Tag {entity.ItemTag} - Item Resref {entity.ItemResref}";
             Audit.Write(AuditGroup.Bank, details);
         }
 
-        private static void OnRemoveBankItem(NWPlayer player, BankItem entity)
+        private static void OnRemoveBankItem(NWPlayer player, Bank bankID, BankItem entity)
         {
-            var details = $"REMOVE ITEM - {GetPCPublicCDKey(player)} - {GetPCPlayerName(player)} - Bank #{entity.BankID} - {player.Name} - Item ID {entity.ItemID} - Item Tag {entity.ItemTag} - Item Resref {entity.ItemResref}";
+            var details = $"REMOVE ITEM - {GetPCPublicCDKey(player)} - {GetPCPlayerName(player)} - Bank #{bankID} - {player.Name} - Item ID {entity.ItemID} - Item Tag {entity.ItemTag} - Item Resref {entity.ItemResref}";
             Audit.Write(AuditGroup.Bank, details);
         }
 

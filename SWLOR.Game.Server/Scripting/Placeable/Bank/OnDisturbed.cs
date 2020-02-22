@@ -36,6 +36,7 @@ namespace SWLOR.Game.Server.Scripting.Placeable.Bank
             int itemCount = terminal.InventoryItems.Count();
             int itemLimit = terminal.GetLocalInt("BANK_LIMIT");
             if (itemLimit <= 0) itemLimit = 20;
+            var dbPlayer = DataService.Player.GetByID(player.GlobalID);
 
             if (disturbType == InventoryDisturbType.Added)
             {
@@ -61,13 +62,12 @@ namespace SWLOR.Game.Server.Scripting.Placeable.Bank
                         ItemResref = item.Resref,
                         ItemID = item.GlobalID.ToString(),
                         ItemObject = SerializationService.Serialize(item),
-                        BankID = bankID,
-                        PlayerID = player.GlobalID,
                         DateStored = DateTime.UtcNow
                     };
 
-                    DataService.Set(itemEntity);
-                    MessageHub.Instance.Publish(new OnStoreBankItem(player, itemEntity));
+                    dbPlayer.BankItems[bankID][item.GlobalID] = itemEntity;
+                    DataService.Set(dbPlayer);
+                    MessageHub.Instance.Publish(new OnStoreBankItem(player, bankID, itemEntity));
                 }
             }
             else if (disturbType == InventoryDisturbType.Removed)
@@ -78,9 +78,19 @@ namespace SWLOR.Game.Server.Scripting.Placeable.Bank
                 }
                 else
                 {
-                    var record = DataService.BankItem.GetByItemID(item.GlobalID.ToString());
-                    DataService.Delete(record);
-                    MessageHub.Instance.Publish(new OnRemoveBankItem(player, record));
+                    // Dupe the bank item so we can send it off in an event after we remove the actual one.
+                    var eventBankItem = new BankItem
+                    {
+                        DateStored = dbPlayer.BankItems[bankID][item.GlobalID].DateStored,
+                        ItemID = dbPlayer.BankItems[bankID][item.GlobalID].ItemID,
+                        ItemName = dbPlayer.BankItems[bankID][item.GlobalID].ItemName,
+                        ItemObject = dbPlayer.BankItems[bankID][item.GlobalID].ItemObject,
+                        ItemResref = dbPlayer.BankItems[bankID][item.GlobalID].ItemResref,
+                        ItemTag = dbPlayer.BankItems[bankID][item.GlobalID].ItemTag
+                    };
+                    dbPlayer.BankItems[bankID].Remove(item.GlobalID);
+                    DataService.Set(dbPlayer);
+                    MessageHub.Instance.Publish(new OnRemoveBankItem(player, bankID, eventBankItem));
                 }
             }
 

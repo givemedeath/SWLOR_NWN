@@ -36,6 +36,7 @@ namespace SWLOR.Game.Server.Data.Entity
             ObjectVisibilities = new Dictionary<string, bool>();
             ImpoundedItems = new Dictionary<Guid, PCImpoundedItem>();
             QuestStatuses = new Dictionary<int, PCQuestStatus>();
+            BankItems = new Dictionary<Bank, Dictionary<Guid, BankItem>>();
         }
 
         [Key]
@@ -171,6 +172,8 @@ namespace SWLOR.Game.Server.Data.Entity
         public Dictionary<Guid, PCImpoundedItem> ImpoundedItems { get; set; }
         [JsonProperty]
         public Dictionary<int, PCQuestStatus> QuestStatuses { get; set; }
+        [JsonProperty]
+        public Dictionary<Bank, Dictionary<Guid, BankItem>> BankItems { get; set; }
     }
 
     [JsonObject(MemberSerialization.OptIn)]
@@ -253,5 +256,22 @@ namespace SWLOR.Game.Server.Data.Entity
             Remaining = remaining;
             MustBeCraftedByPlayer = mustBeCraftedByPlayer;
         }
+    }
+
+    [JsonObject(MemberSerialization.OptIn)]
+    public class BankItem
+    {
+        [JsonProperty]
+        public string ItemID { get; set; }
+        [JsonProperty]
+        public string ItemName { get; set; }
+        [JsonProperty]
+        public string ItemTag { get; set; }
+        [JsonProperty]
+        public string ItemResref { get; set; }
+        [JsonProperty]
+        public string ItemObject { get; set; }
+        [JsonProperty]
+        public DateTime DateStored { get; set; }
     }
 }

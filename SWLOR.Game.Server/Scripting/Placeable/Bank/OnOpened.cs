@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using NWN;
 using SWLOR.Game.Server.Data.Entity;
@@ -35,8 +36,12 @@ namespace SWLOR.Game.Server.Scripting.Placeable.Bank
                 return;
             }
 
-            var bankItems = DataService.BankItem.GetAllByPlayerIDAndBankID(player.GlobalID, bankID);
-            foreach (BankItem item in bankItems.Where(x => x.PlayerID == player.GlobalID))
+            var dbPlayer = DataService.Player.GetByID(player.GlobalID);
+            if(!dbPlayer.BankItems.ContainsKey(bankID))
+                dbPlayer.BankItems[bankID] = new Dictionary<Guid, BankItem>();
+
+            var bankItems = dbPlayer.BankItems[bankID];
+            foreach (BankItem item in bankItems.Values)
             {
                 SerializationService.DeserializeItem(item.ItemObject, terminal);
             }
