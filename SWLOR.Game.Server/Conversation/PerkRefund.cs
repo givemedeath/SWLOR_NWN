@@ -199,13 +199,15 @@ namespace SWLOR.Game.Server.Conversation
             
             dbPlayer.DatePerkRefundAvailable = DateTime.UtcNow.AddHours(24);
             RemovePerkFeat(perk);
+            dbPlayer.UnallocatedSP += refundAmount;
+            dbPlayer.Perks.Remove(model.Perk);
+            DataService.Set(dbPlayer);
+
             CustomEffectService.RemoveStance(GetPC());
             PlayerStatService.ApplyStatChanges(GetPC(), null);
 
-            dbPlayer.UnallocatedSP += refundAmount;
 
             Audit.Write(AuditGroup.PerkRefund, $"REFUND - {player.GlobalID} - Refunded Date {DateTime.UtcNow} - Level {pcPerkLevel} - PerkID {model.Perk}");
-            DataService.Set(dbPlayer);
 
             // If perk refunded was one granted by a background bonus, we need to reapply it.
             ReapplyBackgroundBonus(model.Perk);
