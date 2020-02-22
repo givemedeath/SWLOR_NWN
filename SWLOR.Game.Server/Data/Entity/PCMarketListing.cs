@@ -14,6 +14,7 @@ namespace SWLOR.Game.Server.Data.Entity
         }
 
         [Key]
+        [JsonProperty]
         public Guid ID { get; set; }
         [JsonProperty]
         public Guid SellerPlayerID { get; set; }
