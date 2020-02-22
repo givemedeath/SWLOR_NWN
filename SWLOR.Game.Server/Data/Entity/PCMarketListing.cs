@@ -30,12 +30,6 @@ namespace SWLOR.Game.Server.Data.Entity
         [JsonProperty]
         public DateTime DateExpires { get; set; }
         [JsonProperty]
-        public DateTime? DateSold { get; set; }
-        [JsonProperty]
-        public DateTime? DateRemoved { get; set; }
-        [JsonProperty]
-        public Guid? BuyerPlayerID { get; set; }
-        [JsonProperty]
         public string ItemID { get; set; }
         [JsonProperty]
         public string ItemName { get; set; }

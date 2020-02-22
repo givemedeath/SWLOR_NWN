@@ -12,6 +12,7 @@
         StructureStorage,
         Territory,
         PerkRefund,
-        BugReport
+        BugReport,
+        MarketListing
     }
 }

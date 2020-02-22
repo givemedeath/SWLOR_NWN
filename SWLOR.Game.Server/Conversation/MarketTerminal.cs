@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using NWN;
 using SWLOR.Game.Server.Data.Entity;
 using SWLOR.Game.Server.Enumeration;
 using SWLOR.Game.Server.Extension;
 using SWLOR.Game.Server.GameObject;
+using SWLOR.Game.Server.Logging;
 using SWLOR.Game.Server.NWScript;
 using SWLOR.Game.Server.NWScript.Enumerations;
 using SWLOR.Game.Server.Service;
@@ -230,24 +232,30 @@ namespace SWLOR.Game.Server.Conversation
 
             NWPlaceable terminal = NWGameObject.OBJECT_SELF;
             var marketRegionID = MarketService.GetMarketRegionID(terminal);
-            var validCategories = DataService.PCMarketListing
-                .GetAllByMarketRegionID(marketRegionID)
-                .Where(x => x.DateExpires > DateTime.UtcNow &&
-                            x.DateSold == null &&
-                            x.DateRemoved == null)
-                .Select(s => s.MarketCategoryID)
-                .Distinct();
 
-            IEnumerable<MarketCategory> categories = Enum.GetValues(typeof(MarketCategory)).Cast<MarketCategory>()
-                .Where(x => validCategories.Contains(x))
-                .OrderBy(o => o.GetDescriptionAttribute());
-
+            // Retrieve distinct market category IDs based on listings which are still active (not expired)
+            var marketListings = DataService.PCMarketListing.GetAllByMarketRegionID(marketRegionID);
+            var now = DateTime.UtcNow;
+            var addedCategories = new HashSet<MarketCategory>();
             ClearPageResponses("BrowseByCategoryPage");
             AddResponseToPage("BrowseByCategoryPage", ColorTokenService.Green("Refresh"), true, -1);
-            foreach (var category in categories)
+            foreach (var listing in marketListings)
             {
-                if (category == MarketCategory.Invalid) continue;
-                AddResponseToPage("BrowseByCategoryPage", category.GetDescriptionAttribute(), true, category);
+                // Invalid market category ID
+                if (listing.MarketCategoryID == MarketCategory.Invalid)
+                    continue;
+
+                // Listing has already expired.
+                if (listing.DateExpires < now)
+                    continue;
+
+                // Category already added.
+                if (addedCategories.Contains(listing.MarketCategoryID))
+                    continue;
+
+                var categoryName = MarketService.GetMarketCategoryName(listing.MarketCategoryID);
+                AddResponseToPage("BrowseByCategoryPage", categoryName, true, listing.MarketCategoryID);
+                addedCategories.Add(listing.MarketCategoryID);
             }
         }
 
@@ -280,9 +288,7 @@ namespace SWLOR.Game.Server.Conversation
             var marketRegionID = MarketService.GetMarketRegionID(terminal);
             IEnumerable<PCMarketListing> listings = DataService.PCMarketListing
                 .GetAllByMarketRegionID(marketRegionID)
-                .Where(x => x.DateExpires > DateTime.UtcNow &&
-                            x.DateSold == null &&
-                            x.DateRemoved == null);
+                .Where(x => x.DateExpires > DateTime.UtcNow);
             IEnumerable<Guid> playerIDs = listings.Select(s => s.SellerPlayerID).Distinct();
             IEnumerable<Player> players = DataService.Player.GetAllByIDs(playerIDs)
                 .OrderBy(o => o.CharacterName);
@@ -327,9 +333,7 @@ namespace SWLOR.Game.Server.Conversation
                 listings = DataService.PCMarketListing
                     .GetAllByMarketRegionID(marketRegionID)
                     .Where(x => x.DateExpires > now &&
-                                x.MarketCategoryID == model.BrowseCategoryID &&
-                                x.DateSold == null &&
-                                x.DateRemoved == null);
+                                x.MarketCategoryID == model.BrowseCategoryID);
             }
             // Pull items being sold by a specific player
             else
@@ -337,9 +341,7 @@ namespace SWLOR.Game.Server.Conversation
                 listings = DataService.PCMarketListing
                     .GetAllByMarketRegionID(marketRegionID)
                     .Where(x => x.DateExpires > now &&
-                                x.SellerPlayerID == model.BrowsePlayerID &&
-                                x.DateSold == null &&
-                                x.DateRemoved == null);
+                                x.SellerPlayerID == model.BrowsePlayerID);
             }
 
             // Build the response list.
@@ -379,7 +381,7 @@ namespace SWLOR.Game.Server.Conversation
             // If the item no longer exists on the market (expired, bought, or listing removed)
             // notify the player and refresh the item list page.
             var listing = DataService.PCMarketListing.GetByIDOrDefault(listingID);
-            if (listing == null || listing.DateSold != null || listing.DateExpires <= DateTime.UtcNow)
+            if (listing == null || listing.DateExpires <= DateTime.UtcNow)
             {
                 LoadItemListPage();
                 player.FloatingText("Unfortunately, that item is no longer available.");
@@ -432,7 +434,7 @@ namespace SWLOR.Game.Server.Conversation
             NWPlaceable terminal = GetDialogTarget().Object;
             
             // Item was removed, sold, or expired.
-            if (listing == null || listing.DateSold != null || listing.DateExpires <= DateTime.UtcNow)
+            if (listing == null || listing.DateExpires <= DateTime.UtcNow)
             {
                 LoadItemListPage();
                 ChangePage("ItemListPage", false);
@@ -472,10 +474,9 @@ namespace SWLOR.Game.Server.Conversation
                         // Give the item to the buyer.
                         SerializationService.DeserializeItem(listing.ItemObject, buyer);
 
-                        // Mark the listing as sold.
-                        listing.DateSold = DateTime.UtcNow;
-                        listing.BuyerPlayerID = buyer.GlobalID;
-                        DataService.Set(listing);
+                        // Audit the listing as sold and delete the entry.
+                        Audit.Write(AuditGroup.MarketListing, $"Item sold: Buyer: {buyer.GlobalID} - {buyer.Name}, Date: {DateTime.UtcNow}, Item: Seller = {listing.SellerPlayerID} - {listing.DatePosted} - {listing.ItemID} - {listing.ItemName} - {listing.ItemTag} - {listing.ItemResref} - x{listing.ItemStackSize} - RL{listing.ItemRecommendedLevel} - Expiration: {listing.DateExpires}");
+                        DataService.Delete(listing);
                         
                         model.IsConfirming = false;
                         SetResponseText("ItemDetailsPage", 2, "Buy Item");
@@ -506,8 +507,7 @@ namespace SWLOR.Game.Server.Conversation
                 int numberItemsSelling = DataService
                     .PCMarketListing
                     .GetAllBySellerPlayerID(player.GlobalID)
-                    .Count(x => x.DateRemoved == null &&
-                                x.DateSold == null);
+                    .Count();
                 bool canSellAnotherItem = numberItemsSelling < MarketService.NumberOfItemsAllowedToBeSoldAtATime;
                 header = ColorTokenService.Green("Galactic Trade Network - Sell Item") + "\n\n";
                 header += ColorTokenService.Green("Items Selling: ") + numberItemsSelling + " / " + MarketService.NumberOfItemsAllowedToBeSoldAtATime + "\n\n";
@@ -749,8 +749,6 @@ namespace SWLOR.Game.Server.Conversation
                 MarketCategoryID = model.ItemMarketCategoryID,
                 DatePosted = DateTime.UtcNow,
                 DateExpires = DateTime.UtcNow.AddDays(model.LengthDays),
-                DateSold = null,
-                BuyerPlayerID = null,
                 ItemID = model.ItemID.ToString(),
                 ItemName = model.ItemName,
                 ItemTag = model.ItemTag,
@@ -776,9 +774,7 @@ namespace SWLOR.Game.Server.Conversation
             var player = GetPC();
             var regionID = MarketService.GetMarketRegionID(NWGameObject.OBJECT_SELF);
             var listings = DataService.PCMarketListing.GetAllBySellerPlayerID(player.GlobalID)
-                .Where(x => x.DateSold == null &&
-                    x.DateRemoved == null &&
-                    x.MarketRegionID == regionID);
+                .Where(x => x.MarketRegionID == regionID);
             
             ClearPageResponses("MarketListingsPage");
             foreach (var listing in listings)
@@ -866,11 +862,10 @@ namespace SWLOR.Game.Server.Conversation
                     break;
                 case 2: // Remove Listing
 
-                    var listing = DataService.PCMarketListing.GetByID(model.ManageListingID);
+                    var listing = DataService.PCMarketListing.GetByIDOrDefault(model.ManageListingID);
 
                     // Start by verifying the item is still in a valid state.
-                    if (listing.DateRemoved != null ||
-                        listing.DateSold != null)
+                    if (listing == null)
                     {
                         player.FloatingText("That item is no longer available. It may have been sold or removed from the listing.");
                         ClearModelData();
@@ -886,8 +881,8 @@ namespace SWLOR.Game.Server.Conversation
                         model.IsConfirming = false;
                         
                         SerializationService.DeserializeItem(listing.ItemObject, player);
-                        listing.DateRemoved = DateTime.UtcNow;
-                        DataService.Set(listing);
+                        Audit.Write(AuditGroup.MarketListing, $"Item removed: Date: {DateTime.UtcNow}, Item: Seller = {listing.SellerPlayerID} - {listing.DatePosted} - {listing.ItemID} - {listing.ItemName} - {listing.ItemTag} - {listing.ItemResref} - x{listing.ItemStackSize} - RL{listing.ItemRecommendedLevel} - Expiration: {listing.DateExpires}");
+                        DataService.Delete(listing);
 
                         ClearModelData();
                         LoadManageMarketListingsPage();

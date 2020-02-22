@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using NWN;
 using SWLOR.Game.Server.Data.Entity;
@@ -19,13 +20,37 @@ namespace SWLOR.Game.Server.Service
 {
     public static class MarketService
     {
-        // Couldn't get any more specific than this. :)
         public static int NumberOfItemsAllowedToBeSoldAtATime => 50;
+        private static readonly Dictionary<MarketCategory, string> _marketCategoryNames = new Dictionary<MarketCategory, string>();
 
         public static void SubscribeEvents()
         {
+            MessageHub.Instance.Subscribe<OnModuleLoad>(message => OnModuleLoad());
             MessageHub.Instance.Subscribe<OnModuleEnter>(message => OnModuleEnter());
             MessageHub.Instance.Subscribe<OnModuleNWNXChat>(message => OnModuleNWNXChat());
+        }
+
+        /// <summary>
+        /// Caches market category names for quicker look-ups later.
+        /// </summary>
+        private static void OnModuleLoad()
+        {
+            IEnumerable<MarketCategory> categories = Enum.GetValues(typeof(MarketCategory)).Cast<MarketCategory>().ToList();
+
+            foreach (var category in categories)
+            {
+                _marketCategoryNames[category] = category.GetDescriptionAttribute();
+            }
+        }
+
+        /// <summary>
+        /// Retrieves the name of a market category.
+        /// </summary>
+        /// <param name="category">The category to retrieve the name of.</param>
+        /// <returns>The name of a market category</returns>
+        public static string GetMarketCategoryName(MarketCategory category)
+        {
+            return _marketCategoryNames[category];
         }
 
         /// <summary>
