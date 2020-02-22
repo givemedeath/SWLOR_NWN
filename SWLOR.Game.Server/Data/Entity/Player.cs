@@ -34,6 +34,8 @@ namespace SWLOR.Game.Server.Data.Entity
             Perks = new Dictionary<PerkType, int>();
             OverflowItems = new Dictionary<Guid, string>();
             ObjectVisibilities = new Dictionary<string, bool>();
+            ImpoundedItems = new Dictionary<Guid, PCImpoundedItem>();
+            QuestStatuses = new Dictionary<int, PCQuestStatus>();
         }
 
         [Key]
@@ -165,6 +167,10 @@ namespace SWLOR.Game.Server.Data.Entity
         public Dictionary<Guid, string> OverflowItems { get; set; }
         [JsonProperty]
         public Dictionary<string, bool> ObjectVisibilities { get; set; }
+        [JsonProperty]
+        public Dictionary<Guid, PCImpoundedItem> ImpoundedItems { get; set; }
+        [JsonProperty]
+        public Dictionary<int, PCQuestStatus> QuestStatuses { get; set; }
     }
 
     [JsonObject(MemberSerialization.OptIn)]
@@ -195,5 +201,57 @@ namespace SWLOR.Game.Server.Data.Entity
         public double PositionY { get; set; }
         [JsonProperty]
         public string NoteText { get; set; }
+    }
+
+    [JsonObject(MemberSerialization.OptIn)]
+    public class PCImpoundedItem
+    {
+        [JsonProperty]
+        public string ItemName { get; set; }
+        [JsonProperty]
+        public string ItemTag { get; set; }
+        [JsonProperty]
+        public string ItemResref { get; set; }
+        [JsonProperty]
+        public string ItemObject { get; set; }
+        [JsonProperty]
+        public DateTime DateImpounded { get; set; }
+    }
+
+
+    [JsonObject(MemberSerialization.OptIn)]
+    public class PCQuestStatus
+    {
+        public PCQuestStatus()
+        {
+            KillTargets = new Dictionary<NPCGroup, int>();
+            Items = new Dictionary<string, PCQuestItemProgress>();
+        }
+        [JsonProperty]
+        public int QuestState { get; set; }
+        [JsonProperty]
+        public DateTime? CompletionDate { get; set; }
+        [JsonProperty]
+        public int TimesCompleted { get; set; }
+
+        [JsonProperty]
+        public Dictionary<NPCGroup, int> KillTargets { get; set; }
+        [JsonProperty]
+        public Dictionary<string, PCQuestItemProgress> Items { get; set; }
+    }
+
+    [JsonObject(MemberSerialization.OptIn)]
+    public class PCQuestItemProgress
+    {
+        [JsonProperty]
+        public int Remaining { get; set; }
+        [JsonProperty]
+        public bool MustBeCraftedByPlayer { get; set; }
+
+        public PCQuestItemProgress(int remaining, bool mustBeCraftedByPlayer)
+        {
+            Remaining = remaining;
+            MustBeCraftedByPlayer = mustBeCraftedByPlayer;
+        }
     }
 }

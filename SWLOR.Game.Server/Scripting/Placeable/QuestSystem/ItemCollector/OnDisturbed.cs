@@ -38,7 +38,8 @@ namespace SWLOR.Game.Server.Scripting.Placeable.QuestSystem.ItemCollector
             if (disturbType == InventoryDisturbType.Added)
             {
                 int questID = container.GetLocalInt("QUEST_ID");
-                PCQuestStatus status = DataService.PCQuestStatus.GetByPlayerAndQuestID(player.GlobalID, questID);
+                var dbPlayer = DataService.Player.GetByID(player.GlobalID);
+                PCQuestStatus status = dbPlayer.QuestStatuses[questID];
                 PCQuestItemProgress progress = status.Items.ContainsKey(item.Resref) ?
                     status.Items[item.Resref] :
                     null;
@@ -56,7 +57,7 @@ namespace SWLOR.Game.Server.Scripting.Placeable.QuestSystem.ItemCollector
                 else
                 {
                     progress.Remaining--;
-                    DataService.Set(status);
+                    DataService.Set(dbPlayer);
 
                     // Recalc the remaining items needed.
                     int remainingCount = status.Items.Sum(x => x.Value.Remaining);

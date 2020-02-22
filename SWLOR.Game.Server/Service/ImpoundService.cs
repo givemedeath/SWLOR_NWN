@@ -27,22 +27,32 @@ namespace SWLOR.Game.Server.Service
             }
 
             var now = DateTime.UtcNow;
-            var impoundedItems = DataService.PCImpoundedItem.GetAll()
-                .Where(x => (now - x.DateImpounded).TotalDays >= appSettings.ImpoundPruneDays)
-                .ToList();
 
-            Console.WriteLine($"{impoundedItems.Count} impounded items are older than {appSettings.ImpoundPruneDays} days. Pruning them now.");
-            foreach (var item in impoundedItems)
+            var players = DataService.Player.GetAll();
+            int itemsPruned = 0;
+            foreach (var player in players)
             {
-                DataService.Delete(item);
+                for (int x = player.ImpoundedItems.Count-1; x >= 0; x--)
+                {
+                    var item = player.ImpoundedItems.ElementAt(x);
+                    if((now - item.Value.DateImpounded).TotalDays >= appSettings.ImpoundPruneDays)
+                    {
+                        player.ImpoundedItems.Remove(item.Key);
+                        itemsPruned++;
+                    }
+                }
+
+                DataService.Set(player);
             }
-            Console.WriteLine($"{impoundedItems.Count} impounded items have been pruned.");
+
+            Console.WriteLine($"{itemsPruned} impounded items have been pruned.");
         }
 
         public static void Impound(Guid pcBaseStructureID, PCBaseStructureItem pcBaseStructureItem)
         {
             var pcBaseStructure = DataService.PCBaseStructure.GetByID(pcBaseStructureID);
             var pcBase = DataService.PCBase.GetByID(pcBaseStructure.PCBaseID);
+            var player = DataService.Player.GetByID(pcBase.PlayerID);
 
             var impoundItem = new PCImpoundedItem
             {
@@ -50,24 +60,26 @@ namespace SWLOR.Game.Server.Service
                 ItemName = pcBaseStructureItem.ItemName,
                 ItemResref = pcBaseStructureItem.ItemResref,
                 ItemObject = pcBaseStructureItem.ItemObject,
-                ItemTag = pcBaseStructureItem.ItemTag,
-                PlayerID = pcBase.PlayerID
+                ItemTag = pcBaseStructureItem.ItemTag
             };
-            DataService.Set(impoundItem);
+            player.ImpoundedItems.Add(Guid.NewGuid(), impoundItem);
+            DataService.Set(player);
         }
 
         public static void Impound(Guid playerID, NWItem item)
         {
+            var player = DataService.Player.GetByID(playerID);
             PCImpoundedItem structureImpoundedItem = new PCImpoundedItem
             {
                 DateImpounded = DateTime.UtcNow,
-                PlayerID = playerID,
                 ItemObject = SerializationService.Serialize(item),
                 ItemTag = item.Tag,
                 ItemResref = item.Resref,
                 ItemName = item.Name
             };
-            DataService.Set(structureImpoundedItem);
+
+            player.ImpoundedItems.Add(Guid.NewGuid(), structureImpoundedItem);
+            DataService.Set(player);
         }
     }
 }

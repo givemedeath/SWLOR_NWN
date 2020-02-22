@@ -129,12 +129,13 @@ namespace SWLOR.Game.Server.Service
 
             if (!oPC.IsPlayer) return;
 
-            List<PCQuestStatus> pcQuests = DataService.PCQuestStatus.GetAllByPlayerID(oPC.GlobalID).Where(x => x.CompletionDate == null).ToList();
+            var dbPlayer = DataService.Player.GetByID(oPC.GlobalID);
+            var pcQuests = dbPlayer.QuestStatuses; 
 
-            foreach (PCQuestStatus pcQuest in pcQuests)
+            foreach (var pcQuest in dbPlayer.QuestStatuses)
             {
-                var quest = _quests[pcQuest.QuestID];
-                AddJournalQuestEntry(quest.JournalTag, pcQuest.QuestState, oPC.Object, false);
+                var quest = _quests[pcQuest.Key];
+                AddJournalQuestEntry(quest.JournalTag, pcQuest.Value.QuestState, oPC.Object, false);
             }
         }
 
@@ -172,13 +173,17 @@ namespace SWLOR.Game.Server.Service
                 }
 
                 var playerID = oPC.GlobalID;
+                var dbPlayer = DataService.Player.GetByID(playerID);
                 var questsWithKillTarget = _killTargetsByQuest.ContainsKey(npcGroupID) ?
                     _killTargetsByQuest[npcGroupID] :
                     new HashSet<int>();
 
                 foreach (var questID in questsWithKillTarget)
                 {
-                    var pcQuest = DataService.PCQuestStatus.GetByPlayerAndQuestIDOrDefault(playerID, questID);
+                    var pcQuest = dbPlayer.QuestStatuses.ContainsKey(questID) ?
+                        dbPlayer.QuestStatuses[questID] :
+                        null;
+
                     if (pcQuest == null) continue;
                     if (!pcQuest.KillTargets.ContainsKey(npcGroupID) ||
                         pcQuest.KillTargets[npcGroupID] <= 0) continue;
@@ -194,14 +199,14 @@ namespace SWLOR.Game.Server.Service
                         playersToAdvance.Add(new KeyValuePair<NWPlayer, int>(oPC, quest.QuestID));
                     }
 
-                    DataService.Set(pcQuest);
-
                     var pc = oPC;
                     DelayCommand(1.0f, () =>
                     {
                         pc.SendMessage(updateMessage);
                     });
                 }
+
+                DataService.Set(dbPlayer);
                 oPC = GetNextFactionMember(oKiller);
             }
 
@@ -237,9 +242,12 @@ namespace SWLOR.Game.Server.Service
                 return;
             }
 
-            PCQuestStatus pcQuestStatus = DataService.PCQuestStatus.GetByPlayerAndQuestIDOrDefault(player.GlobalID, questID);
+            var dbPlayer = DataService.Player.GetByID(player.GlobalID);
+            PCQuestStatus pcQuestStatus = dbPlayer.QuestStatuses.ContainsKey(questID) ?
+                dbPlayer.QuestStatuses[questID] : 
+                null;
+            
             if (pcQuestStatus == null) return;
-
 
             if (pcQuestStatus.QuestState != questState)
             {
@@ -296,7 +304,10 @@ namespace SWLOR.Game.Server.Service
         {
             if (!oPC.IsPlayer) return;
 
-            PCQuestStatus pcStatus = DataService.PCQuestStatus.GetByPlayerAndQuestIDOrDefault(oPC.GlobalID, questID);
+            var dbPlayer = DataService.Player.GetByID(oPC.GlobalID);
+            PCQuestStatus pcStatus = dbPlayer.QuestStatuses.ContainsKey(questID) ?
+                dbPlayer.QuestStatuses[questID] :
+                null;
 
             if (pcStatus == null)
             {

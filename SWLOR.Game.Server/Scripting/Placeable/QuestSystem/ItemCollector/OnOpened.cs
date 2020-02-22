@@ -19,7 +19,12 @@ namespace SWLOR.Game.Server.Scripting.Placeable.QuestSystem.ItemCollector
 
             NWPlayer oPC = (_.GetLastOpenedBy());
             int questID = container.GetLocalInt("QUEST_ID");
-            PCQuestStatus status = DataService.PCQuestStatus.GetByPlayerAndQuestID(oPC.GlobalID, questID);
+
+            var dbPlayer = DataService.Player.GetByID(oPC.GlobalID);
+            var status = dbPlayer.QuestStatuses.ContainsKey(questID) ?
+                dbPlayer.QuestStatuses[questID] :
+                null;
+
 
             oPC.FloatingText("Please place the items you would like to turn in for this quest into the container. If you want to cancel this process, move away from the container.");
 

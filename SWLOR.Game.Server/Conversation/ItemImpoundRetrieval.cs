@@ -31,12 +31,13 @@ namespace SWLOR.Game.Server.Conversation
         private void LoadMainPage()
         {
             var player = GetPC();
-            var items = DataService.PCImpoundedItem.GetAllByPlayerIDAndNotRetrieved(player.GlobalID);
+            var dbPlayer = DataService.Player.GetByID(player.GlobalID);
+            var items = dbPlayer.ImpoundedItems;
 
             ClearPageResponses("MainPage");
             foreach (var item in items)
             {
-                AddResponseToPage("MainPage", item.ItemName, true, item.ID);
+                AddResponseToPage("MainPage", item.Value.ItemName, true, item.Key);
             }
         }
 
@@ -49,17 +50,12 @@ namespace SWLOR.Game.Server.Conversation
             }
 
             var response = GetResponseByID("MainPage", responseID);
-            Guid pcImpoundedItemID = (Guid)response.CustomData;
-            var item = DataService.PCImpoundedItem.GetByID(pcImpoundedItemID);
+            var itemId = (Guid)response.CustomData;
+            var dbPlayer = DataService.Player.GetByID(player.GlobalID);
+            var item = dbPlayer.ImpoundedItems[itemId];
 
-            if (item.DateRetrieved != null)
-            {
-                player.FloatingText("You have already retrieved that item.");
-                return;
-            }
-
-            item.DateRetrieved = DateTime.UtcNow;
-            DataService.Set(item);
+            dbPlayer.ImpoundedItems.Remove(itemId);
+            DataService.Set(dbPlayer);
             SerializationService.DeserializeItem(item.ItemObject, player);
             _.TakeGoldFromCreature(50, player, true);
 

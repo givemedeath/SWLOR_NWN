@@ -774,6 +774,7 @@ namespace SWLOR.Game.Server.Conversation
                 }
 
                 var items = controlTower.Items;
+                var owner = DataService.Player.GetByID(pcBase.PlayerID);
 
                 while (items.Count > maxResources)
                 {
@@ -781,7 +782,6 @@ namespace SWLOR.Game.Server.Conversation
 
                     var impoundItem = new PCImpoundedItem
                     {
-                        PlayerID = pcBase.PlayerID,
                         ItemResref = item.Value.ItemResref,
                         ItemObject = item.Value.ItemObject,
                         DateImpounded = DateTime.UtcNow,
@@ -789,13 +789,12 @@ namespace SWLOR.Game.Server.Conversation
                         ItemTag = item.Value.ItemTag
                     };
 
-
-                    DataService.Set(impoundItem);
+                    owner.ImpoundedItems.Add(Guid.NewGuid(), impoundItem);
                     GetPC().SendMessage(item.Value.ItemName + " has been impounded by the planetary government because your base ran out of space to store resources. The owner of the base will need to retrieve it.");
-
                     controlTower.Items.Remove(item.Key);
                 }
 
+                DataService.Set(owner);
                 DataService.Set(controlTower);
             }
 

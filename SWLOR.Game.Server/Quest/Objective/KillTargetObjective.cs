@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using SWLOR.Game.Server.Data.Entity;
-using SWLOR.Game.Server.Enumeration;
+﻿using SWLOR.Game.Server.Enumeration;
 using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.Quest.Contracts;
 using SWLOR.Game.Server.Service;
@@ -20,16 +18,17 @@ namespace SWLOR.Game.Server.Quest.Objective
 
         public void Initialize(NWPlayer player, int questID)
         {
-            var status = DataService.PCQuestStatus.GetByPlayerAndQuestID(player.GlobalID, questID);
+            var dbPlayer = DataService.Player.GetByID(player.GlobalID);
+            var status = dbPlayer.QuestStatuses[questID];
             status.KillTargets[Group] = _amount;
             
-            DataService.Set(status);
-
+            DataService.Set(dbPlayer);
         }
 
         public bool IsComplete(NWPlayer player, int questID)
         {
-            var status = DataService.PCQuestStatus.GetByPlayerAndQuestID(player.GlobalID, questID);
+            var dbPlayer = DataService.Player.GetByID(player.GlobalID);
+            var status = dbPlayer.QuestStatuses[questID];
             var killsRemaining = status.KillTargets[Group];
 
             if (killsRemaining > 0)

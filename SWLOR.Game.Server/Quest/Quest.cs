@@ -65,9 +65,13 @@ namespace SWLOR.Game.Server.Quest
 
         public bool CanAccept(NWPlayer player)
         {
+            var dbPlayer = DataService.Player.GetByID(player.GlobalID);
             // Retrieve the player's current quest status for this quest.
             // If they haven't accepted it yet, this will be null.
-            PCQuestStatus status = DataService.PCQuestStatus.GetByPlayerAndQuestIDOrDefault(player.GlobalID, QuestID);
+            PCQuestStatus status = 
+                dbPlayer.QuestStatuses.ContainsKey(QuestID) ?
+                dbPlayer.QuestStatuses[QuestID] :
+                null;
 
             // If the status is null, it's assumed that the player hasn't accepted it yet.
             if (status != null)
@@ -106,7 +110,11 @@ namespace SWLOR.Game.Server.Quest
         public bool CanComplete(NWPlayer player)
         {
             // Has the player even accepted this quest?
-            var pcStatus = DataService.PCQuestStatus.GetByPlayerAndQuestIDOrDefault(player.GlobalID, QuestID);
+            var dbPlayer = DataService.Player.GetByID(player.GlobalID);
+            var pcStatus = dbPlayer.QuestStatuses.ContainsKey(QuestID) ?
+                dbPlayer.QuestStatuses[QuestID] :
+                null;
+
             if (pcStatus == null) return false;
 
             // Is the player on the final state of this quest?
@@ -126,7 +134,11 @@ namespace SWLOR.Game.Server.Quest
 
         public bool IsComplete(NWPlayer player)
         {
-            var pcStatus = DataService.PCQuestStatus.GetByPlayerAndQuestIDOrDefault(player.GlobalID, QuestID);
+            var dbPlayer = DataService.Player.GetByID(player.GlobalID);
+            var pcStatus = dbPlayer.QuestStatuses.ContainsKey(QuestID) ? 
+                dbPlayer.QuestStatuses[QuestID] :
+                null;
+
             if (pcStatus == null) return false;
             
             int count = GetStates().Count();
@@ -144,9 +156,11 @@ namespace SWLOR.Game.Server.Quest
             
             // By this point, it's assumed the player will accept the quest.
             // However, if this quest is repeatable we must first update the existing entry.
-            var status = DataService.PCQuestStatus.GetByPlayerAndQuestIDOrDefault(player.GlobalID, QuestID);
-            bool foundExisting = status != null;
-
+            var dbPlayer = DataService.Player.GetByID(player.GlobalID);
+            var status = dbPlayer.QuestStatuses.ContainsKey(QuestID) ?
+                dbPlayer.QuestStatuses[QuestID] : 
+                null;
+            
             // Didn't find an existing state so we'll create a new object.
             if (status == null)
             {
@@ -158,11 +172,10 @@ namespace SWLOR.Game.Server.Quest
             }
             // Retrieve the first quest state for this quest.
             status.QuestState = 1;
-            status.QuestID = QuestID;
-            status.PlayerID = player.GlobalID;
 
             // Insert or update player's quest status.
-            DataService.Set(status);
+            dbPlayer.QuestStatuses[QuestID] = status;
+            DataService.Set(dbPlayer);
 
             var state = GetState(1);
             foreach (var objective in state.GetObjectives())
@@ -188,7 +201,10 @@ namespace SWLOR.Game.Server.Quest
             if (!player.IsPlayer) return;
             
             // Retrieve the player's current quest state.
-            PCQuestStatus questStatus = DataService.PCQuestStatus.GetByPlayerAndQuestIDOrDefault(player.GlobalID, QuestID);
+            var dbPlayer = DataService.Player.GetByID(player.GlobalID);
+            PCQuestStatus questStatus = dbPlayer.QuestStatuses.ContainsKey(QuestID) ?
+                    dbPlayer.QuestStatuses[QuestID] :
+                    null;
 
             // Can't find a state? Notify the player they haven't accepted the quest.
             if (questStatus == null)
@@ -223,7 +239,7 @@ namespace SWLOR.Game.Server.Quest
                 player.SendMessage("Objective for quest '" + Name + "' complete! Check your journal for information on the next objective.");
                 
                 // Submit all of these changes to the cache/DB.
-                DataService.Set(questStatus);
+                DataService.Set(dbPlayer);
 
                 // Create any extended data entries for the next state of the quest.
                 foreach (var objective in nextState.GetObjectives())
@@ -244,7 +260,13 @@ namespace SWLOR.Game.Server.Quest
             if (!player.IsPlayer) return;
             if (!CanComplete(player)) return;
 
-            PCQuestStatus pcState = DataService.PCQuestStatus.GetByPlayerAndQuestID(player.GlobalID, QuestID);
+            var dbPlayer = DataService.Player.GetByID(player.GlobalID);
+            PCQuestStatus pcState = dbPlayer.QuestStatuses.ContainsKey(QuestID) ?
+                dbPlayer.QuestStatuses[QuestID] :
+                null;
+
+            if (pcState == null)
+                throw new Exception($"Cannot complete quest. Player does not have a record in the DB for QuestID {QuestID}");
 
             // Mark player as being on the last state of the quest.
             pcState.QuestState = GetStates().Count();
@@ -271,7 +293,7 @@ namespace SWLOR.Game.Server.Quest
                 selectedReward.GiveReward(player);
             }
 
-            DataService.Set(pcState);
+            DataService.Set(dbPlayer);
             _onComplete?.Invoke(player, questSource);
             
             player.SendMessage("Quest '" + Name + "' complete!");

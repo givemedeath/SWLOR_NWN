@@ -237,12 +237,11 @@ namespace SWLOR.Game.Server.Conversation
             var currentlyOfferedIDs = currentlyOfferedTasks.Select(x => x.QuestID).ToHashSet();
             // It's possible for players to have tasks which are no longer offered. 
             // In this case, we still display them on the menu. Once they complete them, they'll disappear from the list.
-            var expiredTasks = DataService.PCQuestStatus
-                .GetAllByPlayerID(player.GlobalID)
-                .Where(x => x.CompletionDate == null &&
-                            QuestService.GetQuestByID(x.QuestID).Guild == model.Guild &&
-                            !currentlyOfferedIDs.Contains(x.QuestID))
-                .Select(s => s.QuestID);
+            var expiredTasks = dbPlayer.QuestStatuses
+                .Where(x => x.Value.CompletionDate == null &&
+                            QuestService.GetQuestByID(x.Key).Guild == model.Guild &&
+                            !currentlyOfferedIDs.Contains(x.Key))
+                .Select(s => s.Key);
 
             foreach (var task in expiredTasks)
             {
@@ -258,7 +257,9 @@ namespace SWLOR.Game.Server.Conversation
             foreach (var task in tasks)
             {
                 var quest = QuestService.GetQuestByID(task.QuestID);
-                var questStatus = DataService.PCQuestStatus.GetByPlayerAndQuestIDOrDefault(player.GlobalID, task.QuestID);
+                var questStatus = dbPlayer.QuestStatuses.ContainsKey(task.QuestID) ?
+                    dbPlayer.QuestStatuses[task.QuestID] :
+                    null;
 
                 // If the player has completed the task during this task cycle, it will be excluded from this list.
                 // The reason for this is to prevent players from repeating the same tasks over and over without impunity.
@@ -289,10 +290,13 @@ namespace SWLOR.Game.Server.Conversation
         private void LoadTaskDetailsPage()
         {
             var player = GetPC();
+            var dbPlayer = DataService.Player.GetByID(player.GlobalID);
             var model = GetDialogCustomData<Model>();
             var task = QuestService.GetQuestByID(model.TaskID);
             var quest = QuestService.GetQuestByID(task.QuestID);
-            var status = DataService.PCQuestStatus.GetByPlayerAndQuestIDOrDefault(player.GlobalID, task.QuestID);
+            var status = dbPlayer.QuestStatuses.ContainsKey(task.QuestID) ?
+                dbPlayer.QuestStatuses[task.QuestID] : 
+                null;
             bool showQuestAccept = status == null || status.CompletionDate != null; // Never accepted, or has already been completed once.
             bool showGiveReport = status != null && status.CompletionDate == null; // Accepted, but not completed.
             var gpRewards = quest.GetRewards().Where(x => x.GetType() == typeof(QuestGPReward)).Cast<QuestGPReward>();
@@ -345,7 +349,10 @@ namespace SWLOR.Game.Server.Conversation
 
         private void HandleGiveReport(NWPlayer player, int questID)
         {
-            var pcStatus = DataService.PCQuestStatus.GetByPlayerAndQuestIDOrDefault(player.GlobalID, questID);
+            var dbPlayer = DataService.Player.GetByID(player.GlobalID);
+            var pcStatus = dbPlayer.QuestStatuses.ContainsKey(questID) ? 
+                dbPlayer.QuestStatuses[questID] : 
+                null;
             if (pcStatus == null) return;
             var quest = QuestService.GetQuestByID(questID);
             var state = quest.GetState(pcStatus.QuestState);

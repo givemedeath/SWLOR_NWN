@@ -340,7 +340,10 @@ namespace SWLOR.Game.Server.Service
                 // Check the player's quest completion status against the perk requirements.
                 foreach (var questReq in questRequirements)
                 {
-                    var pcQuest = DataService.PCQuestStatus.GetByPlayerAndQuestIDOrDefault(player.GlobalID, questReq);
+                    var pcQuest = dbPlayer.QuestStatuses.ContainsKey(questReq) ?
+                        dbPlayer.QuestStatuses[questReq] :
+                        null;
+
                     if (pcQuest == null || pcQuest.CompletionDate == null)
                         return false;
                 }
@@ -406,8 +409,10 @@ namespace SWLOR.Game.Server.Service
             // Cycle through the quest requirements.
             foreach (var req in questRequirements)
             {
-                var pcQuest = DataService.PCQuestStatus.GetByPlayerAndQuestID(dbPlayer.ID, req);
-                
+                var pcQuest = dbPlayer.QuestStatuses.ContainsKey(req) ?
+                    dbPlayer.QuestStatuses[req] :
+                    null;
+
                 // Player has not completed this required quest. Exit early and return false.
                 if (pcQuest == null || pcQuest.CompletionDate == null) return false;
             }
@@ -595,7 +600,10 @@ namespace SWLOR.Game.Server.Service
                         // Check the quest requirements.
                         foreach (var req in questRequirements)
                         {
-                            var pcQuest = DataService.PCQuestStatus.GetByPlayerAndQuestIDOrDefault(player.GlobalID, req);
+                            var pcQuest = dbPlayer.QuestStatuses.ContainsKey(req) ?
+                                dbPlayer.QuestStatuses[req] :
+                                null;
+
                             if (pcQuest == null || pcQuest.CompletionDate == null)
                             {
                                 effectiveLevel--;

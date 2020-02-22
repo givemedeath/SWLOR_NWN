@@ -23,7 +23,11 @@ namespace SWLOR.Game.Server.Event.Conversation.Quest
                 return false;
             }
 
-            var status = DataService.PCQuestStatus.GetByPlayerAndQuestIDOrDefault(player.GlobalID, questID);
+            var dbPlayer = DataService.Player.GetByID(player.GlobalID);
+            var status = dbPlayer.QuestStatuses.ContainsKey(questID) ?
+                dbPlayer.QuestStatuses[questID] :
+                null;
+
             if (status == null) return false;
 
             var quest = QuestService.GetQuestByID(questID);
