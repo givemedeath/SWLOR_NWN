@@ -9,7 +9,7 @@ namespace SWLOR.Game.Server.Mod
     public class BaseAttackBonusMod: IModHandler
     {
         public int ModTypeID => 4;
-        private const int MaxValue = 10;
+        private const int MaxValue = 0;
 
         public string CanApply(NWPlayer player, NWItem target, params string[] args)
         {
@@ -17,7 +17,7 @@ namespace SWLOR.Game.Server.Mod
                 return "This mod can only be applied to weapons.";
 
             int existingBAB = target.BaseAttackBonus;
-            if (existingBAB >= MaxValue) return "You cannot improve that item's base attack bonus any further.";
+            if (existingBAB >= MaxValue) return "You cannot improve that item's base attack bonus, see DM for refund.";
 
             return null;
         }

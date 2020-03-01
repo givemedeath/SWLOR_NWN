@@ -271,6 +271,7 @@ namespace SWLOR.Game.Server.Scripting.Delayed
                 case Skill.Engineering: equipmentBonus = effectiveStats.Engineering; break;
                 case Skill.Fabrication: equipmentBonus = effectiveStats.Fabrication; break;
                 case Skill.Medicine: equipmentBonus = effectiveStats.Medicine; break;
+                case Skill.Lightsaber: equipmentBonus = (effectiveStats.Engineering / 3); break;
             }
 
             return equipmentBonus * multiplier; // +0.5%, +0.6%, or +0.7% per equipment bonus

@@ -270,6 +270,7 @@ namespace SWLOR.Game.Server.Service
             else if (skill == Skill.Fabrication) perkType = PerkType.SpeedyCrafting;
             else if (skill == Skill.Medicine) perkType = PerkType.SpeedyCrafting;
             else if (skill == Skill.Harvesting) perkType = PerkType.SpeedyCrafting;
+            else if (skill == Skill.Lightsaber) perkType = PerkType.SpeedyCrafting;
             else return BaseCraftDelay;
 
             int perkLevel = PerkService.GetCreaturePerkLevel(oPC, perkType);

@@ -288,7 +288,7 @@ namespace SWLOR.Game.Server.Enumeration
         EnhancementBonusPlus1 = 140,
         [CraftBlueprint(CraftBlueprintCategory.RedMods, "HP Regen +1", true, 20, "rune_hpregen1", 1, Skill.Engineering, CraftDeviceType.EngineeringBench, PerkType.EngineeringBlueprints, 3, ComponentType.RedCluster, 2, 3, ComponentType.None, 0, 0, ComponentType.None, 0, 0, 0, BaseStructure.Invalid)]
         HPRegenPlus1 = 141,
-        [CraftBlueprint(CraftBlueprintCategory.RedMods, "Base Attack Bonus +1", true, 22, "rune_bab1", 1, Skill.Engineering, CraftDeviceType.EngineeringBench, PerkType.EngineeringBlueprints, 3, ComponentType.RedCluster, 2, 3, ComponentType.None, 0, 0, ComponentType.None, 0, 0, 0, BaseStructure.Invalid)]
+        [CraftBlueprint(CraftBlueprintCategory.RedMods, "Base Attack Bonus +1", false, 22, "rune_bab1", 1, Skill.Engineering, CraftDeviceType.EngineeringBench, PerkType.EngineeringBlueprints, 3, ComponentType.RedCluster, 2, 3, ComponentType.None, 0, 0, ComponentType.None, 0, 0, 0, BaseStructure.Invalid)]
         BaseAttackBonusPlus1 = 142,
         [CraftBlueprint(CraftBlueprintCategory.BlueMods, "FP Regen +1", true, 21, "rune_manareg1", 1, Skill.Engineering, CraftDeviceType.EngineeringBench, PerkType.EngineeringBlueprints, 3, ComponentType.BlueCluster, 2, 3, ComponentType.None, 0, 0, ComponentType.None, 0, 0, 0, BaseStructure.Invalid)]
         FPRegenPlus1 = 143,
@@ -354,7 +354,7 @@ namespace SWLOR.Game.Server.Enumeration
         EnhancementBonusPlus2 = 173,
         [CraftBlueprint(CraftBlueprintCategory.RedMods, "HP Regen +2", true, 35, "rune_hpregen2", 1, Skill.Engineering, CraftDeviceType.EngineeringBench, PerkType.EngineeringBlueprints, 5, ComponentType.RedCluster, 3, 4, ComponentType.None, 0, 0, ComponentType.None, 0, 0, 0, BaseStructure.Invalid)]
         HPRegenPlus2 = 174,
-        [CraftBlueprint(CraftBlueprintCategory.RedMods, "Base Attack Bonus +2", true, 37, "rune_bab2", 1, Skill.Engineering, CraftDeviceType.EngineeringBench, PerkType.EngineeringBlueprints, 5, ComponentType.RedCluster, 3, 4, ComponentType.None, 0, 0, ComponentType.None, 0, 0, 0, BaseStructure.Invalid)]
+        [CraftBlueprint(CraftBlueprintCategory.RedMods, "Base Attack Bonus +2", false, 37, "rune_bab2", 1, Skill.Engineering, CraftDeviceType.EngineeringBench, PerkType.EngineeringBlueprints, 5, ComponentType.RedCluster, 3, 4, ComponentType.None, 0, 0, ComponentType.None, 0, 0, 0, BaseStructure.Invalid)]
         BaseAttackBonusPlus2 = 175,
         [CraftBlueprint(CraftBlueprintCategory.BlueMods, "FP Regen +2", true, 35, "rune_manareg2", 1, Skill.Engineering, CraftDeviceType.EngineeringBench, PerkType.EngineeringBlueprints, 5, ComponentType.BlueCluster, 3, 4, ComponentType.None, 0, 0, ComponentType.None, 0, 0, 0, BaseStructure.Invalid)]
         FPRegenPlus2 = 176,
@@ -414,7 +414,7 @@ namespace SWLOR.Game.Server.Enumeration
         EnhancementBonusPlus3 = 203,
         [CraftBlueprint(CraftBlueprintCategory.RedMods, "HP Regen +3", true, 50, "rune_hpregen3", 1, Skill.Engineering, CraftDeviceType.EngineeringBench, PerkType.EngineeringBlueprints, 7, ComponentType.RedCluster, 4, 5, ComponentType.None, 0, 0, ComponentType.None, 0, 0, 0, BaseStructure.Invalid)]
         HPRegenPlus3 = 204,
-        [CraftBlueprint(CraftBlueprintCategory.RedMods, "Base Attack Bonus +3", true, 52, "rune_bab3", 1, Skill.Engineering, CraftDeviceType.EngineeringBench, PerkType.EngineeringBlueprints, 7, ComponentType.RedCluster, 4, 5, ComponentType.None, 0, 0, ComponentType.None, 0, 0, 0, BaseStructure.Invalid)]
+        [CraftBlueprint(CraftBlueprintCategory.RedMods, "Base Attack Bonus +3", false, 52, "rune_bab3", 1, Skill.Engineering, CraftDeviceType.EngineeringBench, PerkType.EngineeringBlueprints, 7, ComponentType.RedCluster, 4, 5, ComponentType.None, 0, 0, ComponentType.None, 0, 0, 0, BaseStructure.Invalid)]
         BaseAttackBonusPlus3 = 205,
         [CraftBlueprint(CraftBlueprintCategory.BlueMods, "FP Regen +3", true, 50, "rune_manareg3", 1, Skill.Engineering, CraftDeviceType.EngineeringBench, PerkType.EngineeringBlueprints, 7, ComponentType.BlueCluster, 4, 5, ComponentType.None, 0, 0, ComponentType.None, 0, 0, 0, BaseStructure.Invalid)]
         FPRegenPlus3 = 206,

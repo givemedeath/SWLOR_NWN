@@ -150,6 +150,13 @@ namespace SWLOR.Game.Server.Service
                 dbPlayer.VersionNumber = 8;
             }
 
+            //VERSION 9: Remove BAB from all items carried. Grant Durability for lost BAB.
+            if (dbPlayer.VersionNumber < 9)
+            {
+                ProcessVersion9ItemChanges(player);
+                dbPlayer.VersionNumber = 9;
+            }
+
             DataService.Set(dbPlayer);
         }
         
@@ -323,6 +330,101 @@ namespace SWLOR.Game.Server.Service
             newVersion.Destroy();
             
             return new SerializedObjectData(retVal, ipsToAdd);
+        }
+        private static void ProcessVersion9ItemChanges(NWPlayer player)
+        {
+            List<SerializedObjectData> serializedItems = new List<SerializedObjectData>();
+
+            // Start with equipped items.
+            foreach (var item in player.EquippedItems)
+            {
+                ProcessVersion9_DeflateItemStats(item);
+            }
+            // Next do all inventory items.
+            foreach (var item in player.InventoryItems)
+            {
+                ProcessVersion9_DeflateItemStats(item);
+            }
+
+            // Deserialize all items onto the player now.
+            foreach (var serialized in serializedItems)
+            {
+                var item = SerializationService.DeserializeItem(serialized.Data, player);
+                BiowareXP2.IPRemoveAllItemProperties(item, DurationType.Permanent);
+                foreach (var ip in serialized.ItemPropertiesToAdd)
+                {
+                    BiowareXP2.IPSafeAddItemProperty(item, ip, 0.0f, AddItemPropertyPolicy.ReplaceExisting, false, false);
+                }
+            }
+        }
+
+        public static void ProcessVersion9_DeflateItemStats(NWItem item)
+        {
+            // Start by pulling the custom BAB off the item.
+            // Durability is +2 for every 1 BAB on the item.
+            int amount = item.BaseAttackBonus * 2;
+            if (amount > 0)
+            {
+                float newMax = DurabilityService.GetMaxDurability(item) + amount;
+                float newCurrent = DurabilityService.GetDurability(item) + amount;
+                DurabilityService.SetMaxDurability(item, newMax);
+                DurabilityService.SetDurability(item, newCurrent);
+            }
+
+            // All AC gets zeroed out.
+            item.BaseAttackBonus = 0;
+
+            // Check all item properties. Use the following rule:
+            // Component BaseAttackBonus Bonus: Remove it and replace with an increase to durability.
+            foreach (var ip in item.ItemProperties)
+            {
+                ProcessVersion9_ComponentBonuses(item, ip);
+                ProcessVersion9_DeprecatedStats(item, ip);
+            }
+        }
+
+        private static void ProcessVersion9_ComponentBonuses(NWItem item, ItemProperty ip)
+        {
+            // Component Bonuses
+            if (_.GetItemPropertyType(ip) == ItemPropertyType.ComponentBonus)
+            {
+                // +BAB Component Bonus
+                if (GetItemPropertySubType(ip) == (int)ComponentBonusType.BaseAttackBonusUp)
+                {
+                    int amount = GetItemPropertyCostTableValue(ip) * 2;
+                    // Grant the durability up property if amount > 0
+                    if (amount > 0)
+                    {
+                        // Unpack the IP we're working with. Adjust its type and value, then reapply it.
+                        var unpacked = NWNXItemProperty.UnpackIP(ip);
+                        unpacked.SubType = (int)ComponentBonusType.DurabilityUp;
+                        unpacked.CostTableValue = amount;
+                        var packed = NWNXItemProperty.PackIP(unpacked);
+                        BiowareXP2.IPSafeAddItemProperty(item, packed, 0.0f, AddItemPropertyPolicy.IgnoreExisting, true, true);
+                    }
+
+                    _.RemoveItemProperty(item, ip);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Removes deprecated item property stats for the version 9 migration process.
+        /// </summary>
+        /// <param name="item">The item to remove properties from.</param>
+        /// <param name="ip">The item property to check and remove, if applicable.</param>
+        private static void ProcessVersion9_DeprecatedStats(NWItem item, ItemProperty ip)
+        {
+            ItemPropertyType[] ipsToRemove =
+            {
+                ItemPropertyType.BaseAttackBonus,
+            };
+
+            if (ipsToRemove.Contains(_.GetItemPropertyType(ip)))
+            {
+                _.RemoveItemProperty(item, ip);
+            }
+
         }
     }
 }
