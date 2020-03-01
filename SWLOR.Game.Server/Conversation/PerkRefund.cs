@@ -255,11 +255,8 @@ namespace SWLOR.Game.Server.Conversation
 
             foreach (var perkFeat in perk.PerkFeats.Values)
             {
-                Console.WriteLine("removing perkFeat feats: " + perk.PerkType);
-
                 foreach(var feat in perkFeat)
                 {
-                    Console.WriteLine("removing perkFeat feat ID = " + feat.Feat);
                     NWNXCreature.RemoveFeat(GetPC(), feat.Feat);
                 }
             }
