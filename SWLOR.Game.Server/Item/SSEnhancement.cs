@@ -39,7 +39,7 @@ namespace SWLOR.Game.Server.Item
                 ItemTag = item.Tag,
                 ItemObject = SerializationService.Serialize(item)
             };
-            pcbs.Items[structureGuid] = dbItem;
+            pcbs.Items[item.GlobalID] = dbItem;
 
             DataService.Set(pcbs);
             player.SendMessage(item.Name + " was successfully added to your ship.  Access the cargo bay via the ship's computer to remove it.");
