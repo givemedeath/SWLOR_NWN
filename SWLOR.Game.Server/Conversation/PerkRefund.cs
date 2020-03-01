@@ -187,7 +187,7 @@ namespace SWLOR.Game.Server.Conversation
             var player = GetPC();
             var dbPlayer = DataService.Player.GetByID(player.GlobalID);
             var pcPerkLevel = dbPlayer.Perks[model.Perk];
-            var perk = PerkService.GetPerkHandler(pcPerkLevel);
+            var perk = PerkService.GetPerkHandler(model.Perk);
             var minimumLevel = 1;
 
             if (IsGrantedByBackground(perk.PerkType))
@@ -255,8 +255,11 @@ namespace SWLOR.Game.Server.Conversation
 
             foreach (var perkFeat in perk.PerkFeats.Values)
             {
+                Console.WriteLine("removing perkFeat feats: " + perk.PerkType);
+
                 foreach(var feat in perkFeat)
                 {
+                    Console.WriteLine("removing perkFeat feat ID = " + feat.Feat);
                     NWNXCreature.RemoveFeat(GetPC(), feat.Feat);
                 }
             }
