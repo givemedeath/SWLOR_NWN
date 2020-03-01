@@ -22,7 +22,6 @@ namespace SWLOR.Game.Server.NWNX
 
             var n = new ItemPropertyUnpacked
             {
-                ItemPropertyID = NWNXCore.NWNX_GetReturnValueInt(NWNX_ItemProperty, FunctionName),
                 Property = NWNXCore.NWNX_GetReturnValueInt(NWNX_ItemProperty, FunctionName),
                 SubType = NWNXCore.NWNX_GetReturnValueInt(NWNX_ItemProperty, FunctionName),
                 CostTable = NWNXCore.NWNX_GetReturnValueInt(NWNX_ItemProperty, FunctionName),
@@ -61,7 +60,6 @@ namespace SWLOR.Game.Server.NWNX
             NWNXCore.NWNX_PushArgumentInt(NWNX_ItemProperty, sFunc, n.CostTable);
             NWNXCore.NWNX_PushArgumentInt(NWNX_ItemProperty, sFunc, n.SubType);
             NWNXCore.NWNX_PushArgumentInt(NWNX_ItemProperty, sFunc, n.Property);
-            NWNXCore.NWNX_PushArgumentInt(NWNX_ItemProperty, sFunc, n.ItemPropertyID);
 
             NWNXCore.NWNX_CallFunction(NWNX_ItemProperty, sFunc);
             return NWNXCore.NWNX_GetReturnValueItemProperty(NWNX_ItemProperty, sFunc);
