@@ -91,7 +91,11 @@ namespace SWLOR.Game.Server.Caching
         {
             var list = new List<PCBase>();
             // This could be optimized with an index, but it only runs on module load so I figured we'd save the memory for a slightly longer boot time.
-            foreach(var pcBase in GetAll().Where(x => x.AreaResref == areaResref && x.ApartmentBuildingID == null))
+            var pcBases = GetAll()
+                .Where(x => x.AreaResref == areaResref && x.ApartmentBuildingID == ApartmentType.Invalid)
+                .ToList();
+
+            foreach (var pcBase in pcBases)
             {
                 list.Add( pcBase);
             }

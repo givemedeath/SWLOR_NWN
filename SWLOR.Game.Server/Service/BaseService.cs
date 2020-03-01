@@ -163,10 +163,7 @@ namespace SWLOR.Game.Server.Service
                         SpawnStructure(area, structure.ID);
                     }
                 }
-
             }
-
-            Console.WriteLine("BaseService -> OnModuleLoad Complete");
         }
 
         private static void RegisterDoorRules()
