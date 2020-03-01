@@ -93,7 +93,6 @@ namespace SWLOR.Game.Server.Perk.ForceAlter
             int iRange = 15;
             int iCount = 1;
             float fDelay = 0;
-            var iPheno = _.GetPhenoType(player);
 
             if (weapon.CustomItemType == CustomItemType.Lightsaber ||
                 weapon.CustomItemType == CustomItemType.Saberstaff)
@@ -116,19 +115,6 @@ namespace SWLOR.Game.Server.Perk.ForceAlter
             BiowarePosition.TurnToFaceObject(target, player);
 
             player.AssignCommand(() => _.ActionPlayAnimation(Animation.Custom10, 2));
-
-            /*
-            // reset phenotype
-                player.DelayAssignCommand(() =>
-                {
-                    _.SetPhenoType(4, player);
-                }, 2.0f);
-
-                player.DelayAssignCommand(() =>
-                {
-                    _.SetPhenoType(iPheno, player);
-                }, 2.5f);
-                */
 
             // Handle effects for differing spellTier values
             switch (spellTier)
