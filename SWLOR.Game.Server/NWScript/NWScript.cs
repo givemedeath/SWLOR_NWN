@@ -13,7 +13,7 @@ namespace SWLOR.Game.Server.NWScript
         /// </summary>
         public static void AssignCommand(NWGameObject oActionSubject, ActionDelegate aActionToAssign)
         {
-            Internal.ClosureAssignCommand(oActionSubject, aActionToAssign);
+            Internal.ClosureAssignCommand(oActionSubject.Self, aActionToAssign);
         }
 
         /// <summary>
@@ -28,7 +28,7 @@ namespace SWLOR.Game.Server.NWScript
         /// </summary>
         public static void DelayCommand(float fSeconds, ActionDelegate aActionToDelay)
         {
-            Internal.ClosureDelayCommand(NWGameObject.OBJECT_SELF, fSeconds, aActionToDelay);
+            Internal.ClosureDelayCommand(NWGameObject.OBJECT_SELF.Self, fSeconds, aActionToDelay);
         }
 
         /// <summary>
@@ -36,7 +36,7 @@ namespace SWLOR.Game.Server.NWScript
         /// </summary>
         public static void ActionDoCommand(ActionDelegate aActionToDo)
         {
-            Internal.ClosureActionDoCommand(NWGameObject.OBJECT_SELF, aActionToDo);
+            Internal.ClosureActionDoCommand(NWGameObject.OBJECT_SELF.Self, aActionToDo);
         }
 
         /// <summary>

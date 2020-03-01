@@ -56,6 +56,8 @@ namespace SWLOR.Game.Server.NWScript
 
         public static void OnClosure(ulong eid, uint oidSelf)
         {
+            NWGameObject old = OBJECT_SELF;
+            OBJECT_SELF = oidSelf;
             try
             {
                 Closures[eid].Run();
@@ -65,27 +67,28 @@ namespace SWLOR.Game.Server.NWScript
                 Console.WriteLine(e.ToString());
             }
             Closures.Remove(eid);
+            OBJECT_SELF = old;
         }
 
-        public static void ClosureAssignCommand(NWGameObject obj, ActionDelegate func)
+        public static void ClosureAssignCommand(uint obj, ActionDelegate func)
         {
-            if (NativeFunctions.ClosureAssignCommand(obj.Self, NextEventId) != 0)
+            if (NativeFunctions.ClosureAssignCommand(obj, NextEventId) != 0)
             {
                 Closures.Add(NextEventId++, new Closure { OwnerObject = obj, Run = func });
             }
         }
 
-        public static void ClosureDelayCommand(NWGameObject obj, float duration, ActionDelegate func)
+        public static void ClosureDelayCommand(uint obj, float duration, ActionDelegate func)
         {
-            if (NativeFunctions.ClosureDelayCommand(obj.Self, duration, NextEventId) != 0)
+            if (NativeFunctions.ClosureDelayCommand(obj, duration, NextEventId) != 0)
             {
                 Closures.Add(NextEventId++, new Closure { OwnerObject = obj, Run = func });
             }
         }
 
-        public static void ClosureActionDoCommand(NWGameObject obj, ActionDelegate func)
+        public static void ClosureActionDoCommand(uint obj, ActionDelegate func)
         {
-            if (NativeFunctions.ClosureActionDoCommand(obj.Self, NextEventId) != 0)
+            if (NativeFunctions.ClosureActionDoCommand(obj, NextEventId) != 0)
             {
                 Closures.Add(NextEventId++, new Closure { OwnerObject = obj, Run = func });
             }

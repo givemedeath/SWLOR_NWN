@@ -254,9 +254,9 @@ namespace SWLOR.Game.Server.NWScript
             NativeFunctions = Marshal.PtrToStructure<BootstrapArgs>(arg);
 
             AllHandlers handlers;
-            handlers.MainLoop = OnMainLoop;
-            handlers.RunScript = OnRunScript;
-            handlers.Closure = OnClosure;
+            handlers.MainLoop = Internal.OnMainLoop;
+            handlers.RunScript = Internal.OnRunScript;
+            handlers.Closure = Internal.OnClosure;
             RegisterHandlers(handlers);
 
             try

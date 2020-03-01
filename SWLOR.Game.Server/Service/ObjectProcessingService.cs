@@ -10,6 +10,7 @@ using SWLOR.Game.Server.Processor;
 using SWLOR.Game.Server.Processor.Contracts;
 using SWLOR.Game.Server.SpawnRule.Contracts;
 using SWLOR.Game.Server.ValueObject;
+using Internal = SWLOR.Game.Server.NWScript.Internal;
 
 namespace SWLOR.Game.Server.Service
 {
