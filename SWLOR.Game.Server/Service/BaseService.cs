@@ -162,6 +162,8 @@ namespace SWLOR.Game.Server.Service
                         if (structure.ParentPCBaseStructureID != null) continue; // Don't spawn any structures contained by buildings.
                         SpawnStructure(area, structure.ID);
                     }
+
+                    CalculatePCBaseStats(@base.ID);
                 }
             }
         }
