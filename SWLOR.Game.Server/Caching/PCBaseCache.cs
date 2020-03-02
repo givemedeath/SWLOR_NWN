@@ -16,12 +16,18 @@ namespace SWLOR.Game.Server.Caching
         private const string ByPlayerIDIndex = "ByPlayerID";
         private const string ByAreaResrefAndSectorIndex = "ByAreaResrefAndSector";
         private const string RentDueTimesIndex = "RentDueTimes";
+        private const string NonApartmentPCBasesByAreaResrefIndex = "NonApartmentPCBasesByAreaResref";
 
         protected override void OnCacheObjectSet(PCBase entity)
         {
             SetIntoListIndex(ByPlayerIDIndex, entity.PlayerID.ToString(), entity);
             SetIntoIndex($"{ByAreaResrefAndSectorIndex}:{entity.AreaResref}", entity.Sector, entity);
             SetIntoListIndex(RentDueTimesIndex, "Active", entity);
+
+            if(entity.ApartmentBuildingID == ApartmentType.Invalid)
+            {
+                SetIntoListIndex(NonApartmentPCBasesByAreaResrefIndex, entity.AreaResref, entity);
+            }
         }
 
         protected override void OnCacheObjectRemoved(PCBase entity)
@@ -29,6 +35,11 @@ namespace SWLOR.Game.Server.Caching
             RemoveFromListIndex(ByPlayerIDIndex, entity.PlayerID.ToString(), entity);
             RemoveFromIndex($"{ByAreaResrefAndSectorIndex}:{entity.AreaResref}", entity.Sector);
             RemoveFromListIndex(RentDueTimesIndex, "Active", entity);
+
+            if (entity.ApartmentBuildingID == ApartmentType.Invalid)
+            {
+                RemoveFromListIndex(NonApartmentPCBasesByAreaResrefIndex, entity.AreaResref, entity);
+            }
         }
 
         protected override void OnSubscribeEvents()
@@ -89,18 +100,10 @@ namespace SWLOR.Game.Server.Caching
 
         public IEnumerable<PCBase> GetAllNonApartmentPCBasesByAreaResref(string areaResref)
         {
-            var list = new List<PCBase>();
-            // This could be optimized with an index, but it only runs on module load so I figured we'd save the memory for a slightly longer boot time.
-            var pcBases = GetAll()
-                .Where(x => x.AreaResref == areaResref && x.ApartmentBuildingID == ApartmentType.Invalid)
-                .ToList();
+            if(!ExistsByListIndex(NonApartmentPCBasesByAreaResrefIndex, areaResref))
+                return new List<PCBase>();
 
-            foreach (var pcBase in pcBases)
-            {
-                list.Add( pcBase);
-            }
-
-            return list;
+            return GetFromListIndex(NonApartmentPCBasesByAreaResrefIndex, areaResref);
         }
 
         public IEnumerable<PCBase> GetAllWhereRentDue()

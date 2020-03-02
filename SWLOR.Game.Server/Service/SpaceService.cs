@@ -613,55 +613,49 @@ namespace SWLOR.Game.Server.Service
                 // the response text to the GUID).
                 int Count = 1;
 
-                if (GetName(area).StartsWith(planet))
+                if (!GetName(area).StartsWith(planet)) continue;
+
+                LoggingService.Trace(TraceComponent.Space, "Checking area " + GetName(area) + " for landing spots.");
+
+                // This area is on our planet.  
+                if (!area.Data.ContainsKey("BASE_SERVICE_STRUCTURES"))
                 {
-                    LoggingService.Trace(TraceComponent.Space, "Checking area " + GetName(area) + " for landing spots.");
+                    area.Data["BASE_SERVICE_STRUCTURES"] = new List<AreaStructure>();
+                }
 
-                    // This area is on our planet.  
-                    if (!area.Data.ContainsKey("BASE_SERVICE_STRUCTURES"))
+                var pcBases = DataService.PCBase.GetAllNonApartmentPCBasesByAreaResref(area.Resref);
+                foreach (var @base in pcBases)
+                {
+                    LoggingService.Trace(TraceComponent.Space, "Checking base " + @base.ID + " for landing slots.");
+
+                    // Do we have permission to dock here?
+                    if (!BasePermissionService.HasBasePermission(player, @base.ID, BasePermission.CanDockStarship)) continue;
+
+                    LoggingService.Trace(TraceComponent.Space, "Player has permission to land here.");
+                    // Are there any docks in the base?
+                    var structures = DataService.PCBaseStructure.GetAllByBaseStructureTypeID(BaseStructureType.StarshipProduction);
+                    foreach (var structure in structures)
                     {
-                        area.Data["BASE_SERVICE_STRUCTURES"] = new List<AreaStructure>();
-                    }
+                        if (structure.PCBaseID != @base.ID) continue;
 
-                    var pcBases = DataService.PCBase.GetAllNonApartmentPCBasesByAreaResref(area.Resref);
-                    foreach (var @base in pcBases)
-                    {
-                        LoggingService.Trace(TraceComponent.Space, "Checking base " + @base.ID + " for landing slots.");
+                        LoggingService.Trace(TraceComponent.Space, "Found a dock with ID " + structure.BaseStructureID);
 
-                        // Do we have permission to dock here?
-                        if (BasePermissionService.HasBasePermission(player, @base.ID, BasePermission.CanDockStarship))
+                        // Found a dock.  Is it open?  Find the actual placeable object for the dock so we can check its vars.
+                        List<AreaStructure> areaStructures = area.Data["BASE_SERVICE_STRUCTURES"];
+                        foreach (var plc in areaStructures)
                         {
-                            LoggingService.Trace(TraceComponent.Space, "Player has permission to land here.");
-                            // Are there any docks in the base?
-                            var structures = DataService.PCBaseStructure.GetAllByPCBaseID(@base.ID);
-                            foreach (var structure in structures)
-                            {
-                                var baseStructure = BaseService.GetBaseStructure(structure.BaseStructureID);
-                                if (baseStructure.BaseStructureType == BaseStructureType.StarshipProduction)
-                                {
-                                    LoggingService.Trace(TraceComponent.Space, "Found a dock with ID " + structure.BaseStructureID);
+                            if (plc.PCBaseStructureID != structure.ID) continue;
 
-                                    // Found a dock.  Is it open?  Find the actual placeable object for the dock so we can check its vars.
-                                    List<AreaStructure> areaStructures = area.Data["BASE_SERVICE_STRUCTURES"];
-                                    foreach (var plc in areaStructures)
-                                    {
-                                        if (plc.PCBaseStructureID == structure.ID)
-                                        {
-                                            LoggingService.Trace(TraceComponent.Space, "Found placeable object.");
+                            LoggingService.Trace(TraceComponent.Space, "Found placeable object.");
 
-                                            if (plc.Structure.GetLocalInt("DOCKED_STARSHIP") == 0)
-                                            {
-                                                LoggingService.Trace(TraceComponent.Space, "Dock is currently open.");
+                            if (plc.Structure.GetLocalInt("DOCKED_STARSHIP") != 0) continue;
 
-                                                // We have permission to dock in this base.  Moreover, we have found a dock 
-                                                // which is not occupied.  (Possibly several!).  Add each dock to our list.
-                                                landingSpots.Add("Dock " + Count + " in " + GetName(area) + " (" + PlayerService.GetPlayerEntity(@base.PlayerID).CharacterName + ")", structure.ID);
-                                                Count++;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
+                            LoggingService.Trace(TraceComponent.Space, "Dock is currently open.");
+
+                            // We have permission to dock in this base.  Moreover, we have found a dock 
+                            // which is not occupied.  (Possibly several!).  Add each dock to our list.
+                            landingSpots.Add("Dock " + Count + " in " + GetName(area) + " (" + PlayerService.GetPlayerEntity(@base.PlayerID).CharacterName + ")", structure.ID);
+                            Count++;
                         }
                     }
                 }

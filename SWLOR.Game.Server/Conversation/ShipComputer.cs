@@ -6,7 +6,6 @@ using SWLOR.Game.Server.Enumeration;
 using SWLOR.Game.Server.GameObject;
 
 using SWLOR.Game.Server.ValueObject.Dialog;
-using static SWLOR.Game.Server.NWScript._;
 using System.Collections.Generic;
 using System.Collections;
 using SWLOR.Game.Server.NWScript;
@@ -78,7 +77,7 @@ namespace SWLOR.Game.Server.Conversation
 
             // Landing destinations.            
             Hashtable landingspots = SpaceService.GetLandingDestinationList(player, pcBase);
-            List<String> responseList = landingspots.Keys.Cast<String>().ToList();
+            List<string> responseList = landingspots.Keys.Cast<string>().ToList();
             DialogPage landingPage = new DialogPage("Where do you want to land?", responseList.ToArray());
             dialog.AddPage("LandingDestPage", landingPage);
 
@@ -131,7 +130,6 @@ namespace SWLOR.Game.Server.Conversation
             header += "The computer awaits your orders.";
 
             SetPageHeader("MainPage", header);
-
         }
 
         public override void DoAction(NWPlayer player, string pageName, int responseID)

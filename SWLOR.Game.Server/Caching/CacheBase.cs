@@ -267,7 +267,7 @@ namespace SWLOR.Game.Server.Caching
             var key = $"{indexName}:{indexValue}";
 
             var list = index.SecondaryListIndexes[key];
-            
+
             foreach (var id in list)
             {
                 var entityKey = $"{_setName}:{id}";
