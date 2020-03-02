@@ -83,7 +83,7 @@ namespace SWLOR.Game.Server.Scripting.Placeable.StructureStorage
                 {
                     var dbItem = structure.Items[item.GlobalID];
                     structure.Items.Remove(item.GlobalID);
-                    DataService.Delete(structure);
+                    DataService.Set(structure);
                     MessageHub.Instance.Publish(new OnRemoveStructureItem(oPC, dbItem));
                 }
             }
