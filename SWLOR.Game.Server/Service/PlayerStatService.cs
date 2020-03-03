@@ -99,33 +99,33 @@ namespace SWLOR.Game.Server.Service
             foreach (var pcSkill in skills)
             {
                 var skill = SkillService.GetSkill(pcSkill.Key);
-                CustomAttribute primary = (CustomAttribute)skill.Primary;
-                CustomAttribute secondary = (CustomAttribute)skill.Secondary;
-                CustomAttribute tertiary = (CustomAttribute)skill.Tertiary;
+                var primary = skill.Primary;
+                var secondary = skill.Secondary;
+                var tertiary = skill.Tertiary;
 
                 // Primary Bonuses
-                if (primary == CustomAttribute.STR) strBonus += PrimaryIncrease * pcSkill.Value.Rank;
-                else if (primary == CustomAttribute.DEX) dexBonus += PrimaryIncrease * pcSkill.Value.Rank;
-                else if (primary == CustomAttribute.CON) conBonus += PrimaryIncrease * pcSkill.Value.Rank;
-                else if (primary == CustomAttribute.INT) intBonus += PrimaryIncrease * pcSkill.Value.Rank;
-                else if (primary == CustomAttribute.WIS) wisBonus += PrimaryIncrease * pcSkill.Value.Rank;
-                else if (primary == CustomAttribute.CHA) chaBonus += PrimaryIncrease * pcSkill.Value.Rank;
+                if (primary == Ability.Strength) strBonus += PrimaryIncrease * pcSkill.Value.Rank;
+                else if (primary == Ability.Dexterity) dexBonus += PrimaryIncrease * pcSkill.Value.Rank;
+                else if (primary == Ability.Constitution) conBonus += PrimaryIncrease * pcSkill.Value.Rank;
+                else if (primary == Ability.Intelligence) intBonus += PrimaryIncrease * pcSkill.Value.Rank;
+                else if (primary == Ability.Wisdom) wisBonus += PrimaryIncrease * pcSkill.Value.Rank;
+                else if (primary == Ability.Charisma) chaBonus += PrimaryIncrease * pcSkill.Value.Rank;
 
                 // Secondary Bonuses
-                if (secondary == CustomAttribute.STR) strBonus += SecondaryIncrease * pcSkill.Value.Rank;
-                else if (secondary == CustomAttribute.DEX) dexBonus += SecondaryIncrease * pcSkill.Value.Rank;
-                else if (secondary == CustomAttribute.CON) conBonus += SecondaryIncrease * pcSkill.Value.Rank;
-                else if (secondary == CustomAttribute.INT) intBonus += SecondaryIncrease * pcSkill.Value.Rank;
-                else if (secondary == CustomAttribute.WIS) wisBonus += SecondaryIncrease * pcSkill.Value.Rank;
-                else if (secondary == CustomAttribute.CHA) chaBonus += SecondaryIncrease * pcSkill.Value.Rank;
+                if (secondary == Ability.Strength) strBonus += SecondaryIncrease * pcSkill.Value.Rank;
+                else if (secondary == Ability.Dexterity) dexBonus += SecondaryIncrease * pcSkill.Value.Rank;
+                else if (secondary == Ability.Constitution) conBonus += SecondaryIncrease * pcSkill.Value.Rank;
+                else if (secondary == Ability.Intelligence) intBonus += SecondaryIncrease * pcSkill.Value.Rank;
+                else if (secondary == Ability.Wisdom) wisBonus += SecondaryIncrease * pcSkill.Value.Rank;
+                else if (secondary == Ability.Charisma) chaBonus += SecondaryIncrease * pcSkill.Value.Rank;
 
                 // Tertiary Bonuses
-                if (tertiary == CustomAttribute.STR) strBonus += TertiaryIncrease * pcSkill.Value.Rank;
-                else if (tertiary == CustomAttribute.DEX) dexBonus += TertiaryIncrease * pcSkill.Value.Rank;
-                else if (tertiary == CustomAttribute.CON) conBonus += TertiaryIncrease * pcSkill.Value.Rank;
-                else if (tertiary == CustomAttribute.INT) intBonus += TertiaryIncrease * pcSkill.Value.Rank;
-                else if (tertiary == CustomAttribute.WIS) wisBonus += TertiaryIncrease * pcSkill.Value.Rank;
-                else if (tertiary == CustomAttribute.CHA) chaBonus += TertiaryIncrease * pcSkill.Value.Rank;
+                if (tertiary == Ability.Strength) strBonus += TertiaryIncrease * pcSkill.Value.Rank;
+                else if (tertiary == Ability.Dexterity) dexBonus += TertiaryIncrease * pcSkill.Value.Rank;
+                else if (tertiary == Ability.Constitution) conBonus += TertiaryIncrease * pcSkill.Value.Rank;
+                else if (tertiary == Ability.Intelligence) intBonus += TertiaryIncrease * pcSkill.Value.Rank;
+                else if (tertiary == Ability.Wisdom) wisBonus += TertiaryIncrease * pcSkill.Value.Rank;
+                else if (tertiary == Ability.Charisma) chaBonus += TertiaryIncrease * pcSkill.Value.Rank;
             }
 
             // Check caps.
