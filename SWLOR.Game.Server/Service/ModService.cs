@@ -9,8 +9,11 @@ using NWN;
 using SWLOR.Game.Server.Event.Module;
 using SWLOR.Game.Server.Messaging;
 using SWLOR.Game.Server.Mod.Contracts;
+using SWLOR.Game.Server.NWN.Enum;
+using SWLOR.Game.Server.NWN.Enum.Item;
 using SWLOR.Game.Server.NWNX;
 using SWLOR.Game.Server.ValueObject;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Service
 {
@@ -65,18 +68,18 @@ namespace SWLOR.Game.Server.Service
             return _modHandlers[modTypeID];
         }
 
-        public static CustomItemPropertyType GetModType(NWItem item)
+        public static ItemPropertyType GetModType(NWItem item)
         {
-            CustomItemPropertyType ipType = CustomItemPropertyType.Unknown;
+            ItemPropertyType ipType = ItemPropertyType.Unknown;
             foreach (var ip in item.ItemProperties)
             {
-                int type = _.GetItemPropertyType(ip);
-                if (type == (int)CustomItemPropertyType.RedMod ||
-                    type == (int)CustomItemPropertyType.BlueMod ||
-                    type == (int)CustomItemPropertyType.GreenMod ||
-                    type == (int)CustomItemPropertyType.YellowMod)
+                var type = NWScript.GetItemPropertyType(ip);
+                if (type == ItemPropertyType.RedMod ||
+                    type == ItemPropertyType.BlueMod ||
+                    type == ItemPropertyType.GreenMod ||
+                    type == ItemPropertyType.YellowMod)
                 {
-                    ipType = (CustomItemPropertyType)type;
+                    ipType = (ItemPropertyType)type;
                     break;
                 }
             }
@@ -89,22 +92,22 @@ namespace SWLOR.Game.Server.Service
             ModSlots modSlots = new ModSlots();
             foreach (var ip in item.ItemProperties)
             {
-                int type = _.GetItemPropertyType(ip);
+                var type = NWScript.GetItemPropertyType(ip);
                 switch (type)
                 {
-                    case (int)CustomItemPropertyType.ModSlotRed:
+                    case ItemPropertyType.ModSlotRed:
                         modSlots.RedSlots++;
                         break;
-                    case (int)CustomItemPropertyType.ModSlotBlue:
+                    case ItemPropertyType.ModSlotBlue:
                         modSlots.BlueSlots++;
                         break;
-                    case (int)CustomItemPropertyType.ModSlotGreen:
+                    case ItemPropertyType.ModSlotGreen:
                         modSlots.GreenSlots++;
                         break;
-                    case (int)CustomItemPropertyType.ModSlotYellow:
+                    case ItemPropertyType.ModSlotYellow:
                         modSlots.YellowSlots++;
                         break;
-                    case (int)CustomItemPropertyType.ModSlotPrismatic:
+                    case ItemPropertyType.ModSlotPrismatic:
                         modSlots.PrismaticSlots++;
                         break;
                 }
@@ -146,7 +149,7 @@ namespace SWLOR.Game.Server.Service
 
         public static bool IsRune(NWItem item)
         {
-            return GetModType(item) != CustomItemPropertyType.Unknown;
+            return GetModType(item) != ItemPropertyType.Unknown;
         }
 
         public static string PrismaticString()
@@ -157,7 +160,7 @@ namespace SWLOR.Game.Server.Service
 
         public static string OnModuleExamine(string existingDescription, NWPlayer examiner, NWObject examinedObject)
         {
-            if (examinedObject.ObjectType != _.OBJECT_TYPE_ITEM) return existingDescription;
+            if (examinedObject.ObjectType != ObjectType.Item) return existingDescription;
             NWItem examinedItem = (examinedObject.Object);
             string description = string.Empty;
             ModSlots slot = GetModSlots(examinedItem);
@@ -193,12 +196,12 @@ namespace SWLOR.Game.Server.Service
 
             NWObject damager = data.Damager;
             if (!damager.IsPlayer) return;
-            NWCreature target = _.OBJECT_SELF;
+            NWCreature target = NWScript.OBJECT_SELF;
 
             // Check that this was a normal attack, and not (say) a damage over time effect.
             if (target.GetLocalInt(AbilityService.LAST_ATTACK + damager.GlobalID) != AbilityService.ATTACK_PHYSICAL) return;
 
-            NWItem weapon = (_.GetLastWeaponUsed(damager.Object));
+            NWItem weapon = (NWScript.GetLastWeaponUsed(damager.Object));
             int damageBonus = weapon.DamageBonus;
 
             NWPlayer player = (damager.Object);

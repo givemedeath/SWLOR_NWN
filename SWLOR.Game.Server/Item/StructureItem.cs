@@ -8,6 +8,7 @@ using SWLOR.Game.Server.Data.Entity;
 using SWLOR.Game.Server.NWN;
 using SWLOR.Game.Server.Service;
 using BuildingType = SWLOR.Game.Server.Enumeration.BuildingType;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 
 namespace SWLOR.Game.Server.Item
@@ -29,7 +30,7 @@ namespace SWLOR.Game.Server.Item
         public void ApplyEffects(NWCreature user, NWItem item, NWObject target, Location targetLocation, CustomData customData)
         {
             NWPlayer player = (user.Object);
-            NWArea area = (_.GetAreaFromLocation(targetLocation));
+            NWArea area = (NWScript.GetAreaFromLocation(targetLocation));
             string parentStructureID = area.GetLocalString("PC_BASE_STRUCTURE_ID");
             string pcBaseID = area.GetLocalString("PC_BASE_ID");
             var data = BaseService.GetPlayerTempData(player);

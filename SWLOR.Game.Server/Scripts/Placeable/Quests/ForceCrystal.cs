@@ -3,6 +3,7 @@ using NWN;
 using SWLOR.Game.Server.Data.Entity;
 using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.Service;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Scripts.Placeable.Quests
 {
@@ -19,8 +20,8 @@ namespace SWLOR.Game.Server.Scripts.Placeable.Quests
         public void Main()
         {
             const int QuestID = 30;
-            NWPlaceable crystal = _.OBJECT_SELF;
-            NWPlayer player = _.GetLastUsedBy();
+            NWPlaceable crystal = NWScript.OBJECT_SELF;
+            NWPlayer player = NWScript.GetLastUsedBy();
 
             // Check player's current quest state. If they aren't on stage 2 of the quest only show a message.
             var status = DataService.PCQuestStatus.GetByPlayerAndQuestID(player.GlobalID, QuestID);
@@ -44,7 +45,7 @@ namespace SWLOR.Game.Server.Scripts.Placeable.Quests
                 default: throw new Exception("Invalid crystal color type.");
             }
 
-            _.CreateItemOnObject(cluster, player);
+            NWScript.CreateItemOnObject(cluster, player);
 
             var quest = QuestService.GetQuestByID(QuestID);
             quest.Advance(player, crystal);
@@ -52,8 +53,8 @@ namespace SWLOR.Game.Server.Scripts.Placeable.Quests
             // Hide the "Source of Power?" placeable so the player can't use it again.
             ObjectVisibilityService.AdjustVisibility(player, "81533EBB-2084-4C97-B004-8E1D8C395F56", false);
 
-            NWObject tpWP = _.GetObjectByTag("FORCE_QUEST_LANDING");
-            player.AssignCommand(() => _.ActionJumpToLocation(tpWP.Location));
+            NWObject tpWP = NWScript.GetObjectByTag("FORCE_QUEST_LANDING");
+            player.AssignCommand(() => NWScript.ActionJumpToLocation(tpWP.Location));
             
             // Notify the player that new lightsaber perks have unlocked.
             player.FloatingText("You have unlocked the Lightsaber Blueprints perk. Find this under the Engineering category in your perks menu.");

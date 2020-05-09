@@ -8,7 +8,8 @@ using SWLOR.Game.Server.Enumeration;
 using SWLOR.Game.Server.Event.Module;
 using SWLOR.Game.Server.Messaging;
 using SWLOR.Game.Server.NWN;
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Service
 {
@@ -22,29 +23,29 @@ namespace SWLOR.Game.Server.Service
 
         private static void OnModuleDeath()
         {
-            NWPlayer player = _.GetLastPlayerDied();
-            NWObject hostile = _.GetLastHostileActor(player.Object);
+            NWPlayer player = NWScript.GetLastPlayerDied();
+            NWObject hostile = NWScript.GetLastHostileActor(player.Object);
 
-            _.SetStandardFactionReputation(STANDARD_FACTION_COMMONER, 100, player);
-            _.SetStandardFactionReputation(STANDARD_FACTION_MERCHANT, 100, player);
-            _.SetStandardFactionReputation(STANDARD_FACTION_DEFENDER, 100, player);
+            NWScript.SetStandardFactionReputation(STANDARD_FACTION_COMMONER, 100, player);
+            NWScript.SetStandardFactionReputation(STANDARD_FACTION_MERCHANT, 100, player);
+            NWScript.SetStandardFactionReputation(STANDARD_FACTION_DEFENDER, 100, player);
 
-            var factionMember = _.GetFirstFactionMember(hostile.Object, FALSE);
-            while (_.GetIsObjectValid(factionMember) == TRUE)
+            var factionMember = NWScript.GetFirstFactionMember(hostile.Object, FALSE);
+            while (NWScript.GetIsObjectValid(factionMember) == TRUE)
             {
-                _.ClearPersonalReputation(player.Object, factionMember);
-                factionMember = _.GetNextFactionMember(hostile.Object, FALSE);
+                NWScript.ClearPersonalReputation(player.Object, factionMember);
+                factionMember = NWScript.GetNextFactionMember(hostile.Object, FALSE);
             }
             
             const string RespawnMessage = "You have died. You can wait for another player to revive you or respawn to go to your last respawn point.";
-            _.PopUpDeathGUIPanel(player.Object, TRUE, TRUE, 0, RespawnMessage);
+            NWScript.PopUpDeathGUIPanel(player.Object, TRUE, TRUE, 0, RespawnMessage);
         }
 
         private static void ApplyDurabilityLoss(NWPlayer player)
         {
             for (int index = 0; index < NUM_INVENTORY_SLOTS; index++)
             {
-                NWItem equipped = _.GetItemInSlot(index, player);
+                NWItem equipped = NWScript.GetItemInSlot(index, player);
                 DurabilityService.RunItemDecay(player, equipped, RandomService.RandomFloat(0.10f, 0.50f));
             }
 
@@ -56,12 +57,12 @@ namespace SWLOR.Game.Server.Service
 
         private static void OnModuleRespawn()
         {
-            NWPlayer oPC = _.GetLastRespawnButtonPresser();
+            NWPlayer oPC = NWScript.GetLastRespawnButtonPresser();
             ApplyDurabilityLoss(oPC);
 
             int amount = oPC.MaxHP / 2;
-            _.ApplyEffectToObject(DURATION_TYPE_INSTANT, _.EffectResurrection(), oPC.Object);
-            _.ApplyEffectToObject(DURATION_TYPE_INSTANT, _.EffectHeal(amount), oPC.Object);
+            NWScript.ApplyEffectToObject(DURATION_TYPE_INSTANT, NWScript.EffectResurrection(), oPC.Object);
+            NWScript.ApplyEffectToObject(DURATION_TYPE_INSTANT, NWScript.EffectHeal(amount), oPC.Object);
 
             NWArea area = oPC.Area;
             
@@ -74,7 +75,7 @@ namespace SWLOR.Game.Server.Service
 
                 if (playersInArea <= 0)
                 {
-                    _.DelayCommand(12.0f, () =>
+                    NWScript.DelayCommand(12.0f, () =>
                     {
                         AreaService.DestroyAreaInstance(area);
                     }); 
@@ -95,7 +96,7 @@ namespace SWLOR.Game.Server.Service
             pc.RespawnLocationOrientation = player.Facing;
             pc.RespawnAreaResref = player.Area.Resref;
             DataService.SubmitDataChange(pc, DatabaseActionType.Update);
-            _.FloatingTextStringOnCreature("You will return to this location the next time you die.", player.Object, FALSE);
+            NWScript.FloatingTextStringOnCreature("You will return to this location the next time you die.", player.Object, FALSE);
         }
 
 
@@ -114,29 +115,29 @@ namespace SWLOR.Game.Server.Service
                 NWLocation entrance = area.GetLocalLocation("INSTANCE_ENTRANCE");
                 pc.AssignCommand(() =>
                 {
-                    _.ActionJumpToLocation(entrance);
+                    NWScript.ActionJumpToLocation(entrance);
                 });
             }
             // Send player to default respawn point if no bind point is set.
             else if (string.IsNullOrWhiteSpace(entity.RespawnAreaResref))
             {
-                NWObject defaultRespawn = _.GetWaypointByTag("DEFAULT_RESPAWN_POINT");
+                NWObject defaultRespawn = NWScript.GetWaypointByTag("DEFAULT_RESPAWN_POINT");
                 Location location = defaultRespawn.Location;
 
                 pc.AssignCommand(() =>
                 {
-                    _.ActionJumpToLocation(location);
+                    NWScript.ActionJumpToLocation(location);
                 });
             }
             // Send player to their stored bind point.
             else
             {
                 NWArea area = NWModule.Get().Areas.Single(x => x.Resref == entity.RespawnAreaResref);
-                Vector position = _.Vector((float)entity.RespawnLocationX, (float)entity.RespawnLocationY, (float)entity.RespawnLocationZ);
-                Location location = _.Location(area.Object, position, (float)entity.RespawnLocationOrientation);
+                Vector position = NWScript.Vector((float)entity.RespawnLocationX, (float)entity.RespawnLocationY, (float)entity.RespawnLocationZ);
+                Location location = NWScript.Location(area.Object, position, (float)entity.RespawnLocationOrientation);
                 pc.AssignCommand(() =>
                 {
-                    _.ActionJumpToLocation(location);
+                    NWScript.ActionJumpToLocation(location);
                 });
             }
         }

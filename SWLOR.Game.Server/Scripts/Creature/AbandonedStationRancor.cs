@@ -3,6 +3,7 @@ using NWN;
 using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.Messaging;
 using SWLOR.Game.Server.NWN.Events.Creature;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Scripts.Creature
 {
@@ -22,15 +23,15 @@ namespace SWLOR.Game.Server.Scripts.Creature
 
         private void OnCreatureDeath(OnCreatureDeath @event)
         {
-            NWCreature creature = _.OBJECT_SELF;
+            NWCreature creature = NWScript.OBJECT_SELF;
             if (creature.Resref != "zomb_rancor") return;
 
             NWArea area = creature.Area;
             NWArea restrictedArea = area.GetLocalObject("RESTRICTED_LEVEL");
-            NWPlaceable elevator = _.GetNearestObjectByTag("aban_ele_to_office", _.GetFirstObjectInArea(restrictedArea));
+            NWPlaceable elevator = NWScript.GetNearestObjectByTag("aban_ele_to_office", NWScript.GetFirstObjectInArea(restrictedArea));
             elevator.IsUseable = true;
 
-            _.SpeakString("The rancor falls to the ground. Suddenly, the nearby elevator lights up. It looks like it can be used.");
+            NWScript.SpeakString("The rancor falls to the ground. Suddenly, the nearby elevator lights up. It looks like it can be used.");
         }
 
         public void Main()

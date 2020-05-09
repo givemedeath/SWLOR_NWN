@@ -7,9 +7,10 @@ using SWLOR.Game.Server.Event.Module;
 using SWLOR.Game.Server.Messaging;
 using SWLOR.Game.Server.NWNX;
 
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
 
 using SWLOR.Game.Server.ValueObject;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Service
 {
@@ -38,9 +39,9 @@ namespace SWLOR.Game.Server.Service
                     float maxDurability = DefaultDurability;
                     foreach (var ip in item.ItemProperties)
                     {
-                        if (_.GetItemPropertyType(ip) == (int) CustomItemPropertyType.MaxDurability)
+                        if (NWScript.GetItemPropertyType(ip) == (int) ItemPropertyType.MaxDurability)
                         {
-                            maxDurability = _.GetItemPropertyCostTableValue(ip);
+                            maxDurability = NWScript.GetItemPropertyCostTableValue(ip);
                             break;
                         }
                     }
@@ -55,7 +56,7 @@ namespace SWLOR.Game.Server.Service
         {
             if (item == null) throw new ArgumentNullException(nameof(item));
             
-            int maxDurability = item.GetItemPropertyValueAndRemove((int)CustomItemPropertyType.MaxDurability);
+            int maxDurability = item.GetItemPropertyValueAndRemove((int)ItemPropertyType.MaxDurability);
             if (maxDurability <= -1) return item.GetLocalFloat("DURABILITY_MAX") <= 0 ? DefaultDurability : item.GetLocalFloat("DURABILITY_MAX");
             SetMaxDurability(item, maxDurability);
             return maxDurability;
@@ -76,7 +77,7 @@ namespace SWLOR.Game.Server.Service
         {
             if (item == null) throw new ArgumentNullException(nameof(item));
 
-            int durability = item.GetItemPropertyValueAndRemove((int)CustomItemPropertyType.Durability);
+            int durability = item.GetItemPropertyValueAndRemove((int)ItemPropertyType.Durability);
 
             if (durability <= -1)
             {
@@ -100,20 +101,20 @@ namespace SWLOR.Game.Server.Service
         
         private static void OnModuleEquipItem()
         {
-            NWPlayer oPC = (_.GetPCItemLastEquippedBy());
+            NWPlayer oPC = (NWScript.GetPCItemLastEquippedBy());
 
             // Don't run heavy code when customizing equipment.
-            if (oPC.GetLocalInt("IS_CUSTOMIZING_ITEM") == _.TRUE) return;
+            if (oPC.GetLocalInt("IS_CUSTOMIZING_ITEM") == NWScript.TRUE) return;
             
-            NWItem oItem = (_.GetPCItemLastEquipped());
+            NWItem oItem = (NWScript.GetPCItemLastEquipped());
             float durability = GetDurability(oItem);
 
             if (durability <= 0 && durability != -1 && oItem.IsValid)
             {
                 oPC.AssignCommand(() =>
                 {
-                    _.ClearAllActions();
-                    _.ActionUnequipItem(oItem.Object);
+                    NWScript.ClearAllActions();
+                    NWScript.ActionUnequipItem(oItem.Object);
                 });
 
                 oPC.FloatingText(ColorTokenService.Red("That item is broken and must be repaired before you can use it."));
@@ -209,9 +210,9 @@ namespace SWLOR.Game.Server.Service
         
         private static void OnHitCastSpell()
         {
-            NWPlayer oTarget = _.OBJECT_SELF;
+            NWPlayer oTarget = NWScript.OBJECT_SELF;
             if (!oTarget.IsValid) return;
-            NWItem oSpellOrigin = (_.GetSpellCastItem());
+            NWItem oSpellOrigin = (NWScript.GetSpellCastItem());
 
             NWItem decayItem = oSpellOrigin;
 
@@ -232,41 +233,41 @@ namespace SWLOR.Game.Server.Service
                 // isn't simple, just do a % check for each item in turn.  Items
                 // are broadly in order of "most likely to get hit" as items near
                 // the top have a slightly higher chance of being chosen.                
-                if (oTarget.Chest.IsValid && _.d100() > 85)
+                if (oTarget.Chest.IsValid && NWScript.d100() > 85)
                 {
                     decayItem = oTarget.Chest;
                 }
-                else if (oTarget.Cloak.IsValid && _.d100() > 85)
+                else if (oTarget.Cloak.IsValid && NWScript.d100() > 85)
                 {
                     decayItem = oTarget.Cloak;
                 }
-                else if (oTarget.Head.IsValid && _.d100() > 85)
+                else if (oTarget.Head.IsValid && NWScript.d100() > 85)
                 {
                     decayItem = oTarget.Head;
                 }
                 // Gloves only decay from this code if they are not being used as a weapon.
-                else if (oTarget.Arms.IsValid && oTarget.RightHand.IsValid && _.d100() > 85)
+                else if (oTarget.Arms.IsValid && oTarget.RightHand.IsValid && NWScript.d100() > 85)
                 {
                     decayItem = oTarget.Arms;
                 }
-                else if (oTarget.Boots.IsValid && _.d100() > 85)
+                else if (oTarget.Boots.IsValid && NWScript.d100() > 85)
                 {
                     decayItem = oTarget.Boots;
                 }
-                else if (oTarget.Belt.IsValid && _.d100() > 85)
+                else if (oTarget.Belt.IsValid && NWScript.d100() > 85)
                 {
                     decayItem = oTarget.Belt;
                 }
-                else if (oTarget.Neck.IsValid && _.d100() > 85)
+                else if (oTarget.Neck.IsValid && NWScript.d100() > 85)
                 {
                     decayItem = oTarget.Neck;
                 }
                 // Rings are very small, so less likely. 
-                else if (oTarget.LeftRing.IsValid && _.d100() > 95)
+                else if (oTarget.LeftRing.IsValid && NWScript.d100() > 95)
                 {
                     decayItem = oTarget.LeftRing;
                 }
-                else if (oTarget.RightRing.IsValid && _.d100() > 95)
+                else if (oTarget.RightRing.IsValid && NWScript.d100() > 95)
                 {
                     decayItem = oTarget.RightRing;
                 }

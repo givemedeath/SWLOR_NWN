@@ -9,7 +9,7 @@ using SWLOR.Game.Server.Event.Module;
 using SWLOR.Game.Server.Messaging;
 using SWLOR.Game.Server.ValueObject;
 using SWLOR.Game.Server.ValueObject.Dialog;
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Service
 {

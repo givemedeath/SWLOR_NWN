@@ -9,6 +9,7 @@ using SWLOR.Game.Server.NWNX;
 using SWLOR.Game.Server.Processor.Contracts;
 using SWLOR.Game.Server.Service;
 using SWLOR.Game.Server.ValueObject;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 
 namespace SWLOR.Game.Server.Processor
@@ -67,11 +68,11 @@ namespace SWLOR.Game.Server.Processor
                 var now = DateTime.UtcNow;
                 if (now >= RestartTime)
                 {
-                    _.ExportAllCharacters();
+                    NWScript.ExportAllCharacters();
 
                     foreach (var player in NWModule.Get().Players)
                     {
-                        _.BootPC(player, "Server is automatically rebooting. This is a temporary solution until we can fix performance problems. Thank you for your patience and understanding.");
+                        NWScript.BootPC(player, "Server is automatically rebooting. This is a temporary solution until we can fix performance problems. Thank you for your patience and understanding.");
                     }
 
                     NWNXAdmin.ShutdownServer();

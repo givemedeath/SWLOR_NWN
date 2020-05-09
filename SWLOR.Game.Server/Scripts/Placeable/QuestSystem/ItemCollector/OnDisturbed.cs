@@ -5,6 +5,7 @@ using SWLOR.Game.Server.Data.Entity;
 using SWLOR.Game.Server.Enumeration;
 using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.Service;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Scripts.Placeable.QuestSystem.ItemCollector
 {
@@ -20,18 +21,18 @@ namespace SWLOR.Game.Server.Scripts.Placeable.QuestSystem.ItemCollector
 
         public void Main()
         {
-            NWPlaceable container = _.OBJECT_SELF;
+            NWPlaceable container = NWScript.OBJECT_SELF;
             NWObject owner = container.GetLocalObject("QUEST_OWNER");
 
-            NWPlayer player = _.GetLastDisturbed();
-            NWItem item = _.GetInventoryDisturbItem();
-            int disturbType = _.GetInventoryDisturbType();
+            NWPlayer player = NWScript.GetLastDisturbed();
+            NWItem item = NWScript.GetInventoryDisturbItem();
+            int disturbType = NWScript.GetInventoryDisturbType();
             string crafterPlayerID = item.GetLocalString("CRAFTER_PLAYER_ID");
             Guid? crafterPlayerGUID = null;
             if (!string.IsNullOrWhiteSpace(crafterPlayerID))
                 crafterPlayerGUID = new Guid(crafterPlayerID);
 
-            if (disturbType == _.INVENTORY_DISTURB_TYPE_ADDED)
+            if (disturbType == NWScript.INVENTORY_DISTURB_TYPE_ADDED)
             {
                 int questID = container.GetLocalInt("QUEST_ID");
                 PCQuestStatus status = DataService.PCQuestStatus.GetByPlayerAndQuestID(player.GlobalID, questID);
@@ -40,12 +41,12 @@ namespace SWLOR.Game.Server.Scripts.Placeable.QuestSystem.ItemCollector
 
                 if (progress == null)
                 {
-                    _.CopyItem(item, player, _.TRUE);
+                    NWScript.CopyItem(item, player, NWScript.TRUE);
                     player.SendMessage(ColorTokenService.Red("That item is not required for this quest."));
                 }
                 else if (progress.MustBeCraftedByPlayer && crafterPlayerGUID != player.GlobalID)
                 {
-                    _.CopyItem(item, player, _.TRUE);
+                    NWScript.CopyItem(item, player, NWScript.TRUE);
                     player.SendMessage(ColorTokenService.Red("You may only submit items which you have personally created for this quest."));
                 }
                 else
@@ -75,7 +76,7 @@ namespace SWLOR.Game.Server.Scripts.Placeable.QuestSystem.ItemCollector
                 var questItemProgresses = DataService.PCQuestItemProgress.GetAllByPCQuestStatusID(status.ID);
                 if (!questItemProgresses.Any())
                 {
-                    string conversation = _.GetLocalString(owner, "CONVERSATION");
+                    string conversation = NWScript.GetLocalString(owner, "CONVERSATION");
 
                     // Either start a SWLOR conversation
                     if (!string.IsNullOrWhiteSpace(conversation))
@@ -85,7 +86,7 @@ namespace SWLOR.Game.Server.Scripts.Placeable.QuestSystem.ItemCollector
                     // Or a regular NWN conversation.
                     else
                     {
-                        player.AssignCommand(() => { _.ActionStartConversation(owner, "", _.TRUE, _.FALSE); });
+                        player.AssignCommand(() => { NWScript.ActionStartConversation(owner, "", NWScript.TRUE, NWScript.FALSE); });
                     }
                 }
             }

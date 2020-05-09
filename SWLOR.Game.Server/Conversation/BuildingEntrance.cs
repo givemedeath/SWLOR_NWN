@@ -6,6 +6,7 @@ using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.Service;
 
 using SWLOR.Game.Server.ValueObject.Dialog;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Conversation
 {
@@ -85,7 +86,7 @@ namespace SWLOR.Game.Server.Conversation
 
             if (string.IsNullOrWhiteSpace(pcBaseStructureID))
             {
-                _.FloatingTextStringOnCreature("ERROR: Door doesn't have a structure ID assigned. Notify an admin about this issue.", oPC.Object, _.FALSE);
+                NWScript.FloatingTextStringOnCreature("ERROR: Door doesn't have a structure ID assigned. Notify an admin about this issue.", oPC.Object, NWScript.FALSE);
                 return;
             }
             var structureID = new Guid(pcBaseStructureID);
@@ -113,19 +114,19 @@ namespace SWLOR.Game.Server.Conversation
             Guid structureID = new Guid(door.GetLocalString("PC_BASE_STRUCTURE_ID"));
             NWArea instance = BaseService.GetAreaInstance(structureID, false);
 
-            _.FloatingTextStringOnCreature("You knock on the door.", GetPC().Object, _.FALSE);
+            NWScript.FloatingTextStringOnCreature("You knock on the door.", GetPC().Object, NWScript.FALSE);
 
             if (instance != null)
             {
-                NWPlayer player = (_.GetFirstPC());
+                NWPlayer player = (NWScript.GetFirstPC());
                 while (player.IsValid)
                 {
                     if (Equals(player.Area, instance))
                     {
-                        _.FloatingTextStringOnCreature("Someone is knocking on the front door.", player.Object, _.FALSE);
+                        NWScript.FloatingTextStringOnCreature("Someone is knocking on the front door.", player.Object, NWScript.FALSE);
                     }
 
-                    player = (_.GetNextPC());
+                    player = (NWScript.GetNextPC());
                 }
             }
 

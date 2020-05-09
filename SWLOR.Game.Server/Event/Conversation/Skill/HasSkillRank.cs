@@ -2,6 +2,7 @@
 using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.Service;
 using SWLOR.Game.Server.ValueObject;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Event.Conversation.Skill
 {
@@ -11,8 +12,8 @@ namespace SWLOR.Game.Server.Event.Conversation.Skill
         {
             using (new Profiler(nameof(HasSkillRank)))
             {
-                NWPlayer player = _.GetPCSpeaker();
-                NWObject talkTo = _.OBJECT_SELF;
+                NWPlayer player = NWScript.GetPCSpeaker();
+                NWObject talkTo = NWScript.OBJECT_SELF;
 
                 int count = 1;
                 string varName = "SKILL_" + index + "_REQ_";

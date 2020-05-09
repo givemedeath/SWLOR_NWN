@@ -2,7 +2,8 @@
 using SWLOR.Game.Server.ChatCommand.Contracts;
 using SWLOR.Game.Server.Enumeration;
 using SWLOR.Game.Server.GameObject;
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.ChatCommand
 {
@@ -13,7 +14,7 @@ namespace SWLOR.Game.Server.ChatCommand
         {
             user.AssignCommand(() =>
             {
-                _.ActionPlayAnimation(ANIMATION_FIREFORGET_VICTORY1);
+                NWScript.ActionPlayAnimation(ANIMATION_FIREFORGET_VICTORY1);
             });
         }
 

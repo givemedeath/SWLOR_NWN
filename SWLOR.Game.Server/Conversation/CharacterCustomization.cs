@@ -7,7 +7,8 @@ using System;
 using System.Linq;
 using SWLOR.Game.Server.Data.Entity;
 using SWLOR.Game.Server.Service;
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Conversation
 {
@@ -345,7 +346,7 @@ namespace SWLOR.Game.Server.Conversation
         private void ChangeSkinColorResponses(int responseID)
         {
             int colorID = (int)GetResponseByID("ChangeSkinColorPage", responseID).CustomData;
-            _.SetColor(GetPC(), COLOR_CHANNEL_SKIN, colorID);
+            NWScript.SetColor(GetPC(), COLOR_CHANNEL_SKIN, colorID);
 
         }
 
@@ -353,7 +354,7 @@ namespace SWLOR.Game.Server.Conversation
         private void ChangeHeadResponses(int responseID)
         {
             int headID = (int)GetResponseByID("ChangeHeadPage", responseID).CustomData;
-            _.SetCreatureBodyPart(CREATURE_PART_HEAD, headID, GetPC());
+            NWScript.SetCreatureBodyPart(CREATURE_PART_HEAD, headID, GetPC());
         }
 
         private void LoadHeadPage()
@@ -541,7 +542,7 @@ namespace SWLOR.Game.Server.Conversation
         {
             int colorID = (int)GetResponseByID("ChangeHairColorPage", responseID).CustomData;
             
-            _.SetColor(GetPC(), COLOR_CHANNEL_HAIR, colorID);
+            NWScript.SetColor(GetPC(), COLOR_CHANNEL_HAIR, colorID);
         }
         
         private void ChangeBodyPartResponses(int responseID)
@@ -787,7 +788,7 @@ namespace SWLOR.Game.Server.Conversation
             int colorID = (int)response.CustomData;
             int colorChannel = model.TattooChannel;
 
-            _.SetColor(GetPC(), colorChannel, colorID);
+            NWScript.SetColor(GetPC(), colorChannel, colorID);
         }
 
         private void LoadEditPartPage()
@@ -811,7 +812,7 @@ namespace SWLOR.Game.Server.Conversation
             var model = GetDialogCustomData<Model>();
             var response = GetResponseByID("EditPartPage", responseID);
             int modelID = (int)response.CustomData;
-            _.SetCreatureBodyPart(model.BodyPartID, modelID, GetPC());
+            NWScript.SetCreatureBodyPart(model.BodyPartID, modelID, GetPC());
         }
 
         public override void EndDialog()

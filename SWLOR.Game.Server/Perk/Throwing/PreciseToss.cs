@@ -4,7 +4,8 @@ using SWLOR.Game.Server.Enumeration;
 using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.Service;
 
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Perk.Throwing
 {
@@ -96,7 +97,7 @@ namespace SWLOR.Game.Server.Perk.Throwing
                 default: return;
             }
 
-            _.ApplyEffectToObject(DURATION_TYPE_INSTANT, _.EffectDamage(damage, DAMAGE_TYPE_PIERCING), target);
+            NWScript.ApplyEffectToObject(DURATION_TYPE_INSTANT, NWScript.EffectDamage(damage, DAMAGE_TYPE_PIERCING), target);
             CustomEffectService.ApplyCustomEffect(creature, target.Object, CustomEffectType.Bleeding, seconds, level, Convert.ToString(dotDamage));
 
 

@@ -3,6 +3,7 @@ using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.Service;
 
 using SWLOR.Game.Server.ValueObject.Dialog;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Conversation
 {
@@ -39,7 +40,7 @@ namespace SWLOR.Game.Server.Conversation
 
         private void DoSlice()
         {
-            NWPlaceable self = _.OBJECT_SELF;
+            NWPlaceable self = NWScript.OBJECT_SELF;
             int keyItemID = self.GetLocalInt("KEY_ITEM_ID");
 
             if (keyItemID <= 0)

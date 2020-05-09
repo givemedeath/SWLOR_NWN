@@ -1,6 +1,7 @@
 ﻿using NWN;
 using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.Service;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Scripts.Placeable.MarketTerminal
 {
@@ -16,13 +17,13 @@ namespace SWLOR.Game.Server.Scripts.Placeable.MarketTerminal
 
         public void Main()
         {
-            int type = _.GetInventoryDisturbType();
+            int type = NWScript.GetInventoryDisturbType();
 
-            if (type == _.INVENTORY_DISTURB_TYPE_REMOVED)
+            if (type == NWScript.INVENTORY_DISTURB_TYPE_REMOVED)
             {
                 HandleRemoveItem();
             }
-            else if (type == _.INVENTORY_DISTURB_TYPE_ADDED)
+            else if (type == NWScript.INVENTORY_DISTURB_TYPE_ADDED)
             {
                 HandleAddItem();
             }
@@ -30,13 +31,13 @@ namespace SWLOR.Game.Server.Scripts.Placeable.MarketTerminal
 
         private void HandleAddItem()
         {
-            NWPlayer player = _.GetLastDisturbed();
-            NWItem item = _.GetInventoryDisturbItem();
-            NWPlaceable device = _.OBJECT_SELF;
+            NWPlayer player = NWScript.GetLastDisturbed();
+            NWItem item = NWScript.GetInventoryDisturbItem();
+            NWPlaceable device = NWScript.OBJECT_SELF;
             var model = MarketService.GetPlayerMarketData(player);
 
             // Serializing containers can be tricky so for the time being we'll leave them disabled.
-            if (_.GetHasInventory(item) == _.TRUE)
+            if (NWScript.GetHasInventory(item) == NWScript.TRUE)
             {
                 ItemService.ReturnItem(player, item);
                 player.SendMessage(ColorTokenService.Red("Containers cannot be sold on the market."));
@@ -82,9 +83,9 @@ namespace SWLOR.Game.Server.Scripts.Placeable.MarketTerminal
 
         private void HandleRemoveItem()
         {
-            NWPlayer player = _.GetLastDisturbed();
-            NWItem item = _.GetInventoryDisturbItem();
-            NWPlaceable device = _.OBJECT_SELF;
+            NWPlayer player = NWScript.GetLastDisturbed();
+            NWItem item = NWScript.GetInventoryDisturbItem();
+            NWPlaceable device = NWScript.OBJECT_SELF;
             var model = MarketService.GetPlayerMarketData(player);
 
             // Done previewing an item. Return to menu.

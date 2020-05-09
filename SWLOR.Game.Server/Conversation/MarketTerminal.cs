@@ -8,7 +8,8 @@ using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.Service;
 
 using SWLOR.Game.Server.ValueObject.Dialog;
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Conversation
 {
@@ -224,7 +225,7 @@ namespace SWLOR.Game.Server.Conversation
             header += "Please select a category.";
             SetPageHeader("BrowseByCategoryPage", header);
 
-            NWPlaceable terminal = _.OBJECT_SELF;
+            NWPlaceable terminal = NWScript.OBJECT_SELF;
             int marketRegionID = MarketService.GetMarketRegionID(terminal);
             IEnumerable<PCMarketListing> listings = DataService.PCMarketListing
                 .GetAllByMarketRegionID(marketRegionID)
@@ -269,7 +270,7 @@ namespace SWLOR.Game.Server.Conversation
             header += "Please select a seller.";
             SetPageHeader("BrowseBySellerPage", header);
 
-            NWPlaceable terminal = _.OBJECT_SELF;
+            NWPlaceable terminal = NWScript.OBJECT_SELF;
             int marketRegionID = MarketService.GetMarketRegionID(terminal);
             IEnumerable<PCMarketListing> listings = DataService.PCMarketListing
                 .GetAllByMarketRegionID(marketRegionID)
@@ -312,7 +313,7 @@ namespace SWLOR.Game.Server.Conversation
             var model = MarketService.GetPlayerMarketData(GetPC());
             IEnumerable<PCMarketListing> listings;
             DateTime now = DateTime.UtcNow;
-            int marketRegionID = MarketService.GetMarketRegionID(_.OBJECT_SELF);
+            int marketRegionID = MarketService.GetMarketRegionID(NWScript.OBJECT_SELF);
             
             // Pull items by category
             if (model.BrowseMode == MarketBrowseMode.ByCategory)
@@ -436,7 +437,7 @@ namespace SWLOR.Game.Server.Conversation
             switch (responseID)
             {
                 case 1: // Examine Item
-                    _.CreateItemOnObject("exit_preview", terminal);
+                    NWScript.CreateItemOnObject("exit_preview", terminal);
                     NWItem item = SerializationService.DeserializeItem(listing.ItemObject, terminal);
                     item.IsCursed = true;
                     OpenTerminalInventory();
@@ -457,7 +458,7 @@ namespace SWLOR.Game.Server.Conversation
                         }
 
                         // Take gold from buyer.
-                        _.TakeGoldFromCreature(listing.Price, buyer, TRUE);
+                        NWScript.TakeGoldFromCreature(listing.Price, buyer, TRUE);
 
                         // Give gold to seller.
                         MarketService.GiveMarketGoldToPlayer(listing.SellerPlayerID, listing.Price);
@@ -718,7 +719,7 @@ namespace SWLOR.Game.Server.Conversation
         private void ListItem()
         {
             var player = GetPC();
-            var terminal = _.OBJECT_SELF;
+            var terminal = NWScript.OBJECT_SELF;
             var model = MarketService.GetPlayerMarketData(player);
             var marketRegionID = MarketService.GetMarketRegionID(terminal);
             var feeRate = MarketService.CalculateFeePercentage(model.LengthDays);
@@ -731,7 +732,7 @@ namespace SWLOR.Game.Server.Conversation
                 return;
             }
 
-            _.TakeGoldFromCreature(fees, player, TRUE);
+            NWScript.TakeGoldFromCreature(fees, player, TRUE);
 
             PCMarketListing listing = new PCMarketListing
             {
@@ -767,7 +768,7 @@ namespace SWLOR.Game.Server.Conversation
             SetPageHeader("MarketListingsPage", header);
 
             var player = GetPC();
-            var regionID = MarketService.GetMarketRegionID(_.OBJECT_SELF);
+            var regionID = MarketService.GetMarketRegionID(NWScript.OBJECT_SELF);
             var listings = DataService.PCMarketListing.GetAllBySellerPlayerID(player.GlobalID)
                 .Where(x => x.DateSold == null &&
                     x.DateRemoved == null &&
@@ -998,16 +999,16 @@ namespace SWLOR.Game.Server.Conversation
             model.TemporaryDialogNavigationStack = NavigationStack;
             model.IsConfirming = false;
 
-            _.SetEventScript(terminal, EVENT_SCRIPT_PLACEABLE_ON_USED, string.Empty);
-            _.SetEventScript(terminal, EVENT_SCRIPT_PLACEABLE_ON_OPEN, "script_2");
-            _.SetEventScript(terminal, EVENT_SCRIPT_PLACEABLE_ON_CLOSED, "script_3");
-            _.SetEventScript(terminal, EVENT_SCRIPT_PLACEABLE_ON_INVENTORYDISTURBED, "script_4");
+            NWScript.SetEventScript(terminal, EVENT_SCRIPT_PLACEABLE_ON_USED, string.Empty);
+            NWScript.SetEventScript(terminal, EVENT_SCRIPT_PLACEABLE_ON_OPEN, "script_2");
+            NWScript.SetEventScript(terminal, EVENT_SCRIPT_PLACEABLE_ON_CLOSED, "script_3");
+            NWScript.SetEventScript(terminal, EVENT_SCRIPT_PLACEABLE_ON_INVENTORYDISTURBED, "script_4");
 
             terminal.SetLocalString("SCRIPT_2", "Placeable.MarketTerminal.OnOpened");
             terminal.SetLocalString("SCRIPT_3", "Placeable.MarketTerminal.OnClosed");
             terminal.SetLocalString("SCRIPT_4", "Placeable.MarketTerminal.OnDisturbed");
 
-            GetPC().AssignCommand(() => _.ActionInteractObject(terminal));
+            GetPC().AssignCommand(() => NWScript.ActionInteractObject(terminal));
             EndConversation();
         }
     }

@@ -5,6 +5,7 @@ using NWN;
 using SWLOR.Game.Server.NWN.Enum;
 using SWLOR.Game.Server.NWNX;
 using SWLOR.Game.Server.Service;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Perk.Armor
 {
@@ -16,7 +17,7 @@ namespace SWLOR.Game.Server.Perk.Armor
         {
             if (!oTarget.IsNPC) return "Only NPCs may be targeted with Provoke.";
 
-            float distance = _.GetDistanceBetween(oPC.Object, oTarget.Object);
+            float distance = NWScript.GetDistanceBetween(oPC.Object, oTarget.Object);
             if (distance > 9.0f) return "Target is too far away.";
 
             if (oPC.Chest.CustomItemType != CustomItemType.HeavyArmor)
@@ -54,12 +55,12 @@ namespace SWLOR.Game.Server.Perk.Armor
         public void OnImpact(NWCreature creature, NWObject target, int perkLevel, int spellTier)
         {
             NWCreature npc = (target.Object);
-            var vfx = _.EffectVisualEffect(_.VFX_IMP_CHARM);
-            _.ApplyEffectToObject(_.DURATION_TYPE_INSTANT, vfx, target.Object);
+            var vfx = NWScript.EffectVisualEffect(NWScript.VFX_IMP_CHARM);
+            NWScript.ApplyEffectToObject(DurationType.Instant, vfx, target.Object);
             
             creature.AssignCommand(() =>
             {
-                _.ActionPlayAnimation(_.ANIMATION_FIREFORGET_TAUNT, 1f, 1f);
+                NWScript.ActionPlayAnimation(NWScript.ANIMATION_FIREFORGET_TAUNT, 1f, 1f);
             });
 
             EnmityService.AdjustEnmity(npc, creature, 120);

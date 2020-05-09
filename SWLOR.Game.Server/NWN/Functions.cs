@@ -1000,7 +1000,7 @@ namespace SWLOR.Game.Server.NWN
         /// <summary>
         ///   Do a Spell Resistance check between oCaster and oTarget, returning TRUE if
         ///   the spell was resisted.
-        ///   * Return value if oCaster or oTarget is an invalid object: FALSE
+        ///   * Return value if oCaster or oTarget is an invalid object: 0
         ///   * Return value if spell cast is not a player spell: - 1
         ///   * Return value if spell resisted: 1
         ///   * Return value if spell resisted via magic immunity: 2

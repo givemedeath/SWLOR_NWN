@@ -1,7 +1,8 @@
 ﻿using System;
 using NWN;
 using SWLOR.Game.Server.GameObject;
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Scripts.Placeable.Quests.AbandonedStation
 {
@@ -18,7 +19,7 @@ namespace SWLOR.Game.Server.Scripts.Placeable.Quests.AbandonedStation
         public void Main()
         {
             NWPlayer player = GetClickingObject();
-            NWObject door = _.OBJECT_SELF;
+            NWObject door = NWScript.OBJECT_SELF;
             string destinationAreaTag = door.GetLocalString("DESTINATION_AREA_TAG");
             string destinationWaypointTag = door.GetLocalString("DESTINATION_WAYPOINT");
             NWArea area = door.Area.GetLocalObject(destinationAreaTag);

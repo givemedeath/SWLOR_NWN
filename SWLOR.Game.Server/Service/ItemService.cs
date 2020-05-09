@@ -19,7 +19,8 @@ using SWLOR.Game.Server.Event.SWLOR;
 using SWLOR.Game.Server.Extension;
 using SWLOR.Game.Server.NWN;
 using SWLOR.Game.Server.NWN.Enum.Item;
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Service
 {
@@ -114,7 +115,7 @@ namespace SWLOR.Game.Server.Service
 
         private static void OnItemUsed()
         {
-            NWPlayer user = _.OBJECT_SELF;
+            NWPlayer user = NWScript.OBJECT_SELF;
             NWItem oItem = NWNXObject.StringToObject(NWNXEvents.GetEventData("ITEM_OBJECT_ID"));
             NWObject target = NWNXObject.StringToObject(NWNXEvents.GetEventData("TARGET_OBJECT_ID"));
             var targetPositionX = (float)Convert.ToDouble(NWNXEvents.GetEventData("TARGET_POSITION_X"));
@@ -167,7 +168,7 @@ namespace SWLOR.Game.Server.Service
                     // We are okay - we have targeted an item in our inventory (we can't target someone
                     // else's inventory, so no need to actually check distance).
                 }
-                else if (target.Object == _.OBJECT_SELF)
+                else if (target.Object == NWScript.OBJECT_SELF)
                 {
                     // Also okay.
                 }
@@ -401,7 +402,7 @@ namespace SWLOR.Game.Server.Service
             ItemProperty ip = GetFirstItemProperty(examinedItem);
             while (GetIsItemPropertyValid(ip) == TRUE)
             {
-                if (GetItemPropertyType(ip) == (int) CustomItemPropertyType.ComponentBonus)
+                if (GetItemPropertyType(ip) == (int) ItemPropertyType.ComponentBonus)
                 {
                     switch (GetItemPropertySubType(ip))
                     {
@@ -863,7 +864,7 @@ namespace SWLOR.Game.Server.Service
 
         private static void OnHitCastSpell()
         {
-            NWObject target = _.OBJECT_SELF;
+            NWObject target = NWScript.OBJECT_SELF;
             if (!target.IsValid) return;
 
             NWObject oSpellOrigin = (GetSpellCastItem());

@@ -5,7 +5,8 @@ using SWLOR.Game.Server.ValueObject;
 using SWLOR.Game.Server.ValueObject.Dialog;
 using System;
 using System.Collections.Generic;
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Conversation
 {
@@ -40,7 +41,7 @@ namespace SWLOR.Game.Server.Conversation
 
         private void LoadMainPage()
         {
-            NWObject table = _.OBJECT_SELF;
+            NWObject table = NWScript.OBJECT_SELF;
             NWPlayer pc = GetPC();
             game = PazaakService.GetCurrentGame(table);
 
@@ -181,7 +182,7 @@ namespace SWLOR.Game.Server.Conversation
         private void MainPageResponses(int responseID)
         {
             var response = GetResponseByID("MainPage", responseID);
-            NWObject table = _.OBJECT_SELF;
+            NWObject table = NWScript.OBJECT_SELF;
             NWPlayer pc = GetPC();
             game = PazaakService.GetCurrentGame(table);
 

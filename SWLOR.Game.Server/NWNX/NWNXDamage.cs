@@ -2,6 +2,7 @@
 using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.NWN;
 using static SWLOR.Game.Server.NWNX.NWNXCore;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.NWNX
 {
@@ -14,7 +15,7 @@ namespace SWLOR.Game.Server.NWNX
         // If oOwner is valid, it will set it only for that creature.
         public static void SetDamageEventScript(string script, uint? oOwner = null)
         {
-            if (oOwner == null) oOwner = _.OBJECT_INVALID;
+            if (oOwner == null) oOwner = NWScript.OBJECT_INVALID;
             Internal.NativeFunctions.nwnxSetFunction(PLUGIN_NAME, "SetEventScript");
             Internal.NativeFunctions.nwnxPushObject((uint)oOwner);
             Internal.NativeFunctions.nwnxPushString(script);
@@ -70,7 +71,7 @@ namespace SWLOR.Game.Server.NWNX
         // If oOwner is valid, it will set it only for that creature.
         public static void SetAttackEventScript(string script, uint? oOwner = null)
         {
-            if (oOwner == null) oOwner = _.OBJECT_INVALID;
+            if (oOwner == null) oOwner = NWScript.OBJECT_INVALID;
             Internal.NativeFunctions.nwnxSetFunction(PLUGIN_NAME, "SetEventScript");
             Internal.NativeFunctions.nwnxPushObject((uint)oOwner);
             Internal.NativeFunctions.nwnxPushString(script);

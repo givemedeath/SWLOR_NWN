@@ -1,5 +1,6 @@
 ﻿using NWN;
 using SWLOR.Game.Server.GameObject;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Scripts.Placeable.ResourceBay
 {
@@ -15,7 +16,7 @@ namespace SWLOR.Game.Server.Scripts.Placeable.ResourceBay
 
         public void Main()
         {
-            NWPlaceable objSelf = (_.OBJECT_SELF);
+            NWPlaceable objSelf = (NWScript.OBJECT_SELF);
             NWObject parent = (objSelf.GetLocalObject("CONTROL_TOWER_PARENT"));
             parent.DeleteLocalObject("CONTROL_TOWER_RESOURCE_BAY");
             objSelf.DestroyAllInventoryItems();

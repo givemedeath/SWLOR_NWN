@@ -22,7 +22,7 @@ namespace NWN.Scripts
 
             using (new Profiler(nameof(mod_on_examine)))
             {
-                NWPlayer examiner = (_.OBJECT_SELF);
+                NWPlayer examiner = (SWLOR.Game.Server.NWN.NWScript.OBJECT_SELF);
                 NWObject examinedObject = NWNXObject.StringToObject(NWNXEvents.GetEventData("EXAMINEE_OBJECT_ID"));
                 if (ExaminationService.OnModuleExamine(examiner, examinedObject))
                 {
@@ -32,22 +32,22 @@ namespace NWN.Scripts
 
                 string description;
 
-                if (_.GetIsPC(examinedObject.Object) == _.TRUE)
+                if (SWLOR.Game.Server.NWN.NWScript.GetIsPC(examinedObject.Object) == SWLOR.Game.Server.NWN.NWScript.TRUE)
                 {
                     // https://github.com/zunath/SWLOR_NWN/issues/853
                     // safest probably to get the modified (non-original) description only for players
                     // may want to always get the modified description for later flexibility?
-                    description = _.GetDescription(examinedObject.Object, _.FALSE) + "\n\n";
+                    description = SWLOR.Game.Server.NWN.NWScript.GetDescription(examinedObject.Object, SWLOR.Game.Server.NWN.NWScript.FALSE) + "\n\n";
                 }
                 else
                 {
-                    description = _.GetDescription(examinedObject.Object, _.TRUE) + "\n\n";
+                    description = SWLOR.Game.Server.NWN.NWScript.GetDescription(examinedObject.Object, SWLOR.Game.Server.NWN.NWScript.TRUE) + "\n\n";
                 }                
 
                 if (examinedObject.IsCreature)
                 {
-                    int racialID = Convert.ToInt32(_.Get2DAString("racialtypes", "Name", _.GetRacialType(examinedObject)));
-                    string racialtype = _.GetStringByStrRef(racialID);
+                    int racialID = Convert.ToInt32(SWLOR.Game.Server.NWN.NWScript.Get2DAString("racialtypes", "Name", SWLOR.Game.Server.NWN.NWScript.GetRacialType(examinedObject)));
+                    string racialtype = SWLOR.Game.Server.NWN.NWScript.GetStringByStrRef(racialID);
                     if (!description.Contains(ColorTokenService.Green("Racial Type: ") + racialtype))
                     {
                         description += ColorTokenService.Green("Racial Type: ") + racialtype;
@@ -60,8 +60,8 @@ namespace NWN.Scripts
 
                 if (!string.IsNullOrWhiteSpace(description))
                 {
-                    _.SetDescription(examinedObject.Object, description, _.FALSE);
-                    _.SetDescription(examinedObject.Object, description);
+                    SWLOR.Game.Server.NWN.NWScript.SetDescription(examinedObject.Object, description, SWLOR.Game.Server.NWN.NWScript.FALSE);
+                    SWLOR.Game.Server.NWN.NWScript.SetDescription(examinedObject.Object, description);
                 }
             }
 

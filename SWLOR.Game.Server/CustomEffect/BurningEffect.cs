@@ -6,6 +6,7 @@ using NWN;
 using SWLOR.Game.Server.Enumeration;
 using SWLOR.Game.Server.NWN;
 using SWLOR.Game.Server.Service;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.CustomEffect
 {
@@ -27,12 +28,12 @@ namespace SWLOR.Game.Server.CustomEffect
 
             oCaster.AssignCommand(() =>
             {
-                Effect damage = _.EffectDamage(amount, _.DAMAGE_TYPE_FIRE);
-                _.ApplyEffectToObject(_.DURATION_TYPE_INSTANT, damage, oTarget.Object);
+                Effect damage = NWScript.EffectDamage(amount, NWScript.DAMAGE_TYPE_FIRE);
+                NWScript.ApplyEffectToObject(DurationType.Instant, damage, oTarget.Object);
             });
 
-            Effect vfx = _.EffectVisualEffect(_.VFX_COM_HIT_FIRE);
-            _.ApplyEffectToObject(_.DURATION_TYPE_INSTANT, vfx, oTarget.Object);
+            Effect vfx = NWScript.EffectVisualEffect(NWScript.VFX_COM_HIT_FIRE);
+            NWScript.ApplyEffectToObject(DurationType.Instant, vfx, oTarget.Object);
         }
 
         public void WearOff(NWCreature oCaster, NWObject oTarget, int effectiveLevel, string data)

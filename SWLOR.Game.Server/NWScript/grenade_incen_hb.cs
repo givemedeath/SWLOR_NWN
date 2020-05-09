@@ -1,6 +1,6 @@
 ﻿using NWN;
 using System;
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
 using SWLOR.Game.Server.GameObject;
 
 // ReSharper disable once CheckNamespace
@@ -14,12 +14,12 @@ namespace NWN.Scripts
         private static void Main()
         {            
             NWObject oTarget;            
-            oTarget = GetFirstInPersistentObject(_.OBJECT_SELF);
+            oTarget = GetFirstInPersistentObject(SWLOR.Game.Server.NWN.NWScript.OBJECT_SELF);
             while (GetIsObjectValid(oTarget) == TRUE)
             {         
                 SWLOR.Game.Server.Item.Grenade.grenadeAoe(oTarget, "INCENDIARY");
                 //Get the next target in the AOE
-                oTarget = GetNextInPersistentObject(_.OBJECT_SELF);
+                oTarget = GetNextInPersistentObject(SWLOR.Game.Server.NWN.NWScript.OBJECT_SELF);
             }
         }
     }

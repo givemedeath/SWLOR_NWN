@@ -5,7 +5,8 @@ using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.NWN;
 using SWLOR.Game.Server.Service;
 
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Perk.Blaster
 {
@@ -103,20 +104,20 @@ namespace SWLOR.Game.Server.Perk.Blaster
 
             target.SetLocalInt("TRANQUILIZER_EFFECT_FIRST_RUN", 1);
 
-            Effect effect = _.EffectDazed();
-            effect = _.EffectLinkEffects(effect, _.EffectVisualEffect(VFX_DUR_IOUNSTONE_BLUE));
-            effect = _.TagEffect(effect, "TRANQUILIZER_EFFECT");
+            Effect effect = NWScript.EffectDazed();
+            effect = NWScript.EffectLinkEffects(effect, NWScript.EffectVisualEffect(VFX_DUR_IOUNSTONE_BLUE));
+            effect = NWScript.TagEffect(effect, "TRANQUILIZER_EFFECT");
 
-            _.ApplyEffectToObject(DURATION_TYPE_TEMPORARY, effect, target, duration);
+            NWScript.ApplyEffectToObject(DURATION_TYPE_TEMPORARY, effect, target, duration);
         }
 
         private bool RemoveExistingEffect(NWObject target, float duration)
         {
-            Effect effect = target.Effects.FirstOrDefault(x => _.GetEffectTag(x) == "TRANQUILIZER_EFFECT");
+            Effect effect = target.Effects.FirstOrDefault(x => NWScript.GetEffectTag(x) == "TRANQUILIZER_EFFECT");
             if (effect == null) return false;
 
-            if (_.GetEffectDurationRemaining(effect) >= duration) return true;
-            _.RemoveEffect(target, effect);
+            if (NWScript.GetEffectDurationRemaining(effect) >= duration) return true;
+            NWScript.RemoveEffect(target, effect);
             return false;
         }
 

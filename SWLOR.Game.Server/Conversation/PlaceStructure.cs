@@ -8,9 +8,10 @@ using SWLOR.Game.Server.Data.Entity;
 using SWLOR.Game.Server.Enumeration;
 using SWLOR.Game.Server.NWN;
 using SWLOR.Game.Server.Service;
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
 using BaseStructureType = SWLOR.Game.Server.Enumeration.BaseStructureType;
 using BuildingType = SWLOR.Game.Server.Enumeration.BuildingType;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Conversation
 {
@@ -252,18 +253,18 @@ namespace SWLOR.Game.Server.Conversation
             var structure = DataService.BaseStructure.GetByID(data.BaseStructureID);
             string resref = GetPlaceableResref(structure);
 
-            NWPlaceable plc = (_.CreateObject(OBJECT_TYPE_PLACEABLE, resref, data.TargetLocation));
+            NWPlaceable plc = (NWScript.CreateObject(OBJECT_TYPE_PLACEABLE, resref, data.TargetLocation));
             plc.IsUseable = false;
             plc.Destroy(6.0f);
-            _.DelayCommand(6.1f, () => { data.IsPreviewing = false; });
-            _.ApplyEffectToObject(DURATION_TYPE_PERMANENT, _.EffectVisualEffect(VFX_DUR_AURA_GREEN), plc.Object);
+            NWScript.DelayCommand(6.1f, () => { data.IsPreviewing = false; });
+            NWScript.ApplyEffectToObject(DURATION_TYPE_PERMANENT, NWScript.EffectVisualEffect(VFX_DUR_AURA_GREEN), plc.Object);
         }
 
         private void LoadRotatePage()
         {
             var data = BaseService.GetPlayerTempData(GetPC());
-            float facing = _.GetFacingFromLocation(data.TargetLocation);
-            Vector position = _.GetPositionFromLocation(data.TargetLocation);
+            float facing = NWScript.GetFacingFromLocation(data.TargetLocation);
+            Vector position = NWScript.GetPositionFromLocation(data.TargetLocation);
             string header = ColorTokenService.Green("Current Direction: ") + facing + "\n\n";
             header += ColorTokenService.Green("Current Height: ") + position.Z;
 
@@ -271,9 +272,9 @@ namespace SWLOR.Game.Server.Conversation
             {
                 var structure = DataService.BaseStructure.GetByID(data.BaseStructureID);
                 string resref = GetPlaceableResref(structure);
-                data.StructurePreview = (_.CreateObject(OBJECT_TYPE_PLACEABLE, resref, data.TargetLocation));
+                data.StructurePreview = (NWScript.CreateObject(OBJECT_TYPE_PLACEABLE, resref, data.TargetLocation));
                 data.StructurePreview.IsUseable = false;
-                _.ApplyEffectToObject(DURATION_TYPE_PERMANENT, _.EffectVisualEffect(VFX_DUR_AURA_GREEN), data.StructurePreview.Object);
+                NWScript.ApplyEffectToObject(DURATION_TYPE_PERMANENT, NWScript.EffectVisualEffect(VFX_DUR_AURA_GREEN), data.StructurePreview.Object);
             }
 
             SetPageHeader("RotatePage", header);
@@ -328,7 +329,7 @@ namespace SWLOR.Game.Server.Conversation
         private void DoRotate(float degrees, bool isSet)
         {
             var data = BaseService.GetPlayerTempData(GetPC());
-            float facing = _.GetFacingFromLocation(data.TargetLocation);
+            float facing = NWScript.GetFacingFromLocation(data.TargetLocation);
             if (isSet)
             {
                 facing = degrees;
@@ -348,8 +349,8 @@ namespace SWLOR.Game.Server.Conversation
                 data.StructurePreview.Facing = facing;
             }
 
-            data.TargetLocation = _.Location(_.GetAreaFromLocation(data.TargetLocation),
-                _.GetPositionFromLocation(data.TargetLocation),
+            data.TargetLocation = NWScript.Location(NWScript.GetAreaFromLocation(data.TargetLocation),
+                NWScript.GetPositionFromLocation(data.TargetLocation),
                 facing);
             LoadRotatePage();
         }
@@ -357,7 +358,7 @@ namespace SWLOR.Game.Server.Conversation
         private void DoMoveZ(float degrees, bool isSet)
         {
             var data = BaseService.GetPlayerTempData(GetPC());
-            Vector position = _.GetPositionFromLocation(data.TargetLocation);
+            Vector position = NWScript.GetPositionFromLocation(data.TargetLocation);
             
             if (position.Z > 10.0f || 
                 position.Z < -10.0f)
@@ -371,9 +372,9 @@ namespace SWLOR.Game.Server.Conversation
 
             Preview();
 
-            data.TargetLocation = _.Location(_.GetAreaFromLocation(data.TargetLocation),
+            data.TargetLocation = NWScript.Location(NWScript.GetAreaFromLocation(data.TargetLocation),
                 position,
-                _.GetFacingFromLocation(data.TargetLocation));
+                NWScript.GetFacingFromLocation(data.TargetLocation));
             LoadRotatePage();
         }
 
@@ -389,7 +390,7 @@ namespace SWLOR.Game.Server.Conversation
                 return;
             }
 
-            var position = _.GetPositionFromLocation(data.TargetLocation);
+            var position = NWScript.GetPositionFromLocation(data.TargetLocation);
             int? interiorStyleID = data.StructureItem.GetLocalInt("STRUCTURE_BUILDING_INTERIOR_ID");
             int? exteriorStyleID = data.StructureItem.GetLocalInt("STRUCTURE_BUILDING_EXTERIOR_ID");
             interiorStyleID = interiorStyleID <= 0 ? null : interiorStyleID;
@@ -399,7 +400,7 @@ namespace SWLOR.Game.Server.Conversation
             {
                 BaseStructureID = data.BaseStructureID, 
                 Durability = DurabilityService.GetDurability(data.StructureItem),
-                LocationOrientation = _.GetFacingFromLocation(data.TargetLocation),
+                LocationOrientation = NWScript.GetFacingFromLocation(data.TargetLocation),
                 LocationX = position.X,
                 LocationY = position.Y,
                 LocationZ = position.Z,

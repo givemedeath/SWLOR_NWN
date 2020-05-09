@@ -4,6 +4,7 @@ using SWLOR.Game.Server.Bioware;
 using SWLOR.Game.Server.Enumeration;
 using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.NWN;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 
 namespace SWLOR.Game.Server.Service
@@ -13,8 +14,8 @@ namespace SWLOR.Game.Server.Service
         
         public static void ApplyComponentBonus(NWItem product, ItemProperty sourceIP)
         {
-            ComponentBonusType bonusType = (ComponentBonusType)_.GetItemPropertySubType(sourceIP);
-            int amount = _.GetItemPropertyCostTableValue(sourceIP);
+            ComponentBonusType bonusType = (ComponentBonusType)NWScript.GetItemPropertySubType(sourceIP);
+            int amount = NWScript.GetItemPropertyCostTableValue(sourceIP);
             ItemProperty prop = null;
             string sourceTag = string.Empty;
             int attackBonus = 0;
@@ -178,12 +179,12 @@ namespace SWLOR.Game.Server.Service
                 // Look for existing properties, get the value and add it. Then remove that item property.
                 foreach (var ip in product.ItemProperties)
                 {
-                    if (_.GetItemPropertyType(ip) == _.ITEM_PROPERTY_ATTACK_BONUS)
+                    if (NWScript.GetItemPropertyType(ip) == NWScript.ITEM_PROPERTY_ATTACK_BONUS)
                     {
-                        amount = _.GetItemPropertyCostTableValue(ip);
+                        amount = NWScript.GetItemPropertyCostTableValue(ip);
                         attackBonus += amount;
 
-                        _.RemoveItemProperty(product, ip);
+                        NWScript.RemoveItemProperty(product, ip);
                     }
                 }
 
@@ -191,7 +192,7 @@ namespace SWLOR.Game.Server.Service
                 if (attackBonus > 20) attackBonus = 20;
 
                 // Time to add the new item property.
-                prop = _.ItemPropertyAttackBonus(attackBonus);
+                prop = NWScript.ItemPropertyAttackBonus(attackBonus);
                 BiowareXP2.IPSafeAddItemProperty(product, prop, 0.0f, AddItemPropertyPolicy.ReplaceExisting, true, false);
             }
         }

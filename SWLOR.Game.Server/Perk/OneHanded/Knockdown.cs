@@ -3,7 +3,8 @@ using SWLOR.Game.Server.Enumeration;
 using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.Service;
 
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Perk.OneHanded
 {
@@ -74,8 +75,8 @@ namespace SWLOR.Game.Server.Perk.OneHanded
                 default: return;
             }
 
-            _.ApplyEffectToObject(DURATION_TYPE_TEMPORARY, _.EffectKnockdown(), target.Object, length);
-            _.ApplyEffectToObject(DURATION_TYPE_INSTANT, _.EffectDamage(damage, DAMAGE_TYPE_BLUDGEONING), target);
+            NWScript.ApplyEffectToObject(DURATION_TYPE_TEMPORARY, NWScript.EffectKnockdown(), target.Object, length);
+            NWScript.ApplyEffectToObject(DURATION_TYPE_INSTANT, NWScript.EffectDamage(damage, DAMAGE_TYPE_BLUDGEONING), target);
         }
 
         public void OnPurchased(NWCreature creature, int newLevel)

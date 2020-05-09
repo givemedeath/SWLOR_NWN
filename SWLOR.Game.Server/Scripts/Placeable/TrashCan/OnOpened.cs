@@ -1,5 +1,6 @@
 ﻿using NWN;
 using SWLOR.Game.Server.GameObject;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Scripts.Placeable.TrashCan
 {
@@ -15,7 +16,7 @@ namespace SWLOR.Game.Server.Scripts.Placeable.TrashCan
 
         public void Main()
         {
-            NWPlayer oPC = (_.GetLastOpenedBy());
+            NWPlayer oPC = (NWScript.GetLastOpenedBy());
             oPC.FloatingText("Any item placed inside this trash can will be destroyed permanently.");
         }
     }

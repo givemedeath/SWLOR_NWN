@@ -16,9 +16,9 @@ namespace NWN.Scripts
         {
             using (new Profiler(nameof(mod_on_entstlth)))
             {
-                NWObject stealther = _.OBJECT_SELF;
-                _.SetActionMode(stealther, _.ACTION_MODE_STEALTH, _.FALSE);
-                _.FloatingTextStringOnCreature("NWN stealth mode is disabled on this server.", stealther, _.FALSE);
+                NWObject stealther = SWLOR.Game.Server.NWN.NWScript.OBJECT_SELF;
+                SWLOR.Game.Server.NWN.NWScript.SetActionMode(stealther, SWLOR.Game.Server.NWN.NWScript.ACTION_MODE_STEALTH, SWLOR.Game.Server.NWN.NWScript.FALSE);
+                SWLOR.Game.Server.NWN.NWScript.FloatingTextStringOnCreature("NWN stealth mode is disabled on this server.", stealther, SWLOR.Game.Server.NWN.NWScript.FALSE);
             }
 
             MessageHub.Instance.Publish(new OnModuleEnterStealthAfter());

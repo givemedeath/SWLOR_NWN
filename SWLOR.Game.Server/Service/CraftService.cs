@@ -14,8 +14,9 @@ using SWLOR.Game.Server.Messaging;
 using SWLOR.Game.Server.NWN.Enum;
 using SWLOR.Game.Server.NWNX;
 using SWLOR.Game.Server.ValueObject;
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
 using ComponentType = SWLOR.Game.Server.Data.Entity.ComponentType;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Service
 {
@@ -28,7 +29,7 @@ namespace SWLOR.Game.Server.Service
             MessageHub.Instance.Subscribe<OnAreaEnter>(message => OnAreaEnter());
             MessageHub.Instance.Subscribe<OnUseCraftingFeat>(messsage =>
             {
-                NWPlayer player = _.OBJECT_SELF;
+                NWPlayer player = NWScript.OBJECT_SELF;
                 DialogService.StartConversation(player, player, "ModifyItemAppearance");
             });
             MessageHub.Instance.Subscribe<OnModuleNWNXChat>(message => OnModuleNWNXChat());
@@ -207,16 +208,16 @@ namespace SWLOR.Game.Server.Service
             float modifiedCraftDelay = CalculateCraftingDelay(oPC, blueprint.SkillID);
             oPC.AssignCommand(() =>
             {
-                _.ClearAllActions();
-                _.ActionPlayAnimation(ANIMATION_LOOPING_GET_MID, 1.0f, modifiedCraftDelay);
+                NWScript.ClearAllActions();
+                NWScript.ActionPlayAnimation(ANIMATION_LOOPING_GET_MID, 1.0f, modifiedCraftDelay);
             });
-            _.DelayCommand(1.0f * (modifiedCraftDelay / 2.0f), () =>
+            NWScript.DelayCommand(1.0f * (modifiedCraftDelay / 2.0f), () =>
             {
-                _.ApplyEffectToObject(DURATION_TYPE_INSTANT, _.EffectVisualEffect(VFX_COM_BLOOD_SPARK_MEDIUM), device.Object);
+                NWScript.ApplyEffectToObject(DURATION_TYPE_INSTANT, NWScript.EffectVisualEffect(VFX_COM_BLOOD_SPARK_MEDIUM), device.Object);
             });
-            var immobilize = _.EffectCutsceneImmobilize();
-            immobilize = _.TagEffect(immobilize, "CRAFTING_IMMOBILIZATION");
-            _.ApplyEffectToObject(DURATION_TYPE_PERMANENT, immobilize, oPC.Object);
+            var immobilize = NWScript.EffectCutsceneImmobilize();
+            immobilize = NWScript.TagEffect(immobilize, "CRAFTING_IMMOBILIZATION");
+            NWScript.ApplyEffectToObject(DURATION_TYPE_PERMANENT, immobilize, oPC.Object);
 
             NWNXPlayer.StartGuiTimingBar(oPC, modifiedCraftDelay, "");
 
@@ -510,25 +511,25 @@ namespace SWLOR.Game.Server.Service
             foreach (var item in model.MainComponents)
             {
                 if (!destroyComponents)
-                    _.CopyItem(item.Object, player.Object, TRUE);
+                    NWScript.CopyItem(item.Object, player.Object, TRUE);
                 item.Destroy();
             }
             foreach (var item in model.SecondaryComponents)
             {
                 if (!destroyComponents)
-                    _.CopyItem(item.Object, player.Object, TRUE);
+                    NWScript.CopyItem(item.Object, player.Object, TRUE);
                 item.Destroy();
             }
             foreach (var item in model.TertiaryComponents)
             {
                 if (!destroyComponents)
-                    _.CopyItem(item.Object, player.Object, TRUE);
+                    NWScript.CopyItem(item.Object, player.Object, TRUE);
                 item.Destroy();
             }
             foreach (var item in model.EnhancementComponents)
             {
                 if (!destroyComponents)
-                    _.CopyItem(item.Object, player.Object, TRUE);
+                    NWScript.CopyItem(item.Object, player.Object, TRUE);
                 item.Destroy();
             }
 
@@ -582,7 +583,7 @@ namespace SWLOR.Game.Server.Service
 
         private static void OnModuleUseFeat()
         {
-            NWPlayer pc = _.OBJECT_SELF;
+            NWPlayer pc = NWScript.OBJECT_SELF;
             int featID = Convert.ToInt32(NWNXEvents.GetEventData("FEAT_ID"));
 
             if (featID != (int)Feat.RenameCraftedItem) return;
@@ -690,11 +691,11 @@ namespace SWLOR.Game.Server.Service
 
         private static void OnAreaEnter()
         {
-            NWArea area = _.OBJECT_SELF;
+            NWArea area = NWScript.OBJECT_SELF;
             string bonuses = GetAreaAtmosphereBonusText(area);
 
             if (string.IsNullOrWhiteSpace(bonuses)) return;
-            NWCreature entering = _.GetEnteringObject();
+            NWCreature entering = NWScript.GetEnteringObject();
 
             entering.SendMessage(bonuses);
         }

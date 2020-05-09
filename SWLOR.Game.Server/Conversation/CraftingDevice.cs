@@ -6,7 +6,8 @@ using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.Service;
 
 using SWLOR.Game.Server.ValueObject.Dialog;
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Conversation
 {
@@ -131,11 +132,11 @@ namespace SWLOR.Game.Server.Conversation
         private void OpenScrapperInventory()
         {
             var model = CraftService.GetPlayerCraftingData(GetPC());
-            NWPlaceable container = _.CreateObject(OBJECT_TYPE_PLACEABLE, "cft_scrapper", GetPC().Location);
+            NWPlaceable container = NWScript.CreateObject(OBJECT_TYPE_PLACEABLE, "cft_scrapper", GetPC().Location);
             container.IsLocked = false;
             model.IsAccessingStorage = true;
             
-            GetPC().AssignCommand(() => _.ActionInteractObject(container.Object));
+            GetPC().AssignCommand(() => NWScript.ActionInteractObject(container.Object));
             EndConversation();
         }
 

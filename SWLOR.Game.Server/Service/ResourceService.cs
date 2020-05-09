@@ -5,6 +5,7 @@ using SWLOR.Game.Server.GameObject;
 using System;
 using System.Collections.Generic;
 using SWLOR.Game.Server.NWN;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Service
 {
@@ -13,20 +14,20 @@ namespace SWLOR.Game.Server.Service
         
         public static string GetResourceDescription(NWPlaceable resource)
         {
-            NWPlaceable tempStorage = (_.GetObjectByTag("TEMP_ITEM_STORAGE"));
+            NWPlaceable tempStorage = (NWScript.GetObjectByTag("TEMP_ITEM_STORAGE"));
             string resref = resource.GetLocalString("RESOURCE_RESREF");
             string qualityName = resource.GetLocalString("RESOURCE_QUALITY_NAME");
 
-            NWItem tempItem = (_.CreateItemOnObject(resref, tempStorage.Object));
+            NWItem tempItem = (NWScript.CreateItemOnObject(resref, tempStorage.Object));
             string resourceName = tempItem.Name;
             
             int typeID = 0;
 
             foreach (var ip in tempItem.ItemProperties)
             {
-                if (_.GetItemPropertyType(ip) == (int)CustomItemPropertyType.ComponentType)
+                if (NWScript.GetItemPropertyType(ip) == (int)ItemPropertyType.ComponentType)
                 {
-                    typeID = _.GetItemPropertyCostTableValue(ip);
+                    typeID = NWScript.GetItemPropertyCostTableValue(ip);
                     break;
                 }
             }
@@ -36,8 +37,8 @@ namespace SWLOR.Game.Server.Service
                 return "Invalid component type";
             }
 
-            int tlkID = Convert.ToInt32(_.Get2DAString("iprp_comptype", "Name", typeID));
-            string componentName = _.GetStringByStrRef(tlkID);
+            int tlkID = Convert.ToInt32(NWScript.Get2DAString("iprp_comptype", "Name", typeID));
+            string componentName = NWScript.GetStringByStrRef(tlkID);
 
             string description = qualityName + " " +
                                  resourceName + " (" +

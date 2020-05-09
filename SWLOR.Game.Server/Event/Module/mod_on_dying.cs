@@ -13,7 +13,7 @@ namespace NWN.Scripts
         public static void Main()
         {
             // Bioware Default
-            _.ExecuteScript("nw_o0_dying", _.OBJECT_SELF); 
+            SWLOR.Game.Server.NWN.NWScript.ExecuteScript("nw_o0_dying", SWLOR.Game.Server.NWN.NWScript.OBJECT_SELF); 
             MessageHub.Instance.Publish(new OnModuleDying());
         }
     }

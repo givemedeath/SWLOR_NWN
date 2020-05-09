@@ -3,6 +3,7 @@ using NWN;
 using SWLOR.Game.Server.Enumeration;
 using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.Service;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Perk.ForceAlter
 {
@@ -96,7 +97,7 @@ namespace SWLOR.Game.Server.Perk.ForceAlter
             
             creature.AssignCommand(() =>
             {
-                _.ApplyEffectToObject(_.DURATION_TYPE_INSTANT, _.EffectDamage(amount, _.DAMAGE_TYPE_ELECTRICAL), target);
+                NWScript.ApplyEffectToObject(DurationType.Instant, NWScript.EffectDamage(amount, NWScript.DAMAGE_TYPE_ELECTRICAL), target);
             });
 
             if (creature.IsPlayer)
@@ -104,7 +105,7 @@ namespace SWLOR.Game.Server.Perk.ForceAlter
                 SkillService.RegisterPCToNPCForSkill(creature.Object, target, SkillType.ForceAlter);
             }
 
-            _.ApplyEffectToObject(_.DURATION_TYPE_INSTANT, _.EffectVisualEffect(_.VFX_IMP_LIGHTNING_S), target);
+            NWScript.ApplyEffectToObject(DurationType.Instant, NWScript.EffectVisualEffect(NWScript.VFX_IMP_LIGHTNING_S), target);
         }
     }
 }

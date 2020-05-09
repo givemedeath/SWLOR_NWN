@@ -5,6 +5,7 @@ using SWLOR.Game.Server.GameObject;
 using NWN;
 using SWLOR.Game.Server.NWN.Enum;
 using SWLOR.Game.Server.NWNX;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 
 namespace SWLOR.Game.Server.Perk.MartialArts
@@ -76,11 +77,11 @@ namespace SWLOR.Game.Server.Perk.MartialArts
 
             if (unequippingItem != null && Equals(unequippingItem, mainHand))
             {
-                mainHand = _.OBJECT_INVALID;
+                mainHand = NWScript.OBJECT_INVALID;
             }
             else if (unequippingItem != null && Equals(unequippingItem, offHand))
             {
-                offHand = _.OBJECT_INVALID;
+                offHand = NWScript.OBJECT_INVALID;
             }
 
             // Main is Martial and off is invalid 

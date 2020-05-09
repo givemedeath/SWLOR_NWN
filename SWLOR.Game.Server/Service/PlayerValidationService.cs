@@ -3,6 +3,7 @@ using System.Linq;
 using NWN;
 using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.NWNX;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Service
 {
@@ -10,7 +11,7 @@ namespace SWLOR.Game.Server.Service
     {
         public static void OnModuleEnter()
         {
-            NWPlayer player = _.GetEnteringObject();
+            NWPlayer player = NWScript.GetEnteringObject();
             if (!player.IsPlayer) return;
 
             string error = ValidateBackground(player);
@@ -22,7 +23,7 @@ namespace SWLOR.Game.Server.Service
             
             if (!string.IsNullOrWhiteSpace(error))
             {
-                _.BootPC(player, error);
+                NWScript.BootPC(player, error);
                 NWNXAdmin.DeletePlayerCharacter(player, true);
             }
         }
@@ -47,8 +48,8 @@ namespace SWLOR.Game.Server.Service
 
         private static string ValidateBackground(NWPlayer player)
         {
-            var classID = _.GetClassByPosition(1, player);
-            bool isPlayerClass = Convert.ToInt32(_.Get2DAString("classes", "PlayerClass", (int)classID)) == 1;
+            var classID = NWScript.GetClassByPosition(1, player);
+            bool isPlayerClass = Convert.ToInt32(NWScript.Get2DAString("classes", "PlayerClass", (int)classID)) == 1;
             bool isValid = isPlayerClass;
             string error = string.Empty;
 

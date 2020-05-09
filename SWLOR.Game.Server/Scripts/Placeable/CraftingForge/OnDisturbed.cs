@@ -7,6 +7,7 @@ using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.NWN;
 using SWLOR.Game.Server.NWNX;
 using SWLOR.Game.Server.Service;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Scripts.Placeable.CraftingForge
 {
@@ -22,11 +23,11 @@ namespace SWLOR.Game.Server.Scripts.Placeable.CraftingForge
 
         public void Main()
         {
-            if (_.GetInventoryDisturbType() != _.INVENTORY_DISTURB_TYPE_ADDED) return;
+            if (NWScript.GetInventoryDisturbType() != NWScript.INVENTORY_DISTURB_TYPE_ADDED) return;
 
-            NWPlayer pc = (_.GetLastDisturbed());
-            NWItem item = (_.GetInventoryDisturbItem());
-            NWPlaceable forge = (_.OBJECT_SELF);
+            NWPlayer pc = (NWScript.GetLastDisturbed());
+            NWItem item = (NWScript.GetInventoryDisturbItem());
+            NWPlaceable forge = (NWScript.OBJECT_SELF);
 
             if (!CheckValidity(forge, pc, item)) return;
             StartSmelt(forge, pc, item);
@@ -41,7 +42,7 @@ namespace SWLOR.Game.Server.Scripts.Placeable.CraftingForge
                 return false;
             }
 
-            if (_.GetIsObjectValid(forge.GetLocalObject("FORGE_USER")) == _.TRUE)
+            if (NWScript.GetIsObjectValid(forge.GetLocalObject("FORGE_USER")) == NWScript.TRUE)
             {
                 ReturnItemToPC(pc, item, "This forge is currently in use. Please wait...");
                 return false;
@@ -102,8 +103,8 @@ namespace SWLOR.Game.Server.Scripts.Placeable.CraftingForge
                 if (!flames.IsValid)
                 {
                     Vector flamePosition = BiowarePosition.GetChangedPosition(forge.Position, 0.36f, forge.Facing);
-                    Location flameLocation = _.Location(forge.Area.Object, flamePosition, 0.0f);
-                    flames = (_.CreateObject(_.OBJECT_TYPE_PLACEABLE, "forge_flame", flameLocation));
+                    Location flameLocation = NWScript.Location(forge.Area.Object, flamePosition, 0.0f);
+                    flames = (NWScript.CreateObject(ObjectType.Placeable, "forge_flame", flameLocation));
                     forge.SetLocalObject("FORGE_FLAMES", flames.Object);
                 }
 
@@ -123,16 +124,16 @@ namespace SWLOR.Game.Server.Scripts.Placeable.CraftingForge
 
             // Any component bonuses on the ore get applied to the end product.
             var itemProperties = item.ItemProperties.Where(x =>
-                _.GetItemPropertyType(x) == (int)CustomItemPropertyType.ComponentBonus ||
-                _.GetItemPropertyType(x) == (int) CustomItemPropertyType.RecommendedLevel).ToList();
+                NWScript.GetItemPropertyType(x) == (int)ItemPropertyType.ComponentBonus ||
+                NWScript.GetItemPropertyType(x) == (int) ItemPropertyType.RecommendedLevel).ToList();
 
             string itemResref = item.Resref;
 
             var @event = new OnCompleteSmelt(pc, itemResref, itemProperties);
             pc.DelayEvent(baseCraftDelay, @event);
             
-            _.ApplyEffectToObject(_.DURATION_TYPE_TEMPORARY, _.EffectCutsceneImmobilize(), pc.Object, baseCraftDelay);
-            pc.AssignCommand(() => _.ActionPlayAnimation(_.ANIMATION_LOOPING_GET_MID, 1.0f, baseCraftDelay));
+            NWScript.ApplyEffectToObject(DurationType.Temporary, NWScript.EffectCutsceneImmobilize(), pc.Object, baseCraftDelay);
+            pc.AssignCommand(() => NWScript.ActionPlayAnimation(NWScript.ANIMATION_LOOPING_GET_MID, 1.0f, baseCraftDelay));
             item.Destroy();
         }
 
@@ -141,12 +142,12 @@ namespace SWLOR.Game.Server.Scripts.Placeable.CraftingForge
             int durability = 0;
             foreach (var ip in item.ItemProperties)
             {
-                if (_.GetItemPropertyType(ip) == (int)CustomItemPropertyType.ComponentBonus)
+                if (NWScript.GetItemPropertyType(ip) == (int)ItemPropertyType.ComponentBonus)
                 {
-                    int bonusTypeID = _.GetItemPropertySubType(ip);
+                    int bonusTypeID = NWScript.GetItemPropertySubType(ip);
                     if (bonusTypeID == (int) ComponentBonusType.DurabilityUp)
                     {
-                        int amount = _.GetItemPropertyCostTableValue(ip);
+                        int amount = NWScript.GetItemPropertyCostTableValue(ip);
                         durability += amount;
                     }
                 }
@@ -157,7 +158,7 @@ namespace SWLOR.Game.Server.Scripts.Placeable.CraftingForge
 
         private void ReturnItemToPC(NWPlayer pc, NWItem item, string message)
         {
-            _.CopyItem(item.Object, pc.Object, _.TRUE);
+            NWScript.CopyItem(item.Object, pc.Object, NWScript.TRUE);
             item.Destroy();
             pc.SendMessage(message);
         }

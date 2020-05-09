@@ -11,7 +11,8 @@ using SWLOR.Game.Server.Messaging;
 using SWLOR.Game.Server.NWN;
 using SWLOR.Game.Server.NWN.Enum;
 using SWLOR.Game.Server.NWNX;
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Service
 {
@@ -36,7 +37,7 @@ namespace SWLOR.Game.Server.Service
 
         private static void OnModuleEnter()
         {
-            NWPlayer player = _.GetEnteringObject();
+            NWPlayer player = NWScript.GetEnteringObject();
             if (!player.IsPlayer) return;
 
             var dbPlayer = DataService.Player.GetByID(player.GlobalID);
@@ -60,7 +61,7 @@ namespace SWLOR.Game.Server.Service
 
                 foreach (var resref in resrefs)
                 {
-                    NWItem item = _.GetItemPossessedBy(player, resref);
+                    NWItem item = NWScript.GetItemPossessedBy(player, resref);
                     if (item.IsValid)
                     {
                         item.IsPlot = false;
@@ -220,7 +221,7 @@ namespace SWLOR.Game.Server.Service
         private static void ProcessVersion6_ComponentBonuses(NWItem item, ItemProperty ip)
         {
             // Component Bonuses
-            if (_.GetItemPropertyType(ip) == (int)CustomItemPropertyType.ComponentBonus)
+            if (NWScript.GetItemPropertyType(ip) == (int)ItemPropertyType.ComponentBonus)
             {
                 // +AC Component Bonus
                 if (GetItemPropertySubType(ip) == (int)ComponentBonusType.ACUp)
@@ -237,7 +238,7 @@ namespace SWLOR.Game.Server.Service
                         BiowareXP2.IPSafeAddItemProperty(item, packed, 0.0f, AddItemPropertyPolicy.IgnoreExisting, true, true);
                     }
 
-                    _.RemoveItemProperty(item, ip);
+                    NWScript.RemoveItemProperty(item, ip);
                 }
             }
         }
@@ -251,22 +252,22 @@ namespace SWLOR.Game.Server.Service
         {
             int[] ipsToRemove =
             {
-                (int)CustomItemPropertyType.DarkPotencyBonus,
-                (int)CustomItemPropertyType.LightPotencyBonus,
-                (int)CustomItemPropertyType.MindPotencyBonus,
-                (int)CustomItemPropertyType.ElectricalPotencyBonus,
-                (int)CustomItemPropertyType.ForcePotencyBonus,
-                (int)CustomItemPropertyType.ForceAccuracyBonus,
-                (int)CustomItemPropertyType.ForceDefenseBonus,
-                (int)CustomItemPropertyType.ElectricalDefenseBonus,
-                (int)CustomItemPropertyType.MindDefenseBonus,
-                (int)CustomItemPropertyType.LightDefenseBonus,
-                (int)CustomItemPropertyType.DarkDefenseBonus
+                (int)ItemPropertyType.DarkPotencyBonus,
+                (int)ItemPropertyType.LightPotencyBonus,
+                (int)ItemPropertyType.MindPotencyBonus,
+                (int)ItemPropertyType.ElectricalPotencyBonus,
+                (int)ItemPropertyType.ForcePotencyBonus,
+                (int)ItemPropertyType.ForceAccuracyBonus,
+                (int)ItemPropertyType.ForceDefenseBonus,
+                (int)ItemPropertyType.ElectricalDefenseBonus,
+                (int)ItemPropertyType.MindDefenseBonus,
+                (int)ItemPropertyType.LightDefenseBonus,
+                (int)ItemPropertyType.DarkDefenseBonus
             };
 
-            if (ipsToRemove.Contains(_.GetItemPropertyType(ip)))
+            if (ipsToRemove.Contains(NWScript.GetItemPropertyType(ip)))
             {
-                _.RemoveItemProperty(item, ip);
+                NWScript.RemoveItemProperty(item, ip);
             }
 
         }
@@ -295,8 +296,8 @@ namespace SWLOR.Game.Server.Service
             if (item.CustomItemType != CustomItemType.Lightsaber &&
                 item.CustomItemType != CustomItemType.Saberstaff) return new SerializedObjectData(null, null);
 
-            NWPlaceable storage = _.GetObjectByTag("MIGRATION_STORAGE");
-            NWItem newVersion = _.CreateItemOnObject(item.Resref, storage);
+            NWPlaceable storage = NWScript.GetObjectByTag("MIGRATION_STORAGE");
+            NWItem newVersion = NWScript.CreateItemOnObject(item.Resref, storage);
             List<ItemProperty> ipsToAdd = new List<ItemProperty>();
             
             // There's a quirk with NWN in how it handles removing of item properties.

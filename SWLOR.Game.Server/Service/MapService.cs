@@ -10,7 +10,8 @@ using SWLOR.Game.Server.Event.Module;
 using SWLOR.Game.Server.Messaging;
 using SWLOR.Game.Server.NWNX;
 using SWLOR.Game.Server.ValueObject;
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Service
 {
@@ -28,14 +29,14 @@ namespace SWLOR.Game.Server.Service
         {
             using (new Profiler("MapService.OnAreaEnter"))
             {
-                NWArea area = (_.OBJECT_SELF);
-                NWPlayer player = _.GetEnteringObject();
+                NWArea area = (NWScript.OBJECT_SELF);
+                NWPlayer player = NWScript.GetEnteringObject();
 
                 if (!player.IsPlayer) return;
 
                 if (area.GetLocalInt("AUTO_EXPLORED") == TRUE)
                 {
-                    _.ExploreAreaForPlayer(area.Object, player);
+                    NWScript.ExploreAreaForPlayer(area.Object, player);
                 }
 
                 LoadMapProgression(area, player);
@@ -46,8 +47,8 @@ namespace SWLOR.Game.Server.Service
         {
             using(new Profiler("MapService.OnAreaExit"))
             {
-                NWArea area = _.OBJECT_SELF;
-                NWPlayer player = _.GetExitingObject();
+                NWArea area = NWScript.OBJECT_SELF;
+                NWPlayer player = NWScript.GetExitingObject();
                 if (!player.IsPlayer) return;
 
                 SaveMapProgression(area, player);
@@ -56,8 +57,8 @@ namespace SWLOR.Game.Server.Service
 
         private static void OnModuleLeave()
         {
-            NWPlayer player = _.GetExitingObject();
-            NWArea area = _.GetArea(player);
+            NWPlayer player = NWScript.GetExitingObject();
+            NWArea area = NWScript.GetArea(player);
             if (!player.IsPlayer || !area.IsValid) return;
 
             SaveMapProgression(area, player);
@@ -101,15 +102,15 @@ namespace SWLOR.Game.Server.Service
 
         private static void OnAreaHeartbeat()
         {
-            NWArea area = _.OBJECT_SELF;
+            NWArea area = NWScript.OBJECT_SELF;
             
-            if (area.GetLocalInt("HIDE_MINIMAP") == _.TRUE)
+            if (area.GetLocalInt("HIDE_MINIMAP") == NWScript.TRUE)
             {
                 var players = NWModule.Get().Players.Where(x => x.Area.Equals(area) && x.IsPlayer);
 
                 foreach (var player in players)
                 {
-                    _.ExploreAreaForPlayer(area, player, _.FALSE);
+                    NWScript.ExploreAreaForPlayer(area, player, NWScript.FALSE);
                 }
             }
 

@@ -8,6 +8,7 @@ using SWLOR.Game.Server.Event.SWLOR;
 using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.Messaging;
 using ChatChannel = SWLOR.Game.Server.NWNX.ChatChannel;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Service
 {
@@ -132,7 +133,7 @@ namespace SWLOR.Game.Server.Service
             {
                 return NWModule.Get().Players.Any(nearby => 
                     player.GlobalID != nearby.GlobalID &&
-                    _.GetDistanceBetween(player, nearby) <= 20.0f);
+                    NWScript.GetDistanceBetween(player, nearby) <= 20.0f);
             }
             
             // Whisper - Another player must be nearby. (4.0 units)
@@ -140,7 +141,7 @@ namespace SWLOR.Game.Server.Service
             {
                 return NWModule.Get().Players.Any(nearby => 
                     player.GlobalID != nearby.GlobalID &&
-                    _.GetDistanceBetween(player, nearby) <= 4.0f);
+                    NWScript.GetDistanceBetween(player, nearby) <= 4.0f);
             }
 
             return false;

@@ -1,6 +1,7 @@
 ﻿using NWN;
 using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.Service;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Scripts.Placeable.WeatherModifier
 {
@@ -16,7 +17,7 @@ namespace SWLOR.Game.Server.Scripts.Placeable.WeatherModifier
 
         public void Main()
         {
-            NWObject oSelf = _.OBJECT_SELF;
+            NWObject oSelf = NWScript.OBJECT_SELF;
             int nHeat = oSelf.GetLocalInt("WEATHER_HEAT");
             int nWind = oSelf.GetLocalInt("WEATHER_WIND");
             int nWet = oSelf.GetLocalInt("WEATHER_HUMIDITY");
@@ -24,7 +25,7 @@ namespace SWLOR.Game.Server.Scripts.Placeable.WeatherModifier
             int nDust = oSelf.GetLocalInt("WEATHER_DUST_STORM");
             int nSand = oSelf.GetLocalInt("WEATHER_SAND_STORM");
 
-            NWArea oArea = _.GetArea(oSelf);
+            NWArea oArea = NWScript.GetArea(oSelf);
             WeatherService.SetAreaHeatModifier(oArea, nHeat);
             WeatherService.SetAreaHumidityModifier(oArea, nWet);
             WeatherService.SetAreaWindModifier(oArea, nWind);
@@ -32,10 +33,10 @@ namespace SWLOR.Game.Server.Scripts.Placeable.WeatherModifier
 
             if (nDust > 0)
             {
-                _.SetFogColor(_.FOG_TYPE_SUN, _.FOG_COLOR_BROWN, oArea);
-                _.SetFogColor(_.FOG_TYPE_MOON, _.FOG_COLOR_BROWN, oArea);
-                _.SetFogAmount(_.FOG_TYPE_SUN, 80, oArea);
-                _.SetFogAmount(_.FOG_TYPE_MOON, 80, oArea);
+                NWScript.SetFogColor(NWScript.FOG_TYPE_SUN, NWScript.FOG_COLOR_BROWN, oArea);
+                NWScript.SetFogColor(NWScript.FOG_TYPE_MOON, NWScript.FOG_COLOR_BROWN, oArea);
+                NWScript.SetFogAmount(NWScript.FOG_TYPE_SUN, 80, oArea);
+                NWScript.SetFogAmount(NWScript.FOG_TYPE_MOON, 80, oArea);
 
                 oArea.SetLocalInt("DUST_STORM", 1);
 
@@ -47,10 +48,10 @@ namespace SWLOR.Game.Server.Scripts.Placeable.WeatherModifier
 
             if (nSand > 0)
             {
-                _.SetFogColor(_.FOG_TYPE_SUN, _.FOG_COLOR_ORANGE_DARK, oArea);
-                _.SetFogColor(_.FOG_TYPE_MOON, _.FOG_COLOR_ORANGE_DARK, oArea);
-                _.SetFogAmount(_.FOG_TYPE_SUN, 80, oArea);
-                _.SetFogAmount(_.FOG_TYPE_MOON, 80, oArea);
+                NWScript.SetFogColor(NWScript.FOG_TYPE_SUN, NWScript.FOG_COLOR_ORANGE_DARK, oArea);
+                NWScript.SetFogColor(NWScript.FOG_TYPE_MOON, NWScript.FOG_COLOR_ORANGE_DARK, oArea);
+                NWScript.SetFogAmount(NWScript.FOG_TYPE_SUN, 80, oArea);
+                NWScript.SetFogAmount(NWScript.FOG_TYPE_MOON, 80, oArea);
 
                 oArea.SetLocalInt("SAND_STORM", 1);
 
@@ -59,7 +60,7 @@ namespace SWLOR.Game.Server.Scripts.Placeable.WeatherModifier
                     if (player.IsPC) WeatherService.DoWeatherEffects(player);
                 }
             }
-            _.DestroyObject(oSelf);
+            NWScript.DestroyObject(oSelf);
         }
     }
 }

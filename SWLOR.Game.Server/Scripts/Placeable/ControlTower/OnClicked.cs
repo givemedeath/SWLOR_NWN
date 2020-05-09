@@ -4,6 +4,7 @@ using SWLOR.Game.Server.Data.Entity;
 using SWLOR.Game.Server.Enumeration;
 using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.Service;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Scripts.Placeable.ControlTower
 {
@@ -19,14 +20,14 @@ namespace SWLOR.Game.Server.Scripts.Placeable.ControlTower
 
         public void Main()
         {
-            NWPlayer clicker = (_.GetPlaceableLastClickedBy());
-            NWPlaceable tower = (_.OBJECT_SELF);
+            NWPlayer clicker = (NWScript.GetPlaceableLastClickedBy());
+            NWPlaceable tower = (NWScript.OBJECT_SELF);
 
             clicker.ClearAllActions();
             if (!clicker.IsPlayer) return;
 
             // Check the distance.
-            if (_.GetDistanceBetween(clicker.Object, tower.Object) > 15.0f)
+            if (NWScript.GetDistanceBetween(clicker.Object, tower.Object) > 15.0f)
             {
                 clicker.SendMessage("You are too far away to interact with that control tower.");
                 return;

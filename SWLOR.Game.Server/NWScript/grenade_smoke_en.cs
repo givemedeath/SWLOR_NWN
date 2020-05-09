@@ -1,5 +1,5 @@
 ﻿using NWN;
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
 
 // ReSharper disable once CheckNamespace
 namespace NWN.Scripts

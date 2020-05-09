@@ -5,6 +5,7 @@ using SWLOR.Game.Server.Data.Entity;
 using SWLOR.Game.Server.Enumeration;
 using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.Service;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Scripts.Placeable.OverflowStorage
 {
@@ -20,14 +21,14 @@ namespace SWLOR.Game.Server.Scripts.Placeable.OverflowStorage
 
         public void Main()
         {
-            NWPlaceable container = (_.OBJECT_SELF);
-            NWPlayer oPC = (_.GetLastDisturbed());
-            NWItem oItem = (_.GetInventoryDisturbItem());
-            int type = _.GetInventoryDisturbType();
+            NWPlaceable container = (NWScript.OBJECT_SELF);
+            NWPlayer oPC = (NWScript.GetLastDisturbed());
+            NWItem oItem = (NWScript.GetInventoryDisturbItem());
+            int type = NWScript.GetInventoryDisturbType();
 
-            if (type == _.INVENTORY_DISTURB_TYPE_ADDED)
+            if (type == NWScript.INVENTORY_DISTURB_TYPE_ADDED)
             {
-                container.AssignCommand(() => _.ActionGiveItem(oItem.Object, oPC.Object));
+                container.AssignCommand(() => NWScript.ActionGiveItem(oItem.Object, oPC.Object));
                 return;
             }
             

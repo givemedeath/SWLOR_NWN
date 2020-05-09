@@ -7,7 +7,8 @@ using SWLOR.Game.Server.NWN;
 using SWLOR.Game.Server.Service;
 
 using SWLOR.Game.Server.ValueObject;
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Item.Medicine
 {
@@ -63,7 +64,7 @@ namespace SWLOR.Game.Server.Item.Medicine
 
             player.SendMessage("You successfully apply a force pack to " + target.Name + ". The force pack will expire in " + duration + " seconds.");
 
-            _.DelayCommand(duration + 0.5f, () => { player.SendMessage("The force pack that you applied to " + target.Name + " has expired."); });
+            NWScript.DelayCommand(duration + 0.5f, () => { player.SendMessage("The force pack that you applied to " + target.Name + " has expired."); });
 
             int xp = (int)SkillService.CalculateRegisteredSkillLevelAdjustedXP(300, item.RecommendedLevel, rank);
             SkillService.GiveSkillXP(player, SkillType.Medicine, xp);

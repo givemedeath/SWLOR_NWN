@@ -4,6 +4,7 @@ using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.NWN;
 using SWLOR.Game.Server.Service;
 using SWLOR.Game.Server.ValueObject.Dialog;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Conversation
 {
@@ -134,16 +135,16 @@ namespace SWLOR.Game.Server.Conversation
                     }
 
                     // Take the gold.
-                    _.TakeGoldFromCreature(model.Price, player, _.TRUE);
+                    NWScript.TakeGoldFromCreature(model.Price, player, NWScript.TRUE);
 
                     // Get the location based on the waypoint tag.
-                    Location location = _.GetLocation(_.GetWaypointByTag(model.DestinationTag));
+                    Location location = NWScript.GetLocation(NWScript.GetWaypointByTag(model.DestinationTag));
 
                     // Transport player.
                     player.AssignCommand(() =>
                     {
-                        _.ClearAllActions();
-                        _.ActionJumpToLocation(location);
+                        NWScript.ClearAllActions();
+                        NWScript.ActionJumpToLocation(location);
                     });
 
                     EndConversation();

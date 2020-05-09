@@ -13,7 +13,8 @@ using SWLOR.Game.Server.Event.SWLOR;
 using SWLOR.Game.Server.Messaging;
 using SWLOR.Game.Server.NWN;
 using SWLOR.Game.Server.NWNX;
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Service
 {
@@ -56,8 +57,8 @@ namespace SWLOR.Game.Server.Service
                     action = DatabaseActionType.Insert;
                 }
 
-                int width = _.GetAreaSize(AREA_WIDTH, area.Object);
-                int height = _.GetAreaSize(AREA_HEIGHT, area.Object);
+                int width = NWScript.GetAreaSize(AREA_WIDTH, area.Object);
+                int height = NWScript.GetAreaSize(AREA_HEIGHT, area.Object);
                 int northwestLootTableID = area.GetLocalInt("RESOURCE_NORTHWEST_LOOT_TABLE_ID");
                 int northeastLootTableID = area.GetLocalInt("RESOURCE_NORTHEAST_LOOT_TABLE_ID");
                 int southwestLootTableID = area.GetLocalInt("RESOURCE_SOUTHWEST_LOOT_TABLE_ID");
@@ -126,13 +127,13 @@ namespace SWLOR.Game.Server.Service
             {
                 for (int y = 0; y < arraySizeY; y++)
                 {
-                    Location checkLocation = _.Location(area.Object, _.Vector(x * AreaBakeStep, y * AreaBakeStep), 0.0f);
-                    int material = _.GetSurfaceMaterial(checkLocation);
-                    bool isWalkable = Convert.ToInt32(_.Get2DAString("surfacemat", "Walk", material)) == 1;
+                    Location checkLocation = NWScript.Location(area.Object, NWScript.Vector(x * AreaBakeStep, y * AreaBakeStep), 0.0f);
+                    int material = NWScript.GetSurfaceMaterial(checkLocation);
+                    bool isWalkable = Convert.ToInt32(NWScript.Get2DAString("surfacemat", "Walk", material)) == 1;
 
                     // Location is not walkable if another object exists nearby.
-                    NWObject nearest = (_.GetNearestObjectToLocation(OBJECT_TYPE_CREATURE | OBJECT_TYPE_DOOR | OBJECT_TYPE_PLACEABLE | OBJECT_TYPE_TRIGGER, checkLocation));
-                    float distance = _.GetDistanceBetweenLocations(checkLocation, nearest.Location);
+                    NWObject nearest = (NWScript.GetNearestObjectToLocation(OBJECT_TYPE_CREATURE | OBJECT_TYPE_DOOR | OBJECT_TYPE_PLACEABLE | OBJECT_TYPE_TRIGGER, checkLocation));
+                    float distance = NWScript.GetDistanceBetweenLocations(checkLocation, nearest.Location);
                     if (nearest.IsValid && distance <= MinDistance)
                     {
                         isWalkable = false;
@@ -145,7 +146,7 @@ namespace SWLOR.Game.Server.Service
                             AreaID = dbArea.ID,
                             LocationX = x * AreaBakeStep,
                             LocationY = y * AreaBakeStep,
-                            LocationZ = _.GetGroundHeight(checkLocation)
+                            LocationZ = NWScript.GetGroundHeight(checkLocation)
                         };
 
                         _walkmeshesByArea[area].Add(mesh);
@@ -159,25 +160,25 @@ namespace SWLOR.Game.Server.Service
         public static NWArea CreateAreaInstance(NWPlayer owner, string areaResref, string areaName, string entranceWaypointTag)
         {
             string tag = Guid.NewGuid().ToString();
-            NWArea instance = _.CreateArea(areaResref, tag, areaName);
+            NWArea instance = NWScript.CreateArea(areaResref, tag, areaName);
             
             instance.SetLocalString("INSTANCE_OWNER", owner.GlobalID.ToString());
             instance.SetLocalString("ORIGINAL_RESREF", areaResref);
             instance.SetLocalInt("IS_AREA_INSTANCE", TRUE);
             instance.Data["BASE_SERVICE_STRUCTURES"] = new List<AreaStructure>();
 
-            NWObject searchByObject = _.GetFirstObjectInArea(instance);
+            NWObject searchByObject = NWScript.GetFirstObjectInArea(instance);
             NWObject entranceWP;
 
             if (searchByObject.Tag == entranceWaypointTag)
                 entranceWP = searchByObject;
             else
-                entranceWP = _.GetNearestObjectByTag(entranceWaypointTag, searchByObject);
+                entranceWP = NWScript.GetNearestObjectByTag(entranceWaypointTag, searchByObject);
             
             if (!entranceWP.IsValid)
             {
                 owner.SendMessage("ERROR: Couldn't locate entrance waypoint with tag '" + entranceWaypointTag + "'. Notify an admin.");
-                return _.OBJECT_INVALID;
+                return NWScript.OBJECT_INVALID;
             }
 
             instance.SetLocalLocation("INSTANCE_ENTRANCE", entranceWP.Location);
@@ -192,28 +193,28 @@ namespace SWLOR.Game.Server.Service
             if (!area.IsInstance) return;
 
             MessageHub.Instance.Publish(new OnAreaInstanceDestroyed(area));
-            _.DestroyArea(area);
+            NWScript.DestroyArea(area);
 
         }
 
         private static void OnAreaEnter()
         {
-            NWArea area = _.OBJECT_SELF;
+            NWArea area = NWScript.OBJECT_SELF;
             int playerCount = NWNXArea.GetNumberOfPlayersInArea(area);
             if (playerCount > 0)
-                _.SetEventScript(area, _.EVENT_SCRIPT_AREA_ON_HEARTBEAT, "area_on_hb");
+                NWScript.SetEventScript(area, NWScript.EVENT_SCRIPT_AREA_ON_HEARTBEAT, "area_on_hb");
             else
-                _.SetEventScript(area, _.EVENT_SCRIPT_AREA_ON_HEARTBEAT, string.Empty);
+                NWScript.SetEventScript(area, NWScript.EVENT_SCRIPT_AREA_ON_HEARTBEAT, string.Empty);
         }
 
         private static void OnAreaExit()
         {
-            NWArea area = _.OBJECT_SELF;
+            NWArea area = NWScript.OBJECT_SELF;
             int playerCount = NWNXArea.GetNumberOfPlayersInArea(area);
             if (playerCount > 0)
-                _.SetEventScript(area, _.EVENT_SCRIPT_AREA_ON_HEARTBEAT, "area_on_hb");
+                NWScript.SetEventScript(area, NWScript.EVENT_SCRIPT_AREA_ON_HEARTBEAT, "area_on_hb");
             else
-                _.SetEventScript(area, _.EVENT_SCRIPT_AREA_ON_HEARTBEAT, string.Empty);
+                NWScript.SetEventScript(area, NWScript.EVENT_SCRIPT_AREA_ON_HEARTBEAT, string.Empty);
         }
 
         public static List<AreaWalkmesh> GetAreaWalkmeshes(NWArea area)

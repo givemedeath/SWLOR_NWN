@@ -14,13 +14,13 @@ namespace NWN.Scripts
         {
             using (new Profiler(nameof(warp_to_wp)))
             {
-                NWPlayer player = _.GetPCSpeaker();
-                NWObject talkingTo = _.OBJECT_SELF;
+                NWPlayer player = SWLOR.Game.Server.NWN.NWScript.GetPCSpeaker();
+                NWObject talkingTo = SWLOR.Game.Server.NWN.NWScript.OBJECT_SELF;
 
                 string waypointTag = talkingTo.GetLocalString("DESTINATION");
-                NWObject waypoint = _.GetWaypointByTag(waypointTag);
+                NWObject waypoint = SWLOR.Game.Server.NWN.NWScript.GetWaypointByTag(waypointTag);
 
-                player.AssignCommand(() => { _.ActionJumpToLocation(waypoint.Location); });
+                player.AssignCommand(() => { SWLOR.Game.Server.NWN.NWScript.ActionJumpToLocation(waypoint.Location); });
             }
         }
     }

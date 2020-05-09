@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using SWLOR.Game.Server.Event.Player;
 using SWLOR.Game.Server.Messaging;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Service
 {
@@ -70,7 +71,7 @@ namespace SWLOR.Game.Server.Service
             {
                 npc.AssignCommand(() =>
                 {
-                    _.ActionAttack(attacker);
+                    NWScript.ActionAttack(attacker);
                 });
             }
 
@@ -120,16 +121,16 @@ namespace SWLOR.Game.Server.Service
 
         public static void OnNPCPhysicallyAttacked()
         {
-            NWCreature self = (_.OBJECT_SELF);
-            NWCreature attacker = (_.GetLastAttacker(_.OBJECT_SELF));
+            NWCreature self = (NWScript.OBJECT_SELF);
+            NWCreature attacker = (NWScript.GetLastAttacker(NWScript.OBJECT_SELF));
             AdjustEnmity(self, attacker, 0, 1);
         }
 
         public static void OnNPCDamaged()
         {
-            NWCreature self = (_.OBJECT_SELF);
-            NWCreature damager = (_.GetLastDamager(_.OBJECT_SELF));
-            int enmityAmount = _.GetTotalDamageDealt();
+            NWCreature self = (NWScript.OBJECT_SELF);
+            NWCreature damager = (NWScript.GetLastDamager(NWScript.OBJECT_SELF));
+            int enmityAmount = NWScript.GetTotalDamageDealt();
             if (enmityAmount <= 0) enmityAmount = 1;
 
             AdjustEnmity(self, damager, 0, enmityAmount);
@@ -137,12 +138,12 @@ namespace SWLOR.Game.Server.Service
 
         public static void OnPlayerDamaged()
         {
-            NWPlayer player = (_.OBJECT_SELF);
-            NWCreature npc = (_.GetLastDamager(_.OBJECT_SELF));
+            NWPlayer player = (NWScript.OBJECT_SELF);
+            NWCreature npc = (NWScript.GetLastDamager(NWScript.OBJECT_SELF));
 
             if (!player.IsPlayer || !npc.IsNPC) return;
 
-            int damage = _.GetTotalDamageDealt();
+            int damage = NWScript.GetTotalDamageDealt();
             Enmity enmity = GetEnmity(npc, player);
             enmity.CumulativeAmount -= damage;
         }

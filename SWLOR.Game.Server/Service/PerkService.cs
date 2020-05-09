@@ -15,7 +15,8 @@ using SWLOR.Game.Server.Event.Feat;
 using SWLOR.Game.Server.Event.Module;
 using SWLOR.Game.Server.Event.SWLOR;
 using SWLOR.Game.Server.NWN.Enum;
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 using PerkExecutionType = SWLOR.Game.Server.Enumeration.PerkExecutionType;
 
 namespace SWLOR.Game.Server.Service
@@ -194,7 +195,7 @@ namespace SWLOR.Game.Server.Service
         public static void OnModuleEnter()
         {
             // The first time a player logs in, add an entry to the effective perk level cache.
-            NWPlayer player = _.GetEnteringObject();
+            NWPlayer player = NWScript.GetEnteringObject();
             if (!player.IsPlayer) return;
 
             // Are the player's perks already cached? This has already run for this player. Exit.
@@ -205,10 +206,10 @@ namespace SWLOR.Game.Server.Service
 
         private static void OnModuleEquipItem()
         {
-            NWPlayer oPC = (_.GetPCItemLastEquippedBy());
-            if (oPC.GetLocalInt("IS_CUSTOMIZING_ITEM") == _.TRUE) return; // Don't run heavy code when customizing equipment.
+            NWPlayer oPC = (NWScript.GetPCItemLastEquippedBy());
+            if (oPC.GetLocalInt("IS_CUSTOMIZING_ITEM") == NWScript.TRUE) return; // Don't run heavy code when customizing equipment.
 
-            NWItem oItem = (_.GetPCItemLastEquipped());
+            NWItem oItem = (NWScript.GetPCItemLastEquipped());
             if (!oPC.IsPlayer || !oPC.IsInitializedAsPlayer) return;
             if (oPC.GetLocalInt("LOGGED_IN_ONCE") == FALSE) return;
 
@@ -223,10 +224,10 @@ namespace SWLOR.Game.Server.Service
 
         private static void OnModuleUnequipItem()
         {
-            NWPlayer oPC = (_.GetPCItemLastUnequippedBy());
+            NWPlayer oPC = (NWScript.GetPCItemLastUnequippedBy());
 
-            if (oPC.GetLocalInt("IS_CUSTOMIZING_ITEM") == _.TRUE) return; // Don't run heavy code when customizing equipment.
-            NWItem oItem = (_.GetPCItemLastUnequipped());
+            if (oPC.GetLocalInt("IS_CUSTOMIZING_ITEM") == NWScript.TRUE) return; // Don't run heavy code when customizing equipment.
+            NWItem oItem = (NWScript.GetPCItemLastUnequipped());
             if (!oPC.IsPlayer) return;
 
             var executionPerks = GetPCPerksByExecutionType(oPC, PerkExecutionType.EquipmentBased);
@@ -257,9 +258,9 @@ namespace SWLOR.Game.Server.Service
 
         private static void OnHitCastSpell()
         {
-            NWPlayer oPC = _.OBJECT_SELF;
+            NWPlayer oPC = NWScript.OBJECT_SELF;
             if (!oPC.IsValid || !oPC.IsPlayer) return;
-            NWItem oItem = (_.GetSpellCastItem());
+            NWItem oItem = (NWScript.GetSpellCastItem());
             int type = oItem.BaseItemType;
             var pcPerks = DataService.PCPerk.GetAllByPlayerID(oPC.GlobalID).Where(x =>
             {
@@ -462,7 +463,7 @@ namespace SWLOR.Game.Server.Service
                 var perkFeatToGrant = DataService.PerkFeat.GetByPerkIDAndLevelUnlockedOrDefault(perkID, pcPerk.PerkLevel);
 
                 // Add the feat(s) to the player if it doesn't exist yet.
-                if (perkFeatToGrant != null && _.GetHasFeat((Feat)perkFeatToGrant.FeatID, oPC.Object) == false)
+                if (perkFeatToGrant != null && NWScript.GetHasFeat((Feat)perkFeatToGrant.FeatID, oPC.Object) == false)
                 {
                     NWNXCreature.AddFeatByLevel(oPC, (Feat)perkFeatToGrant.FeatID, 1);
 

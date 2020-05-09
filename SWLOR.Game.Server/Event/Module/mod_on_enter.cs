@@ -17,7 +17,7 @@ namespace NWN.Scripts
         public static void Main()
         {
             // The order of the following procedures matters.
-            NWPlayer player = _.GetEnteringObject();
+            NWPlayer player = SWLOR.Game.Server.NWN.NWScript.GetEnteringObject();
 
             using (new Profiler(nameof(mod_on_enter) + ":AddDMToCache"))
             {
@@ -30,7 +30,7 @@ namespace NWN.Scripts
             using (new Profiler(nameof(mod_on_enter) + ":BiowareDefault"))
             {
                 player.DeleteLocalInt("IS_CUSTOMIZING_ITEM");
-                _.ExecuteScript("dmfi_onclienter ", _.OBJECT_SELF); // DMFI also calls "x3_mod_def_enter"
+                SWLOR.Game.Server.NWN.NWScript.ExecuteScript("dmfi_onclienter ", SWLOR.Game.Server.NWN.NWScript.OBJECT_SELF); // DMFI also calls "x3_mod_def_enter"
             }
 
             using (new Profiler(nameof(mod_on_enter) + ":PlayerValidation"))
@@ -54,7 +54,7 @@ namespace NWN.Scripts
             }
             
             MessageHub.Instance.Publish(new OnModuleEnter());
-            player.SetLocalInt("LOGGED_IN_ONCE", _.TRUE);
+            player.SetLocalInt("LOGGED_IN_ONCE", SWLOR.Game.Server.NWN.NWScript.TRUE);
         }
     }
 }

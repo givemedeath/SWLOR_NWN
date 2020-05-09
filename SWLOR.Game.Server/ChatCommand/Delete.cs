@@ -7,6 +7,7 @@ using SWLOR.Game.Server.Enumeration;
 using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.NWNX;
 using SWLOR.Game.Server.Service;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 
 namespace SWLOR.Game.Server.ChatCommand
@@ -51,7 +52,7 @@ namespace SWLOR.Game.Server.ChatCommand
                 dbPlayer.IsDeleted = true;
                 DataService.SubmitDataChange(dbPlayer, DatabaseActionType.Update);
 
-                _.BootPC(user, "Your character has been deleted.");
+                NWScript.BootPC(user, "Your character has been deleted.");
                 NWNXAdmin.DeletePlayerCharacter(user, true);
 
             }
@@ -62,7 +63,7 @@ namespace SWLOR.Game.Server.ChatCommand
             if (!user.IsPlayer)
                 return "You can only delete a player character.";
 
-            string cdKey = _.GetPCPublicCDKey(user);
+            string cdKey = NWScript.GetPCPublicCDKey(user);
             string enteredCDKey = args.Length > 0 ? args[0] : string.Empty;
 
             if (cdKey != enteredCDKey)

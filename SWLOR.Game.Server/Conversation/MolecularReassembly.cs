@@ -6,8 +6,9 @@ using SWLOR.Game.Server.NWNX;
 using SWLOR.Game.Server.Service;
 
 using SWLOR.Game.Server.ValueObject.Dialog;
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
 using ComponentType = SWLOR.Game.Server.Data.Entity.ComponentType;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Conversation
 {
@@ -75,7 +76,7 @@ namespace SWLOR.Game.Server.Conversation
         {
             var player = GetPC();
             var model = CraftService.GetPlayerCraftingData(player);
-            NWPlaceable tempStorage = _.GetObjectByTag("TEMP_ITEM_STORAGE");
+            NWPlaceable tempStorage = NWScript.GetObjectByTag("TEMP_ITEM_STORAGE");
             var item = SerializationService.DeserializeItem(model.SerializedSalvageItem, tempStorage);
             var componentType = DataService.ComponentType.GetByID(model.SalvageComponentTypeID);
             string header = ColorTokenService.Green("Item: ") + item.Name + "\n\n";
@@ -87,11 +88,11 @@ namespace SWLOR.Game.Server.Conversation
             // Start by checking attack bonus since we're not storing this value as a local variable on the item.
             foreach (var prop in item.ItemProperties)
             {
-                int propTypeID = _.GetItemPropertyType(prop);
+                int propTypeID = NWScript.GetItemPropertyType(prop);
                 if (propTypeID == ITEM_PROPERTY_ATTACK_BONUS)
                 {
                     // Get the amount of Attack Bonus
-                    int amount = _.GetItemPropertyCostTableValue(prop);
+                    int amount = NWScript.GetItemPropertyCostTableValue(prop);
                     header += ProcessPropertyDetails(amount, componentType.Name, "Attack Bonus", 3);
                 }
             }
@@ -180,7 +181,7 @@ namespace SWLOR.Game.Server.Conversation
             {
                 case 1: // Reassemble Component(s)
 
-                    NWItem fuel = _.GetItemPossessedBy(player, "ass_power");
+                    NWItem fuel = NWScript.GetItemPossessedBy(player, "ass_power");
                     // Look for reassembly fuel in the player's inventory.
                     if (!fuel.IsValid)
                     {
@@ -199,20 +200,20 @@ namespace SWLOR.Game.Server.Conversation
                         // Make the player play an animation.
                         player.AssignCommand(() =>
                         {
-                            _.ClearAllActions();
-                            _.ActionPlayAnimation(ANIMATION_LOOPING_GET_MID, 1.0f, delay);
+                            NWScript.ClearAllActions();
+                            NWScript.ActionPlayAnimation(ANIMATION_LOOPING_GET_MID, 1.0f, delay);
                         });
 
                         // Show sparks halfway through the process.
-                        _.DelayCommand(1.0f * (delay / 2.0f), () =>
+                        NWScript.DelayCommand(1.0f * (delay / 2.0f), () =>
                         {
-                            _.ApplyEffectToObject(DURATION_TYPE_INSTANT, _.EffectVisualEffect(VFX_COM_BLOOD_SPARK_MEDIUM), _.OBJECT_SELF);
+                            NWScript.ApplyEffectToObject(DURATION_TYPE_INSTANT, NWScript.EffectVisualEffect(VFX_COM_BLOOD_SPARK_MEDIUM), NWScript.OBJECT_SELF);
                         });
                         
                         // Immobilize the player while crafting.
-                        var immobilize = _.EffectCutsceneImmobilize();
-                        immobilize = _.TagEffect(immobilize, "CRAFTING_IMMOBILIZATION");
-                        _.ApplyEffectToObject(DURATION_TYPE_PERMANENT, immobilize, player);
+                        var immobilize = NWScript.EffectCutsceneImmobilize();
+                        immobilize = NWScript.TagEffect(immobilize, "CRAFTING_IMMOBILIZATION");
+                        NWScript.ApplyEffectToObject(DURATION_TYPE_PERMANENT, immobilize, player);
 
                         // Clear the temporary crafting data and end this conversation.
                         model.SerializedSalvageItem = string.Empty;

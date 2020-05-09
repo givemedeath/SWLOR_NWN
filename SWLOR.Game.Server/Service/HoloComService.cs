@@ -1,12 +1,13 @@
 ﻿using System;
 using SWLOR.Game.Server.GameObject;
 using NWN;
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
 using SWLOR.Game.Server.Event.Module;
 using SWLOR.Game.Server.Messaging;
 using System.Linq;
 using SWLOR.Game.Server.Enumeration;
 using SWLOR.Game.Server.NWNX;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Service
 {
@@ -33,13 +34,13 @@ namespace SWLOR.Game.Server.Service
 
         private static void OnModuleDeath()
         {
-            NWPlayer player = _.GetLastPlayerDied();
+            NWPlayer player = NWScript.GetLastPlayerDied();
             if (HoloComService.IsInCall(player)) HoloComService.SetIsInCall(player, HoloComService.GetTargetForActiveCall(player), false);
 
         }
         private static void OnModuleLeave()
         {
-            NWPlayer player = _.GetExitingObject();
+            NWPlayer player = NWScript.GetExitingObject();
             if (HoloComService.IsInCall(player)) HoloComService.SetIsInCall(player, HoloComService.GetTargetForActiveCall(player), false);
 
         }
@@ -65,7 +66,7 @@ namespace SWLOR.Game.Server.Service
 
             NWPlayer receiver = GetHoloGram(sender);
 
-            string text = _.GetPCChatMessage().Trim();
+            string text = NWScript.GetPCChatMessage().Trim();
 
             if (text.StartsWith("/")) return;
 
@@ -150,7 +151,7 @@ namespace SWLOR.Game.Server.Service
             {
                 foreach (var effect in sender.Effects)
                 {
-                    if (_.GetIsEffectValid(effect) == TRUE)
+                    if (NWScript.GetIsEffectValid(effect) == TRUE)
                     {
                         int effectType = GetEffectType(effect);
                         if (effectType == EFFECT_TYPE_CUTSCENEIMMOBILIZE)
@@ -162,7 +163,7 @@ namespace SWLOR.Game.Server.Service
 
                 foreach (var effect in receiver.Effects)
                 {
-                    if (_.GetIsEffectValid(effect) == TRUE)
+                    if (NWScript.GetIsEffectValid(effect) == TRUE)
                     {
                         int effectType = GetEffectType(effect);
                         if (effectType == EFFECT_TYPE_CUTSCENEIMMOBILIZE)

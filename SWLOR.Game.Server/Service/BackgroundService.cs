@@ -3,7 +3,7 @@ using NWN;
 using SWLOR.Game.Server.Data.Entity;
 using SWLOR.Game.Server.Enumeration;
 using SWLOR.Game.Server.GameObject;
-
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 
 namespace SWLOR.Game.Server.Service
@@ -83,13 +83,13 @@ namespace SWLOR.Game.Server.Service
 
             if (!string.IsNullOrWhiteSpace(item1Resref))
             {
-                NWItem oItem1 = (_.CreateItemOnObject(item1Resref, oPC.Object, item1Quantity));
+                NWItem oItem1 = (NWScript.CreateItemOnObject(item1Resref, oPC.Object, item1Quantity));
                 oItem1.IsCursed = true;
                 oItem1.Name = pcName + "'s " + oItem1.Name;
             }
             if (!string.IsNullOrWhiteSpace(item2Resref))
             {
-                NWItem oItem2 = (_.CreateItemOnObject(item2Resref, oPC.Object, item2Quantity, ""));
+                NWItem oItem2 = (NWScript.CreateItemOnObject(item2Resref, oPC.Object, item2Quantity, ""));
                 oItem2.IsCursed = true;
                 oItem2.Name = pcName + "'s " + oItem2.Name;
             }

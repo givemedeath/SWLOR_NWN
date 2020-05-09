@@ -1,5 +1,6 @@
 ﻿using NWN;
 using SWLOR.Game.Server.GameObject;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Scripts.Placeable.Scrapper
 {
@@ -15,8 +16,8 @@ namespace SWLOR.Game.Server.Scripts.Placeable.Scrapper
 
         public void Main()
         {
-            NWPlayer player = _.GetLastOpenedBy();
-            NWPlaceable container = _.OBJECT_SELF;
+            NWPlayer player = NWScript.GetLastOpenedBy();
+            NWPlaceable container = NWScript.OBJECT_SELF;
             player.FloatingText("Components placed inside this container will have all bonuses stripped and their level will be reduced to zero.");
             container.IsLocked = true;
             container.IsUseable = false;

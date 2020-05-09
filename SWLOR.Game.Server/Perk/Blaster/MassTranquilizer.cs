@@ -5,7 +5,8 @@ using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.NWN;
 using SWLOR.Game.Server.Service;
 
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Perk.Blaster
 {
@@ -108,11 +109,11 @@ namespace SWLOR.Game.Server.Perk.Blaster
                 {
                     target.SetLocalInt("TRANQUILIZER_EFFECT_FIRST_RUN", 1);
 
-                    Effect effect = _.EffectDazed();
-                    effect = _.EffectLinkEffects(effect, _.EffectVisualEffect(VFX_DUR_IOUNSTONE_BLUE));
-                    effect = _.TagEffect(effect, "TRANQUILIZER_EFFECT");
+                    Effect effect = NWScript.EffectDazed();
+                    effect = NWScript.EffectLinkEffects(effect, NWScript.EffectVisualEffect(VFX_DUR_IOUNSTONE_BLUE));
+                    effect = NWScript.TagEffect(effect, "TRANQUILIZER_EFFECT");
 
-                    _.ApplyEffectToObject(DURATION_TYPE_TEMPORARY, effect, target, duration);
+                    NWScript.ApplyEffectToObject(DURATION_TYPE_TEMPORARY, effect, target, duration);
                 }
             }
 
@@ -120,45 +121,45 @@ namespace SWLOR.Game.Server.Perk.Blaster
 
             // Iterate over all nearby hostiles. Apply the effect to them if they meet the criteria.
             int current = 1;
-            NWCreature nearest = _.GetNearestCreature(CREATURE_TYPE_IS_ALIVE, TRUE, target, current);
+            NWCreature nearest = NWScript.GetNearestCreature(CREATURE_TYPE_IS_ALIVE, TRUE, target, current);
             while (nearest.IsValid)
             {
-                float distance = _.GetDistanceBetween(nearest, target);
+                float distance = NWScript.GetDistanceBetween(nearest, target);
                 // Check distance. Exit loop if we're too far.
                 if (distance > range) break;
 
                 concentrationEffect = AbilityService.GetActiveConcentrationEffect(nearest);
 
                 // If this creature isn't hostile to the attacking player or if this creature is already tranquilized, move to the next one.
-                if (_.GetIsReactionTypeHostile(nearest, creature) == FALSE ||
+                if (NWScript.GetIsReactionTypeHostile(nearest, creature) == FALSE ||
                     nearest.Object == target.Object ||
                     RemoveExistingEffect(nearest, duration) ||
                     concentrationEffect.Type == PerkType.MindShield)
                 {
                     current++;
-                    nearest = _.GetNearestCreature(CREATURE_TYPE_IS_ALIVE, TRUE, target, current);
+                    nearest = NWScript.GetNearestCreature(CREATURE_TYPE_IS_ALIVE, TRUE, target, current);
                     continue;
                 }
 
                 target.SetLocalInt("TRANQUILIZER_EFFECT_FIRST_RUN", 1);
-                Effect effect = _.EffectDazed();
-                effect = _.EffectLinkEffects(effect, _.EffectVisualEffect(VFX_DUR_IOUNSTONE_BLUE));
-                effect = _.TagEffect(effect, "TRANQUILIZER_EFFECT");
-                _.ApplyEffectToObject(DURATION_TYPE_TEMPORARY, effect, nearest, duration);
+                Effect effect = NWScript.EffectDazed();
+                effect = NWScript.EffectLinkEffects(effect, NWScript.EffectVisualEffect(VFX_DUR_IOUNSTONE_BLUE));
+                effect = NWScript.TagEffect(effect, "TRANQUILIZER_EFFECT");
+                NWScript.ApplyEffectToObject(DURATION_TYPE_TEMPORARY, effect, nearest, duration);
 
                 current++;
-                nearest = _.GetNearestCreature(CREATURE_TYPE_IS_ALIVE, TRUE, target, current);
+                nearest = NWScript.GetNearestCreature(CREATURE_TYPE_IS_ALIVE, TRUE, target, current);
             }
 
         }
 
         private bool RemoveExistingEffect(NWObject target, float duration)
         {
-            Effect effect = target.Effects.FirstOrDefault(x => _.GetEffectTag(x) == "TRANQUILIZER_EFFECT");
+            Effect effect = target.Effects.FirstOrDefault(x => NWScript.GetEffectTag(x) == "TRANQUILIZER_EFFECT");
             if (effect == null) return false;
 
-            if (_.GetEffectDurationRemaining(effect) >= duration) return true;
-            _.RemoveEffect(target, effect);
+            if (NWScript.GetEffectDurationRemaining(effect) >= duration) return true;
+            NWScript.RemoveEffect(target, effect);
             return false;
         }
 

@@ -8,6 +8,7 @@ using SWLOR.Game.Server.Event.SWLOR;
 using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.Messaging;
 using SWLOR.Game.Server.Service;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Scripts.Placeable.ControlTower
 {
@@ -23,10 +24,10 @@ namespace SWLOR.Game.Server.Scripts.Placeable.ControlTower
 
         public void Main()
         {
-            NWCreature attacker = (_.GetLastDamager(_.OBJECT_SELF));
-            NWPlaceable tower = (_.OBJECT_SELF);
-            NWItem weapon = (_.GetLastWeaponUsed(attacker.Object));
-            int damage = _.GetTotalDamageDealt();
+            NWCreature attacker = (NWScript.GetLastDamager(NWScript.OBJECT_SELF));
+            NWPlaceable tower = (NWScript.OBJECT_SELF);
+            NWItem weapon = (NWScript.GetLastWeaponUsed(attacker.Object));
+            int damage = NWScript.GetTotalDamageDealt();
             var structureID = tower.GetLocalString("PC_BASE_STRUCTURE_ID");
             PCBaseStructure structure = DataService.PCBaseStructure.GetByID(new Guid(structureID));
             int maxShieldHP = BaseService.CalculateMaxShieldHP(structure);
@@ -67,7 +68,7 @@ namespace SWLOR.Game.Server.Scripts.Placeable.ControlTower
             }
 
             // HP is tracked in the database. Heal the placeable so it doesn't get destroyed.
-            _.ApplyEffectToObject(_.DURATION_TYPE_INSTANT, _.EffectHeal(9999), tower.Object);
+            NWScript.ApplyEffectToObject(DurationType.Instant, NWScript.EffectHeal(9999), tower.Object);
 
             if(attacker.IsPlayer)
             {

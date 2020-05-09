@@ -3,7 +3,8 @@ using SWLOR.Game.Server.ChatCommand.Contracts;
 using SWLOR.Game.Server.Enumeration;
 using SWLOR.Game.Server.GameObject;
 
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.ChatCommand
 {
@@ -18,7 +19,7 @@ namespace SWLOR.Game.Server.ChatCommand
                 return;
             }
 
-            _.CopyItem(target, user, TRUE);
+            NWScript.CopyItem(target, user, TRUE);
             user.SendMessage("Item copied successfully.");
         }
 

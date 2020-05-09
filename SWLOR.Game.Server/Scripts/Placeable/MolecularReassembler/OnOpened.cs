@@ -1,5 +1,6 @@
 ﻿using NWN;
 using SWLOR.Game.Server.GameObject;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Scripts.Placeable.MolecularReassembler
 {
@@ -15,7 +16,7 @@ namespace SWLOR.Game.Server.Scripts.Placeable.MolecularReassembler
 
         public void Main()
         {
-            NWPlayer player = _.GetLastOpenedBy();
+            NWPlayer player = NWScript.GetLastOpenedBy();
             player.FloatingText("Please insert an item you would like to reassemble.");
         }
     }

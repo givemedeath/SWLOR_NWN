@@ -10,6 +10,7 @@ using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.Messaging;
 using SWLOR.Game.Server.Service;
 using SWLOR.Game.Server.ValueObject;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Scripts.Delayed
 {
@@ -51,9 +52,9 @@ namespace SWLOR.Game.Server.Scripts.Delayed
         {
             foreach (var effect in player.Effects)
             {
-                if (_.GetEffectTag(effect) == "CRAFTING_IMMOBILIZATION")
+                if (NWScript.GetEffectTag(effect) == "CRAFTING_IMMOBILIZATION")
                 {
-                    _.RemoveEffect(player, effect);
+                    NWScript.RemoveEffect(player, effect);
                 }
             }
 
@@ -78,7 +79,7 @@ namespace SWLOR.Game.Server.Scripts.Delayed
 
             int luckyBonus = PerkService.GetCreaturePerkLevel(player, PerkType.Lucky);
             var craftedItems = new List<NWItem>();
-            NWItem craftedItem = (_.CreateItemOnObject(blueprint.ItemResref, player.Object, blueprint.Quantity));
+            NWItem craftedItem = (NWScript.CreateItemOnObject(blueprint.ItemResref, player.Object, blueprint.Quantity));
             craftedItem.IsIdentified = true;
             craftedItems.Add(craftedItem);
 
@@ -87,7 +88,7 @@ namespace SWLOR.Game.Server.Scripts.Delayed
             {
                 for (int x = 2; x <= blueprint.Quantity; x++)
                 {
-                    craftedItem = (_.CreateItemOnObject(blueprint.ItemResref, player.Object));
+                    craftedItem = (NWScript.CreateItemOnObject(blueprint.ItemResref, player.Object));
                     craftedItem.IsIdentified = true;
                     craftedItems.Add(craftedItem);
                 }
@@ -181,13 +182,13 @@ namespace SWLOR.Game.Server.Scripts.Delayed
             if (componentLevel < 1) componentLevel = 1;
             foreach (var ip in component.ItemProperties)
             {
-                int ipType = _.GetItemPropertyType(ip);
-                if (ipType != (int)CustomItemPropertyType.ComponentBonus) continue;
+                int ipType = NWScript.GetItemPropertyType(ip);
+                if (ipType != (int)ItemPropertyType.ComponentBonus) continue;
 
-                int bonusTypeID = _.GetItemPropertySubType(ip);
-                int tlkID = Convert.ToInt32(_.Get2DAString("iprp_compbon", "Name", bonusTypeID));
-                int amount = _.GetItemPropertyCostTableValue(ip);
-                string bonusName = _.GetStringByStrRef(tlkID) + " " + amount;
+                int bonusTypeID = NWScript.GetItemPropertySubType(ip);
+                int tlkID = Convert.ToInt32(NWScript.Get2DAString("iprp_compbon", "Name", bonusTypeID));
+                int amount = NWScript.GetItemPropertyCostTableValue(ip);
+                string bonusName = NWScript.GetStringByStrRef(tlkID) + " " + amount;
                 float random = RandomService.RandomFloat() * 100.0f;
                 float modifiedEquipmentBonus = equipmentBonus * 0.25f;
 
@@ -198,7 +199,7 @@ namespace SWLOR.Game.Server.Scripts.Delayed
                         // If the target item is a component itself, we want to add the component bonuses instead of the
                         // actual item property bonuses.
                         // In other words, we want the custom item property "Component Bonus: AC UP" instead of the "AC Bonus" item property.
-                        var componentIP = item.ItemProperties.FirstOrDefault(x => _.GetItemPropertyType(x) == (int)CustomItemPropertyType.ComponentType);
+                        var componentIP = item.ItemProperties.FirstOrDefault(x => NWScript.GetItemPropertyType(x) == (int)ItemPropertyType.ComponentType);
                         if (componentIP == null)
                             ComponentBonusService.ApplyComponentBonus(item, ip);
                         else
@@ -207,7 +208,7 @@ namespace SWLOR.Game.Server.Scripts.Delayed
                     }
                     player.SendMessage(ColorTokenService.Green("Successfully applied component property: " + bonusName));
 
-                    ComponentBonusType bonusType = (ComponentBonusType)_.GetItemPropertySubType(ip);
+                    ComponentBonusType bonusType = (ComponentBonusType)NWScript.GetItemPropertySubType(ip);
                     if (bonusType != ComponentBonusType.DurabilityUp)
                     {
                         // Durability bonuses don't increase the penalty.  Higher level components transfer multiple

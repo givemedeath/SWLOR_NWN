@@ -7,6 +7,7 @@ using SWLOR.Game.Server.NWN;
 using SWLOR.Game.Server.Service;
 
 using SWLOR.Game.Server.ValueObject;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Item.Medicine
 {
@@ -21,7 +22,7 @@ namespace SWLOR.Game.Server.Item.Medicine
 
         public void ApplyEffects(NWCreature user, NWItem item, NWObject target, Location targetLocation, CustomData customData)
         {
-            if (target.ObjectType != _.OBJECT_TYPE_CREATURE)
+            if (target.ObjectType != ObjectType.Creature)
             {
                 user.SendMessage("You may only use stim packs on creatures!");
                 return;
@@ -36,14 +37,14 @@ namespace SWLOR.Game.Server.Item.Medicine
             int perkLevel = player.IsPlayer ? PerkService.GetCreaturePerkLevel(player, PerkType.StimFiend) : 0;
             float percentIncrease = perkLevel * 0.25f;
             duration = duration + (duration * percentIncrease);
-            Effect effect = _.EffectAbilityIncrease(ability, amount);
-            effect = _.TagEffect(effect, "STIM_PACK_EFFECT");
+            Effect effect = NWScript.EffectAbilityIncrease(ability, amount);
+            effect = NWScript.TagEffect(effect, "STIM_PACK_EFFECT");
 
-            _.ApplyEffectToObject(_.DURATION_TYPE_TEMPORARY, effect, target, duration);
+            NWScript.ApplyEffectToObject(DurationType.Temporary, effect, target, duration);
 
             user.SendMessage("You inject " + target.Name + " with a stim pack. The stim pack will expire in " + duration + " seconds.");
 
-            _.DelayCommand(duration + 0.5f, () => { player.SendMessage("The stim pack that you applied to " + target.Name + " has expired."); });
+            NWScript.DelayCommand(duration + 0.5f, () => { player.SendMessage("The stim pack that you applied to " + target.Name + " has expired."); });
 
             if (!Equals(user, target))
             {
@@ -67,7 +68,7 @@ namespace SWLOR.Game.Server.Item.Medicine
 
         public int AnimationID()
         {
-            return _.ANIMATION_LOOPING_GET_MID;
+            return NWScript.ANIMATION_LOOPING_GET_MID;
         }
 
         public float MaxDistance(NWCreature user, NWItem item, NWObject target, Location targetLocation)
@@ -82,9 +83,9 @@ namespace SWLOR.Game.Server.Item.Medicine
 
         public string IsValidTarget(NWCreature user, NWItem item, NWObject target, Location targetLocation)
         {
-            var existing = target.Effects.SingleOrDefault(x => _.GetEffectTag(x) == "STIM_PACK_EFFECT");
+            var existing = target.Effects.SingleOrDefault(x => NWScript.GetEffectTag(x) == "STIM_PACK_EFFECT");
 
-            if (existing != null && _.GetIsEffectValid(existing) == _.TRUE)
+            if (existing != null && NWScript.GetIsEffectValid(existing) == NWScript.TRUE)
             {
                 return "Your target is already under the effects of another stimulant.";
             }

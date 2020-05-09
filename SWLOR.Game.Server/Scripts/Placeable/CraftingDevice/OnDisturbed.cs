@@ -4,6 +4,7 @@ using NWN;
 using SWLOR.Game.Server.Enumeration;
 using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.Service;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Scripts.Placeable.CraftingDevice
 {
@@ -19,13 +20,13 @@ namespace SWLOR.Game.Server.Scripts.Placeable.CraftingDevice
 
         public void Main()
         {
-            int type = _.GetInventoryDisturbType();
+            int type = NWScript.GetInventoryDisturbType();
             
-            if (type == _.INVENTORY_DISTURB_TYPE_REMOVED)
+            if (type == NWScript.INVENTORY_DISTURB_TYPE_REMOVED)
             {
                 HandleRemoveItem();
             }
-            else if (type == _.INVENTORY_DISTURB_TYPE_ADDED)
+            else if (type == NWScript.INVENTORY_DISTURB_TYPE_ADDED)
             {
                 HandleAddItem();
             }
@@ -34,8 +35,8 @@ namespace SWLOR.Game.Server.Scripts.Placeable.CraftingDevice
 
         private void HandleAddItem()
         {
-            NWPlayer oPC = (_.GetLastDisturbed());
-            NWItem oItem = (_.GetInventoryDisturbItem());
+            NWPlayer oPC = (NWScript.GetLastDisturbed());
+            NWItem oItem = (NWScript.GetInventoryDisturbItem());
             if (oItem.Resref == "cft_confirm") return;
             if (oPC.IsBusy)
             {
@@ -49,7 +50,7 @@ namespace SWLOR.Game.Server.Scripts.Placeable.CraftingDevice
             var secondaryComponent = DataService.ComponentType.GetByID(model.Blueprint.SecondaryComponentTypeID);
             var tertiaryComponent = DataService.ComponentType.GetByID(model.Blueprint.TertiaryComponentTypeID);
 
-            NWPlaceable storage = _.GetObjectByTag("craft_temp_store");
+            NWPlaceable storage = NWScript.GetObjectByTag("craft_temp_store");
 
             List<NWItem> list = null;
             ComponentType allowedType = ComponentType.None;
@@ -113,9 +114,9 @@ namespace SWLOR.Game.Server.Scripts.Placeable.CraftingDevice
 
             foreach (var ip in props)
             {
-                if (_.GetItemPropertyType(ip) == (int) CustomItemPropertyType.ComponentItemTypeRestriction)
+                if (NWScript.GetItemPropertyType(ip) == (int) ItemPropertyType.ComponentItemTypeRestriction)
                 {
-                    int restrictionType = _.GetItemPropertyCostTableValue(ip);
+                    int restrictionType = NWScript.GetItemPropertyCostTableValue(ip);
                     allowedItemTypes.Add((CustomItemType)restrictionType);
                 }
             }
@@ -132,13 +133,13 @@ namespace SWLOR.Game.Server.Scripts.Placeable.CraftingDevice
 
             foreach (var ip in props)
             {
-                if (_.GetItemPropertyType(ip) == (int) CustomItemPropertyType.ComponentType)
+                if (NWScript.GetItemPropertyType(ip) == (int) ItemPropertyType.ComponentType)
                 {
-                    int compType = _.GetItemPropertyCostTableValue(ip);
+                    int compType = NWScript.GetItemPropertyCostTableValue(ip);
                     if (compType == (int) allowedType)
                     {
                         oItem.GetOrAssignGlobalID();
-                        NWItem copy = (_.CopyItem(oItem.Object, storage.Object, _.TRUE));
+                        NWItem copy = (NWScript.CopyItem(oItem.Object, storage.Object, NWScript.TRUE));
                         list.Add(copy);
                         return;
                     }
@@ -151,10 +152,10 @@ namespace SWLOR.Game.Server.Scripts.Placeable.CraftingDevice
 
         private void HandleRemoveItem()
         {
-            NWPlayer oPC = (_.GetLastDisturbed());
-            NWItem oItem = (_.GetInventoryDisturbItem());
-            NWPlaceable device = (_.OBJECT_SELF);
-            NWPlaceable storage = (_.GetObjectByTag("craft_temp_store"));
+            NWPlayer oPC = (NWScript.GetLastDisturbed());
+            NWItem oItem = (NWScript.GetInventoryDisturbItem());
+            NWPlaceable device = (NWScript.OBJECT_SELF);
+            NWPlaceable storage = (NWScript.GetObjectByTag("craft_temp_store"));
             var model = CraftService.GetPlayerCraftingData(oPC);
             if (oPC.IsBusy)
             {

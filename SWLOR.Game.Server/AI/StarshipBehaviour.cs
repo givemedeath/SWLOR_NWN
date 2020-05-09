@@ -4,7 +4,8 @@ using NWN;
 using SWLOR.Game.Server.NWNX;
 using SWLOR.Game.Server.Service;
 
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.AI
 {
@@ -18,20 +19,20 @@ namespace SWLOR.Game.Server.AI
         public override void OnPhysicalAttacked(NWCreature self)
         {
             base.OnPhysicalAttacked(self);
-            NWCreature attacker = _.GetLastAttacker();
+            NWCreature attacker = NWScript.GetLastAttacker();
             SpaceService.OnPhysicalAttacked(self, attacker);
         }
 
         public override void OnPerception(NWCreature self)
         {
             base.OnPerception(self);
-            SpaceService.OnPerception(_.OBJECT_SELF, _.GetLastPerceived());
+            SpaceService.OnPerception(NWScript.OBJECT_SELF, NWScript.GetLastPerceived());
         }
 
         public override void OnHeartbeat(NWCreature self)
         {
             base.OnHeartbeat(self);
-            SpaceService.OnHeartbeat(_.OBJECT_SELF);
+            SpaceService.OnHeartbeat(NWScript.OBJECT_SELF);
         }
     }
 }

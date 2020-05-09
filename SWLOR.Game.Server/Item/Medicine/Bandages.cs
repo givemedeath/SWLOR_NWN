@@ -6,7 +6,8 @@ using SWLOR.Game.Server.NWN;
 using SWLOR.Game.Server.Service;
 
 using SWLOR.Game.Server.ValueObject;
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Item.Medicine
 {
@@ -34,7 +35,7 @@ namespace SWLOR.Game.Server.Item.Medicine
             healAmount += item.MedicineBonus;
             if (rank >= item.RecommendedLevel && item.MedicineBonus > 0)
             {
-                _.ApplyEffectToObject(DURATION_TYPE_INSTANT, _.EffectHeal(healAmount), target);
+                NWScript.ApplyEffectToObject(DURATION_TYPE_INSTANT, NWScript.EffectHeal(healAmount), target);
             }
             if(target.IsPlayer){
                 int xp = (int)SkillService.CalculateRegisteredSkillLevelAdjustedXP(100, item.RecommendedLevel, rank);

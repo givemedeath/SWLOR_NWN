@@ -17,9 +17,10 @@ using SWLOR.Game.Server.NWN;
 using SWLOR.Game.Server.NWN.Enum;
 using SWLOR.Game.Server.NWNX;
 using SWLOR.Game.Server.SpawnRule.Contracts;
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
 using BaseStructureType = SWLOR.Game.Server.Enumeration.BaseStructureType;
 using BuildingType = SWLOR.Game.Server.Enumeration.BuildingType;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Service
 {
@@ -66,7 +67,7 @@ namespace SWLOR.Game.Server.Service
 
         private static void OnModuleUseFeat()
         {
-            NWPlayer player = (_.OBJECT_SELF);
+            NWPlayer player = (NWScript.OBJECT_SELF);
             int featID = Convert.ToInt32(NWNXEvents.GetEventData("FEAT_ID"));
 
             var positionX = (float)Convert.ToDouble(NWNXEvents.GetEventData("TARGET_POSITION_X"));
@@ -147,8 +148,8 @@ namespace SWLOR.Game.Server.Service
         {
             PCBaseStructure pcStructure = DataService.PCBaseStructure.GetByID(pcBaseStructureID);
 
-            NWLocation location = _.Location(area.Object,
-                _.Vector((float)pcStructure.LocationX, (float)pcStructure.LocationY, (float)pcStructure.LocationZ),
+            NWLocation location = NWScript.Location(area.Object,
+                NWScript.Vector((float)pcStructure.LocationX, (float)pcStructure.LocationY, (float)pcStructure.LocationZ),
                 (float)pcStructure.LocationOrientation);
 
             BaseStructure baseStructure = DataService.BaseStructure.GetByID(pcStructure.BaseStructureID);
@@ -164,23 +165,23 @@ namespace SWLOR.Game.Server.Service
                 resref = exteriorStyle.Resref;
             }
 
-            NWPlaceable plc = (_.CreateObject(OBJECT_TYPE_PLACEABLE, resref, location));
+            NWPlaceable plc = (NWScript.CreateObject(OBJECT_TYPE_PLACEABLE, resref, location));
             plc.SetLocalString("PC_BASE_STRUCTURE_ID", pcStructure.ID.ToString());
             plc.SetLocalInt("REQUIRES_BASE_POWER", baseStructure.RequiresBasePower ? 1 : 0);
-            plc.SetLocalString("ORIGINAL_SCRIPT_CLOSED", _.GetEventScript(plc.Object, EVENT_SCRIPT_PLACEABLE_ON_CLOSED));
-            plc.SetLocalString("ORIGINAL_SCRIPT_DAMAGED", _.GetEventScript(plc.Object, EVENT_SCRIPT_PLACEABLE_ON_DAMAGED));
-            plc.SetLocalString("ORIGINAL_SCRIPT_DEATH", _.GetEventScript(plc.Object, EVENT_SCRIPT_PLACEABLE_ON_DEATH));
-            plc.SetLocalString("ORIGINAL_SCRIPT_HEARTBEAT", _.GetEventScript(plc.Object, EVENT_SCRIPT_PLACEABLE_ON_HEARTBEAT));
-            plc.SetLocalString("ORIGINAL_SCRIPT_INVENTORYDISTURBED", _.GetEventScript(plc.Object, EVENT_SCRIPT_PLACEABLE_ON_INVENTORYDISTURBED));
-            plc.SetLocalString("ORIGINAL_SCRIPT_LOCK", _.GetEventScript(plc.Object, EVENT_SCRIPT_PLACEABLE_ON_LOCK));
-            plc.SetLocalString("ORIGINAL_SCRIPT_MELEEATTACKED", _.GetEventScript(plc.Object, EVENT_SCRIPT_PLACEABLE_ON_MELEEATTACKED));
-            plc.SetLocalString("ORIGINAL_SCRIPT_OPEN", _.GetEventScript(plc.Object, EVENT_SCRIPT_PLACEABLE_ON_OPEN));
-            plc.SetLocalString("ORIGINAL_SCRIPT_SPELLCASTAT", _.GetEventScript(plc.Object, EVENT_SCRIPT_PLACEABLE_ON_SPELLCASTAT));
-            plc.SetLocalString("ORIGINAL_SCRIPT_UNLOCK", _.GetEventScript(plc.Object, EVENT_SCRIPT_PLACEABLE_ON_UNLOCK));
-            plc.SetLocalString("ORIGINAL_SCRIPT_USED", _.GetEventScript(plc.Object, EVENT_SCRIPT_PLACEABLE_ON_USED));
-            plc.SetLocalString("ORIGINAL_SCRIPT_USER_DEFINED_EVENT", _.GetEventScript(plc.Object, EVENT_SCRIPT_PLACEABLE_ON_USER_DEFINED_EVENT));
-            plc.SetLocalString("ORIGINAL_SCRIPT_LEFT_CLICK", _.GetEventScript(plc.Object, EVENT_SCRIPT_PLACEABLE_ON_LEFT_CLICK));
-            plc.SetLocalString("ORIGINAL_SCRIPT_1", _.GetLocalString(plc.Object, "SCRIPT_1"));
+            plc.SetLocalString("ORIGINAL_SCRIPT_CLOSED", NWScript.GetEventScript(plc.Object, EVENT_SCRIPT_PLACEABLE_ON_CLOSED));
+            plc.SetLocalString("ORIGINAL_SCRIPT_DAMAGED", NWScript.GetEventScript(plc.Object, EVENT_SCRIPT_PLACEABLE_ON_DAMAGED));
+            plc.SetLocalString("ORIGINAL_SCRIPT_DEATH", NWScript.GetEventScript(plc.Object, EVENT_SCRIPT_PLACEABLE_ON_DEATH));
+            plc.SetLocalString("ORIGINAL_SCRIPT_HEARTBEAT", NWScript.GetEventScript(plc.Object, EVENT_SCRIPT_PLACEABLE_ON_HEARTBEAT));
+            plc.SetLocalString("ORIGINAL_SCRIPT_INVENTORYDISTURBED", NWScript.GetEventScript(plc.Object, EVENT_SCRIPT_PLACEABLE_ON_INVENTORYDISTURBED));
+            plc.SetLocalString("ORIGINAL_SCRIPT_LOCK", NWScript.GetEventScript(plc.Object, EVENT_SCRIPT_PLACEABLE_ON_LOCK));
+            plc.SetLocalString("ORIGINAL_SCRIPT_MELEEATTACKED", NWScript.GetEventScript(plc.Object, EVENT_SCRIPT_PLACEABLE_ON_MELEEATTACKED));
+            plc.SetLocalString("ORIGINAL_SCRIPT_OPEN", NWScript.GetEventScript(plc.Object, EVENT_SCRIPT_PLACEABLE_ON_OPEN));
+            plc.SetLocalString("ORIGINAL_SCRIPT_SPELLCASTAT", NWScript.GetEventScript(plc.Object, EVENT_SCRIPT_PLACEABLE_ON_SPELLCASTAT));
+            plc.SetLocalString("ORIGINAL_SCRIPT_UNLOCK", NWScript.GetEventScript(plc.Object, EVENT_SCRIPT_PLACEABLE_ON_UNLOCK));
+            plc.SetLocalString("ORIGINAL_SCRIPT_USED", NWScript.GetEventScript(plc.Object, EVENT_SCRIPT_PLACEABLE_ON_USED));
+            plc.SetLocalString("ORIGINAL_SCRIPT_USER_DEFINED_EVENT", NWScript.GetEventScript(plc.Object, EVENT_SCRIPT_PLACEABLE_ON_USER_DEFINED_EVENT));
+            plc.SetLocalString("ORIGINAL_SCRIPT_LEFT_CLICK", NWScript.GetEventScript(plc.Object, EVENT_SCRIPT_PLACEABLE_ON_LEFT_CLICK));
+            plc.SetLocalString("ORIGINAL_SCRIPT_1", NWScript.GetLocalString(plc.Object, "SCRIPT_1"));
 
             if (!string.IsNullOrWhiteSpace(pcStructure.CustomName))
             {
@@ -251,37 +252,37 @@ namespace SWLOR.Game.Server.Service
                 {
                     if (isPoweredOn)
                     {
-                        _.SetEventScript(structure.Object, EVENT_SCRIPT_PLACEABLE_ON_CLOSED, structure.GetLocalString("ORIGINAL_SCRIPT_CLOSED"));
-                        _.SetEventScript(structure.Object, EVENT_SCRIPT_PLACEABLE_ON_DAMAGED, structure.GetLocalString("ORIGINAL_SCRIPT_DAMAGED"));
-                        _.SetEventScript(structure.Object, EVENT_SCRIPT_PLACEABLE_ON_DEATH, structure.GetLocalString("ORIGINAL_SCRIPT_DEATH"));
-                        _.SetEventScript(structure.Object, EVENT_SCRIPT_PLACEABLE_ON_HEARTBEAT, structure.GetLocalString("ORIGINAL_SCRIPT_HEARTBEAT"));
-                        _.SetEventScript(structure.Object, EVENT_SCRIPT_PLACEABLE_ON_INVENTORYDISTURBED, structure.GetLocalString("ORIGINAL_SCRIPT_INVENTORYDISTURBED"));
-                        _.SetEventScript(structure.Object, EVENT_SCRIPT_PLACEABLE_ON_LOCK, structure.GetLocalString("ORIGINAL_SCRIPT_LOCK"));
-                        _.SetEventScript(structure.Object, EVENT_SCRIPT_PLACEABLE_ON_MELEEATTACKED, structure.GetLocalString("ORIGINAL_SCRIPT_MELEEATTACKED"));
-                        _.SetEventScript(structure.Object, EVENT_SCRIPT_PLACEABLE_ON_OPEN, structure.GetLocalString("ORIGINAL_SCRIPT_OPEN"));
-                        _.SetEventScript(structure.Object, EVENT_SCRIPT_PLACEABLE_ON_SPELLCASTAT, structure.GetLocalString("ORIGINAL_SCRIPT_SPELLCASTAT"));
-                        _.SetEventScript(structure.Object, EVENT_SCRIPT_PLACEABLE_ON_UNLOCK, structure.GetLocalString("ORIGINAL_SCRIPT_UNLOCK"));
-                        _.SetEventScript(structure.Object, EVENT_SCRIPT_PLACEABLE_ON_USED, structure.GetLocalString("ORIGINAL_SCRIPT_USED"));
-                        _.SetEventScript(structure.Object, EVENT_SCRIPT_PLACEABLE_ON_USER_DEFINED_EVENT, structure.GetLocalString("ORIGINAL_SCRIPT_USER_DEFINED_EVENT"));
-                        _.SetEventScript(structure.Object, EVENT_SCRIPT_PLACEABLE_ON_LEFT_CLICK, structure.GetLocalString("ORIGINAL_SCRIPT_LEFT_CLICK"));
+                        NWScript.SetEventScript(structure.Object, EVENT_SCRIPT_PLACEABLE_ON_CLOSED, structure.GetLocalString("ORIGINAL_SCRIPT_CLOSED"));
+                        NWScript.SetEventScript(structure.Object, EVENT_SCRIPT_PLACEABLE_ON_DAMAGED, structure.GetLocalString("ORIGINAL_SCRIPT_DAMAGED"));
+                        NWScript.SetEventScript(structure.Object, EVENT_SCRIPT_PLACEABLE_ON_DEATH, structure.GetLocalString("ORIGINAL_SCRIPT_DEATH"));
+                        NWScript.SetEventScript(structure.Object, EVENT_SCRIPT_PLACEABLE_ON_HEARTBEAT, structure.GetLocalString("ORIGINAL_SCRIPT_HEARTBEAT"));
+                        NWScript.SetEventScript(structure.Object, EVENT_SCRIPT_PLACEABLE_ON_INVENTORYDISTURBED, structure.GetLocalString("ORIGINAL_SCRIPT_INVENTORYDISTURBED"));
+                        NWScript.SetEventScript(structure.Object, EVENT_SCRIPT_PLACEABLE_ON_LOCK, structure.GetLocalString("ORIGINAL_SCRIPT_LOCK"));
+                        NWScript.SetEventScript(structure.Object, EVENT_SCRIPT_PLACEABLE_ON_MELEEATTACKED, structure.GetLocalString("ORIGINAL_SCRIPT_MELEEATTACKED"));
+                        NWScript.SetEventScript(structure.Object, EVENT_SCRIPT_PLACEABLE_ON_OPEN, structure.GetLocalString("ORIGINAL_SCRIPT_OPEN"));
+                        NWScript.SetEventScript(structure.Object, EVENT_SCRIPT_PLACEABLE_ON_SPELLCASTAT, structure.GetLocalString("ORIGINAL_SCRIPT_SPELLCASTAT"));
+                        NWScript.SetEventScript(structure.Object, EVENT_SCRIPT_PLACEABLE_ON_UNLOCK, structure.GetLocalString("ORIGINAL_SCRIPT_UNLOCK"));
+                        NWScript.SetEventScript(structure.Object, EVENT_SCRIPT_PLACEABLE_ON_USED, structure.GetLocalString("ORIGINAL_SCRIPT_USED"));
+                        NWScript.SetEventScript(structure.Object, EVENT_SCRIPT_PLACEABLE_ON_USER_DEFINED_EVENT, structure.GetLocalString("ORIGINAL_SCRIPT_USER_DEFINED_EVENT"));
+                        NWScript.SetEventScript(structure.Object, EVENT_SCRIPT_PLACEABLE_ON_LEFT_CLICK, structure.GetLocalString("ORIGINAL_SCRIPT_LEFT_CLICK"));
                         structure.SetLocalString("SCRIPT_1", structure.GetLocalString("ORIGINAL_SCRIPT_1"));
                         structure.IsLocked = false;
                     }
                     else
                     {
-                        _.SetEventScript(structure.Object, EVENT_SCRIPT_PLACEABLE_ON_CLOSED, string.Empty);
-                        _.SetEventScript(structure.Object, EVENT_SCRIPT_PLACEABLE_ON_DAMAGED, string.Empty);
-                        _.SetEventScript(structure.Object, EVENT_SCRIPT_PLACEABLE_ON_DEATH, string.Empty);
-                        _.SetEventScript(structure.Object, EVENT_SCRIPT_PLACEABLE_ON_HEARTBEAT, string.Empty);
-                        _.SetEventScript(structure.Object, EVENT_SCRIPT_PLACEABLE_ON_INVENTORYDISTURBED, string.Empty);
-                        _.SetEventScript(structure.Object, EVENT_SCRIPT_PLACEABLE_ON_LOCK, string.Empty);
-                        _.SetEventScript(structure.Object, EVENT_SCRIPT_PLACEABLE_ON_MELEEATTACKED, string.Empty);
-                        _.SetEventScript(structure.Object, EVENT_SCRIPT_PLACEABLE_ON_OPEN, string.Empty);
-                        _.SetEventScript(structure.Object, EVENT_SCRIPT_PLACEABLE_ON_SPELLCASTAT, string.Empty);
-                        _.SetEventScript(structure.Object, EVENT_SCRIPT_PLACEABLE_ON_UNLOCK, string.Empty);
-                        _.SetEventScript(structure.Object, EVENT_SCRIPT_PLACEABLE_ON_USED, "script_1");
-                        _.SetEventScript(structure.Object, EVENT_SCRIPT_PLACEABLE_ON_USER_DEFINED_EVENT, string.Empty);
-                        _.SetEventScript(structure.Object, EVENT_SCRIPT_PLACEABLE_ON_LEFT_CLICK, string.Empty);
+                        NWScript.SetEventScript(structure.Object, EVENT_SCRIPT_PLACEABLE_ON_CLOSED, string.Empty);
+                        NWScript.SetEventScript(structure.Object, EVENT_SCRIPT_PLACEABLE_ON_DAMAGED, string.Empty);
+                        NWScript.SetEventScript(structure.Object, EVENT_SCRIPT_PLACEABLE_ON_DEATH, string.Empty);
+                        NWScript.SetEventScript(structure.Object, EVENT_SCRIPT_PLACEABLE_ON_HEARTBEAT, string.Empty);
+                        NWScript.SetEventScript(structure.Object, EVENT_SCRIPT_PLACEABLE_ON_INVENTORYDISTURBED, string.Empty);
+                        NWScript.SetEventScript(structure.Object, EVENT_SCRIPT_PLACEABLE_ON_LOCK, string.Empty);
+                        NWScript.SetEventScript(structure.Object, EVENT_SCRIPT_PLACEABLE_ON_MELEEATTACKED, string.Empty);
+                        NWScript.SetEventScript(structure.Object, EVENT_SCRIPT_PLACEABLE_ON_OPEN, string.Empty);
+                        NWScript.SetEventScript(structure.Object, EVENT_SCRIPT_PLACEABLE_ON_SPELLCASTAT, string.Empty);
+                        NWScript.SetEventScript(structure.Object, EVENT_SCRIPT_PLACEABLE_ON_UNLOCK, string.Empty);
+                        NWScript.SetEventScript(structure.Object, EVENT_SCRIPT_PLACEABLE_ON_USED, "script_1");
+                        NWScript.SetEventScript(structure.Object, EVENT_SCRIPT_PLACEABLE_ON_USER_DEFINED_EVENT, string.Empty);
+                        NWScript.SetEventScript(structure.Object, EVENT_SCRIPT_PLACEABLE_ON_LEFT_CLICK, string.Empty);
                         structure.SetLocalString("SCRIPT_1", "Placeable.DisabledStructure.OnUsed");
                         structure.IsLocked = true;
                     }
@@ -339,7 +340,7 @@ namespace SWLOR.Game.Server.Service
                 return;
             }
 
-            player.AssignCommand(() => _.TakeGoldFromCreature(purchasePrice, player.Object, TRUE));
+            player.AssignCommand(() => NWScript.TakeGoldFromCreature(purchasePrice, player.Object, TRUE));
 
             switch (sector)
             {
@@ -459,8 +460,8 @@ namespace SWLOR.Game.Server.Service
         public static string GetSectorOfLocation(NWLocation targetLocation)
         {
             NWArea area = targetLocation.Area;
-            int cellX = (int)(_.GetPositionFromLocation(targetLocation).X / 10);
-            int cellY = (int)(_.GetPositionFromLocation(targetLocation).Y / 10);
+            int cellX = (int)(NWScript.GetPositionFromLocation(targetLocation).X / 10);
+            int cellY = (int)(NWScript.GetPositionFromLocation(targetLocation).Y / 10);
             string pcBaseID = area.GetLocalString("PC_BASE_ID");
 
             string sector = "INVALID";
@@ -511,7 +512,7 @@ namespace SWLOR.Game.Server.Service
                 return "Unable to locate structure item.";
             }
 
-            NWArea area = _.GetAreaFromLocation(targetLocation);
+            NWArea area = NWScript.GetAreaFromLocation(targetLocation);
             string buildingStructureID = area.GetLocalString("PC_BASE_STRUCTURE_ID");
             Guid buildingStructureGuid = string.IsNullOrWhiteSpace(buildingStructureID) ? Guid.Empty : new Guid(buildingStructureID);
             string pcBaseID = area.GetLocalString("PC_BASE_ID");
@@ -652,18 +653,18 @@ namespace SWLOR.Game.Server.Service
             if (baseStructureType.ID == (int)BaseStructureType.Starship)
             {
                 int nNth = 1;
-                NWObject dock = _.GetNearestObjectToLocation(OBJECT_TYPE_PLACEABLE, targetLocation, nNth);
+                NWObject dock = NWScript.GetNearestObjectToLocation(OBJECT_TYPE_PLACEABLE, targetLocation, nNth);
 
                 while (dock.IsValid)
                 {
                     // Not close enough. 
-                    if (_.GetDistanceBetweenLocations(targetLocation, dock.Location) > 10.0f) break;
+                    if (NWScript.GetDistanceBetweenLocations(targetLocation, dock.Location) > 10.0f) break;
 
                     // Ship already docked here.
                     if (dock.GetLocalInt("DOCKED_STARSHIP") == 1)
                     {
                         nNth++;
-                        dock = _.GetNearestObjectToLocation(OBJECT_TYPE_PLACEABLE, targetLocation, nNth);
+                        dock = NWScript.GetNearestObjectToLocation(OBJECT_TYPE_PLACEABLE, targetLocation, nNth);
                         continue;
                     }
 
@@ -708,7 +709,7 @@ namespace SWLOR.Game.Server.Service
                             // Grant all base permissions to owner.
                             var allPermissions = Enum.GetValues(typeof(BasePermission)).Cast<BasePermission>().ToArray();
                             BasePermissionService.GrantBasePermissions(player, starkillerBase.ID, allPermissions);
-                            var position = _.GetPositionFromLocation(targetLocation);
+                            var position = NWScript.GetPositionFromLocation(targetLocation);
                             BuildingStyle extStyle = DataService.BuildingStyle.GetByBaseStructureIDAndBuildingType(baseStructureID, BuildingType.Exterior);
 
                             // Create the PC base structure entry, and call SpawnStructure to manifest it.
@@ -716,7 +717,7 @@ namespace SWLOR.Game.Server.Service
                             {
                                 BaseStructureID = baseStructureID,
                                 Durability = DurabilityService.GetDurability(structureItem),
-                                LocationOrientation = _.GetFacingFromLocation(targetLocation),
+                                LocationOrientation = NWScript.GetFacingFromLocation(targetLocation),
                                 LocationX = position.X,
                                 LocationY = position.Y,
                                 LocationZ = position.Z,
@@ -739,7 +740,7 @@ namespace SWLOR.Game.Server.Service
                     }
 
                     nNth++;
-                    dock = _.GetNearestObjectToLocation(OBJECT_TYPE_PLACEABLE, targetLocation, nNth);
+                    dock = NWScript.GetNearestObjectToLocation(OBJECT_TYPE_PLACEABLE, targetLocation, nNth);
                 }
 
                 return "Unable to dock starship.  Starships must be docked on a vacant docking bay.";
@@ -751,7 +752,7 @@ namespace SWLOR.Game.Server.Service
         public static NWItem ConvertStructureToItem(PCBaseStructure pcBaseStructure, NWObject target)
         {
             var baseStructure = DataService.BaseStructure.GetByID(pcBaseStructure.BaseStructureID);
-            NWItem item = (_.CreateItemOnObject(baseStructure.ItemResref, target.Object));
+            NWItem item = (NWScript.CreateItemOnObject(baseStructure.ItemResref, target.Object));
             item.SetLocalInt("BASE_STRUCTURE_ID", pcBaseStructure.BaseStructureID);
             item.Name = baseStructure.Name;
 
@@ -881,7 +882,7 @@ namespace SWLOR.Game.Server.Service
                     {
                         // Container doesn't exist yet. Create a new one and add it to the dictionary.
                         var cachedStructure = areaStructures.Single(s => s.PCBaseStructureID == structureKey && s.ChildStructure == null);
-                        rubbleContainer = _.CreateObject(OBJECT_TYPE_PLACEABLE, "structure_rubble", cachedStructure.Structure.Location);
+                        rubbleContainer = NWScript.CreateObject(OBJECT_TYPE_PLACEABLE, "structure_rubble", cachedStructure.Structure.Location);
                         rubbleContainers.Add(structureKey, rubbleContainer);
                     }
                 }
@@ -915,7 +916,7 @@ namespace SWLOR.Game.Server.Service
                 if (impoundItems)
                 {
                     // Build the structure's item in-world and then impound it. Destroy the copy after we're done.
-                    var tempStorage = (_.GetObjectByTag("TEMP_ITEM_STORAGE"));
+                    var tempStorage = (NWScript.GetObjectByTag("TEMP_ITEM_STORAGE"));
                     NWItem copy = ConvertStructureToItem(pcBaseStructure, tempStorage);
                     ImpoundService.Impound(pcBase.PlayerID, copy);
                     copy.Destroy();
@@ -965,7 +966,7 @@ namespace SWLOR.Game.Server.Service
                 if (displayExplosion)
                 {
                     Location location = structure.Structure.Location;
-                    _.ApplyEffectAtLocation(DURATION_TYPE_INSTANT, _.EffectVisualEffect(VFX_FNF_FIREBALL), location);
+                    NWScript.ApplyEffectAtLocation(DURATION_TYPE_INSTANT, NWScript.EffectVisualEffect(VFX_FNF_FIREBALL), location);
                 }
             }
         }
@@ -1009,7 +1010,7 @@ namespace SWLOR.Game.Server.Service
             NWObject exit = null;
 
             // Loop through the area to find the building exit placeable.
-            NWObject @object = (_.GetFirstObjectInArea(area.Object));
+            NWObject @object = (NWScript.GetFirstObjectInArea(area.Object));
             while (@object.IsValid)
             {
                 if (@object.Tag == "building_exit")
@@ -1017,7 +1018,7 @@ namespace SWLOR.Game.Server.Service
                     exit = @object;
                 }
 
-                @object = (_.GetNextObjectInArea(area.Object));
+                @object = (NWScript.GetNextObjectInArea(area.Object));
             }
 
             // Couldn't find an exit. Simply send error message to player.
@@ -1041,8 +1042,8 @@ namespace SWLOR.Game.Server.Service
             Location location = area.GetLocalLocation("INSTANCE_ENTRANCE");
             player.AssignCommand(() =>
             {
-                _.ActionJumpToLocation(location);
-                _.ActionDoCommand(() => { PlayerService.SaveLocation(player); });
+                NWScript.ActionJumpToLocation(location);
+                NWScript.ActionDoCommand(() => { PlayerService.SaveLocation(player); });
             });
         }
 
@@ -1053,7 +1054,7 @@ namespace SWLOR.Game.Server.Service
 
             if (door == null)
             {
-                NWObject obj = (_.GetFirstObjectInArea(area.Object));
+                NWObject obj = (NWScript.GetFirstObjectInArea(area.Object));
                 while (obj.IsValid)
                 {
                     if (obj.Tag == "building_exit")
@@ -1061,7 +1062,7 @@ namespace SWLOR.Game.Server.Service
                         door = (obj.Object);
                         break;
                     }
-                    obj = (_.GetNextObjectInArea(area.Object));
+                    obj = (NWScript.GetNextObjectInArea(area.Object));
                 }
             }
 
@@ -1070,7 +1071,7 @@ namespace SWLOR.Game.Server.Service
                 player.SendMessage("Could not find exit. Either you have entered the module in an expired lease building area. If this is not the case log a /bug and report where you were.");
                 LoggingService.Trace(TraceComponent.Space, "Could not find exit. Either you have entered the module in an expired lease building area. If this is not the case log a /bug and report where you were.");
                 NWObject waypoint = GetObjectByTag("MN_StarchaserHomes");
-                player.AssignCommand(() => _.ActionJumpToObject(waypoint));
+                player.AssignCommand(() => NWScript.ActionJumpToObject(waypoint));
                 return;
             }
 
@@ -1093,7 +1094,7 @@ namespace SWLOR.Game.Server.Service
                             Guid shipLocationGuid = new Guid(pcBase.ShipLocation);
                             Starport starport = DataService.Starport.GetByStarportID(shipLocationGuid);
 
-                            NWObject waypoint = _.GetWaypointByTag(starport.WaypointTag);
+                            NWObject waypoint = NWScript.GetWaypointByTag(starport.WaypointTag);
 
                             if (!waypoint.IsValid)
                             {
@@ -1102,7 +1103,7 @@ namespace SWLOR.Game.Server.Service
                                 return;
                             }
 
-                            player.AssignCommand(() => _.ActionJumpToObject(waypoint));
+                            player.AssignCommand(() => NWScript.ActionJumpToObject(waypoint));
 
                         }
                         else if (SpaceService.IsLocationSpace(pcBase.ShipLocation))
@@ -1123,7 +1124,7 @@ namespace SWLOR.Game.Server.Service
                                 return;
                             }
 
-                            player.AssignCommand(() => _.ActionJumpToObject(dock));
+                            player.AssignCommand(() => NWScript.ActionJumpToObject(dock));
                         }
 
                         return;
@@ -1146,11 +1147,11 @@ namespace SWLOR.Game.Server.Service
                     PCBase pcBase = DataService.PCBase.GetByID(pcbs.PCBaseID);
 
                     IEnumerable<NWArea> areas = NWModule.Get().Areas;
-                    NWArea baseArea = new NWArea(_.GetFirstArea());
+                    NWArea baseArea = new NWArea(NWScript.GetFirstArea());
 
                     foreach (var checkArea in areas)
                     {
-                        if (_.GetResRef(checkArea) == pcBase.AreaResref)
+                        if (NWScript.GetResRef(checkArea) == pcBase.AreaResref)
                         {
                             baseArea = checkArea;
                         }
@@ -1159,7 +1160,7 @@ namespace SWLOR.Game.Server.Service
                     List<AreaStructure> areaStructures = baseArea.Data["BASE_SERVICE_STRUCTURES"];
                     foreach (var plc in areaStructures)
                     {
-                        LoggingService.Trace(TraceComponent.Space, "Found area structure in " + _.GetName(plc.Structure.Location.Area) + " with name " + _.GetName(plc.Structure) + " and pcbs " + plc.PCBaseStructureID.ToString() + " and door " + plc.Structure.GetLocalInt("IS_DOOR").ToString());
+                        LoggingService.Trace(TraceComponent.Space, "Found area structure in " + NWScript.GetName(plc.Structure.Location.Area) + " with name " + NWScript.GetName(plc.Structure) + " and pcbs " + plc.PCBaseStructureID.ToString() + " and door " + plc.Structure.GetLocalInt("IS_DOOR").ToString());
                         if (plc.PCBaseStructureID == pcbs.ID && plc.Structure.GetLocalInt("IS_DOOR") == 1)
                         {
                             location = plc.Structure.Location;
@@ -1184,11 +1185,11 @@ namespace SWLOR.Game.Server.Service
                         Guid structureGuid = new Guid(structureID);
                         PCBase pcBase = DataService.PCBase.GetByID(structureGuid);
                         int nNth = 0;
-                        NWObject entrance = _.GetObjectByTag("apartment_ent", nNth);
+                        NWObject entrance = NWScript.GetObjectByTag("apartment_ent", nNth);
 
                         while (entrance.IsValid)
                         {
-                            LoggingService.Trace(TraceComponent.Space, "Found apartment entrance in " + _.GetName(entrance.Location.Area) + " with ID " + entrance.GetLocalInt("APARTMENT_BUILDING_ID").ToString());
+                            LoggingService.Trace(TraceComponent.Space, "Found apartment entrance in " + NWScript.GetName(entrance.Location.Area) + " with ID " + entrance.GetLocalInt("APARTMENT_BUILDING_ID").ToString());
                             if (entrance.GetLocalInt("APARTMENT_BUILDING_ID") == pcBase.ApartmentBuildingID)
                             {
                                 // Found it!
@@ -1197,7 +1198,7 @@ namespace SWLOR.Game.Server.Service
                             }
 
                             nNth++;
-                            entrance = _.GetObjectByTag("apartment_ent", nNth);
+                            entrance = NWScript.GetObjectByTag("apartment_ent", nNth);
                         }
 
                         if (!location.Area.IsValid)
@@ -1216,15 +1217,15 @@ namespace SWLOR.Game.Server.Service
                 }
             }
 
-            player.AssignCommand(() => _.ActionJumpToLocation(location));
+            player.AssignCommand(() => NWScript.ActionJumpToLocation(location));
 
-            _.DelayCommand(1.0f, () =>
+            NWScript.DelayCommand(1.0f, () =>
             {
-                player = (_.GetFirstPC());
+                player = (NWScript.GetFirstPC());
                 while (player.IsValid)
                 {
                     if (Equals(player.Area, area)) return;
-                    player = (_.GetNextPC());
+                    player = (NWScript.GetNextPC());
                 }
 
                 AreaService.DestroyAreaInstance(area);
@@ -1239,11 +1240,11 @@ namespace SWLOR.Game.Server.Service
             PCBase pcBase = DataService.PCBase.GetByID(pcbs.PCBaseID);
 
             IEnumerable<NWArea> areas = NWModule.Get().Areas;
-            NWArea baseArea = new NWArea(_.GetFirstArea());
+            NWArea baseArea = new NWArea(NWScript.GetFirstArea());
 
             foreach (var area in areas)
             {
-                if (_.GetResRef(area) == pcBase.AreaResref)
+                if (NWScript.GetResRef(area) == pcBase.AreaResref)
                 {
                     baseArea = area;
                 }
@@ -1269,7 +1270,7 @@ namespace SWLOR.Game.Server.Service
 
         private static void OnModuleNWNXChat()
         {
-            NWPlayer sender = _.OBJECT_SELF;
+            NWPlayer sender = NWScript.OBJECT_SELF;
             string text = NWNXChat.GetMessage().Trim();
 
             if (!CanHandleChat(sender))
@@ -1475,7 +1476,7 @@ namespace SWLOR.Game.Server.Service
             //--------------------------------------------------------------------------
             // Actually create/destroy the NWN objects.
             //--------------------------------------------------------------------------
-            NWArea area = (_.GetAreaFromLocation(_.GetLocation(target)));
+            NWArea area = (NWScript.GetAreaFromLocation(NWScript.GetLocation(target)));
             SpawnStructure(area, towerStructure.ID);
             target.Destroy();
             item.Destroy();
@@ -1569,7 +1570,7 @@ namespace SWLOR.Game.Server.Service
             // Code moved from the PlayerService once respawning in bases was implemented, as
             // it created a circular dependency between the two libraries.
             //--------------------------------------------------------------------------------
-            NWPlayer player = (_.GetEnteringObject());
+            NWPlayer player = (NWScript.GetEnteringObject());
             if (!player.IsPlayer) return;
 
             if (player.Area.Tag == "ooc_area" || (player.Area.Name.StartsWith("Space - ") && player.GetLocalInt("IS_SHIP") == 0))
@@ -1614,19 +1615,19 @@ namespace SWLOR.Game.Server.Service
                         // This probably means we were on a destroyed starship.  Do respawn. 
                         //--------------------------------------------------------------------------
                         player.SendMessage("The ship you were on was destroyed.");
-                        _.ExecuteScript("OnModuleRespawn", player);
+                        NWScript.ExecuteScript("OnModuleRespawn", player);
                     }
                 }
 
                 if (area == null) area = NWModule.Get().Areas.SingleOrDefault(x => x.Resref == entity.LocationAreaResref);
                 if (area == null) return;
 
-                Vector position = _.Vector((float)entity.LocationX, (float)entity.LocationY, (float)entity.LocationZ);
-                Location location = _.Location(area.Object,
+                Vector position = NWScript.Vector((float)entity.LocationX, (float)entity.LocationY, (float)entity.LocationZ);
+                Location location = NWScript.Location(area.Object,
                     position,
                     (float)entity.LocationOrientation);
 
-                player.AssignCommand(() => _.ActionJumpToLocation(location));
+                player.AssignCommand(() => NWScript.ActionJumpToLocation(location));
             }
         }
     }

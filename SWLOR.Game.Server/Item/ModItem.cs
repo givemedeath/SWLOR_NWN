@@ -8,7 +8,8 @@ using SWLOR.Game.Server.ValueObject;
 using System.Collections.Generic;
 using SWLOR.Game.Server.NWN;
 using SWLOR.Game.Server.NWN.Enum.Item;
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Item
 {
@@ -26,7 +27,7 @@ namespace SWLOR.Game.Server.Item
             NWPlayer player = (user.Object);
             NWItem targetItem = (target.Object);
             ModSlots slots = ModService.GetModSlots(targetItem);
-            CustomItemPropertyType modType = ModService.GetModType(modItem);
+            ItemPropertyType modType = ModService.GetModType(modItem);
             int modID = modItem.GetLocalInt("RUNE_ID");
             string[] modArgs = modItem.GetLocalString("RUNE_VALUE").Split(',');
             int modLevel = modItem.RecommendedLevel;
@@ -39,7 +40,7 @@ namespace SWLOR.Game.Server.Item
             bool usePrismatic = false;
             switch (modType)
             {
-                case CustomItemPropertyType.RedMod:
+                case ItemPropertyType.RedMod:
                     if (slots.FilledRedSlots < slots.RedSlots)
                     {
                         targetItem.SetLocalInt("MOD_SLOT_RED_" + (slots.FilledRedSlots + 1), modID);
@@ -48,7 +49,7 @@ namespace SWLOR.Game.Server.Item
                     }
                     else usePrismatic = true;
                     break;
-                case CustomItemPropertyType.BlueMod:
+                case ItemPropertyType.BlueMod:
                     if (slots.FilledBlueSlots < slots.BlueSlots)
                     {
                         targetItem.SetLocalInt("MOD_SLOT_BLUE_" + (slots.FilledBlueSlots + 1), modID);
@@ -57,7 +58,7 @@ namespace SWLOR.Game.Server.Item
                     }
                     else usePrismatic = true;
                     break;
-                case CustomItemPropertyType.GreenMod:
+                case ItemPropertyType.GreenMod:
                     if (slots.FilledGreenSlots < slots.GreenSlots)
                     {
                         targetItem.SetLocalInt("MOD_SLOT_GREEN_" + (slots.FilledGreenSlots + 1), modID);
@@ -66,7 +67,7 @@ namespace SWLOR.Game.Server.Item
                     }
                     else usePrismatic = true;
                     break;
-                case CustomItemPropertyType.YellowMod:
+                case ItemPropertyType.YellowMod:
                     if (slots.FilledYellowSlots < slots.YellowSlots)
                     {
                         targetItem.SetLocalInt("MOD_SLOT_YELLOW_" + (slots.FilledYellowSlots + 1), modID);
@@ -174,21 +175,21 @@ namespace SWLOR.Game.Server.Item
             int requiredPerkLevel = modLevel / 5;
             if (requiredPerkLevel <= 0) requiredPerkLevel = 1;
             int perkLevel = 0;
-            CustomItemPropertyType modType = ModService.GetModType(mod);
+            ItemPropertyType modType = ModService.GetModType(mod);
             ModSlots modSlots = ModService.GetModSlots(targetItem);
             int modID = mod.GetLocalInt("RUNE_ID");
             string[] modArgs = mod.GetLocalString("RUNE_VALUE").Split(',');
 
             // Check for a misconfigured mod item.
-            if (modType == CustomItemPropertyType.Unknown) return "Mod color couldn't be found. Notify an admin that this mod item is not set up properly.";
+            if (modType == ItemPropertyType.Unknown) return "Mod color couldn't be found. Notify an admin that this mod item is not set up properly.";
             if (modID <= 0) return "Mod ID couldn't be found. Notify an admin that this mod item is not set up properly.";
             if (modArgs.Length <= 0) return "Mod value couldn't be found. Notify an admin that this mod item is not set up properly.";
 
             // No available slots on target item
-            if (modType == CustomItemPropertyType.RedMod && !modSlots.CanRedModBeAdded) return "That item has no available red mod slots.";
-            if (modType == CustomItemPropertyType.BlueMod && !modSlots.CanBlueModBeAdded) return "That item has no available blue mod slots.";
-            if (modType == CustomItemPropertyType.GreenMod && !modSlots.CanGreenModBeAdded) return "That item has no available green mod slots.";
-            if (modType == CustomItemPropertyType.YellowMod && !modSlots.CanYellowModBeAdded) return "That item has no available yellow mod slots.";
+            if (modType == ItemPropertyType.RedMod && !modSlots.CanRedModBeAdded) return "That item has no available red mod slots.";
+            if (modType == ItemPropertyType.BlueMod && !modSlots.CanBlueModBeAdded) return "That item has no available blue mod slots.";
+            if (modType == ItemPropertyType.GreenMod && !modSlots.CanGreenModBeAdded) return "That item has no available green mod slots.";
+            if (modType == ItemPropertyType.YellowMod && !modSlots.CanYellowModBeAdded) return "That item has no available yellow mod slots.";
 
             // Get the perk level based on target item type and mod type.
             if (targetItem.GetLocalInt("LIGHTSABER") == FALSE && WeaponsmithBaseItemTypes.Contains(targetItem.BaseItemType))
@@ -207,7 +208,7 @@ namespace SWLOR.Game.Server.Item
             // Ensure item isn't equipped.
             for (int slot = 0; slot < NUM_INVENTORY_SLOTS; slot++)
             {
-                if (_.GetItemInSlot(slot, user.Object) == targetItem.Object)
+                if (NWScript.GetItemInSlot(slot, user.Object) == targetItem.Object)
                 {
                     return "Targeted item must be unequipped before installing a mod.";
                 }

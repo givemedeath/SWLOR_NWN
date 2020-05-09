@@ -5,7 +5,7 @@ using NWN;
 using SWLOR.Game.Server.NWN.Enum;
 using SWLOR.Game.Server.NWNX;
 
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
 namespace SWLOR.Game.Server.Perk.Lightsaber
 {
     public class SaberFinesse : IPerkHandler

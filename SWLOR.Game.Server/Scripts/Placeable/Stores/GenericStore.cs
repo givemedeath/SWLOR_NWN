@@ -1,5 +1,6 @@
 ﻿using NWN;
 using SWLOR.Game.Server.GameObject;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Scripts.Placeable.Stores
 {
@@ -15,12 +16,12 @@ namespace SWLOR.Game.Server.Scripts.Placeable.Stores
 
         public void Main()
         {
-            NWPlaceable self = (_.OBJECT_SELF);
-            NWObject oPC = (_.GetLastUsedBy());
+            NWPlaceable self = (NWScript.OBJECT_SELF);
+            NWObject oPC = (NWScript.GetLastUsedBy());
             string storeTag = self.GetLocalString("STORE_TAG");
-            uint store = _.GetObjectByTag(storeTag);
+            uint store = NWScript.GetObjectByTag(storeTag);
 
-            _.OpenStore(store, oPC.Object);
+            NWScript.OpenStore(store, oPC.Object);
         }
     }
 }

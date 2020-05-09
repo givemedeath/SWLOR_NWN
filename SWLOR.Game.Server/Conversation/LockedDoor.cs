@@ -5,6 +5,7 @@ using SWLOR.Game.Server.NWN;
 using SWLOR.Game.Server.Service;
 
 using SWLOR.Game.Server.ValueObject.Dialog;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Conversation
 {
@@ -24,7 +25,7 @@ namespace SWLOR.Game.Server.Conversation
 
         public override void Initialize()
         {
-            NWObject door = _.OBJECT_SELF;
+            NWObject door = NWScript.OBJECT_SELF;
             NWPlayer player = GetPC();
             List<int> keyItemIDs = new List<int>();
 
@@ -60,14 +61,14 @@ namespace SWLOR.Game.Server.Conversation
         {
             if (responseID != 1) return;
 
-            NWObject door = _.OBJECT_SELF;
+            NWObject door = NWScript.OBJECT_SELF;
             string insideWP = door.GetLocalString("LOCKED_DOOR_INSIDE_WP");
-            NWObject wp = _.GetWaypointByTag(insideWP);
+            NWObject wp = NWScript.GetWaypointByTag(insideWP);
             Location portTo = wp.Location;
 
-            _.AssignCommand(player, () =>
+            NWScript.AssignCommand(player, () =>
             {
-                _.ActionJumpToLocation(portTo);
+                NWScript.ActionJumpToLocation(portTo);
             });
 
             EndConversation();

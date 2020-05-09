@@ -2,7 +2,8 @@
 using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.NWNX;
 using SWLOR.Game.Server.Service;
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Scripts.Placeable.Quests.AbandonedStation
 {
@@ -28,7 +29,7 @@ namespace SWLOR.Game.Server.Scripts.Placeable.Quests.AbandonedStation
 
         private void AttemptCleanup()
         {
-            NWPlaceable exit = _.OBJECT_SELF;
+            NWPlaceable exit = NWScript.OBJECT_SELF;
             NWArea mainLevel = exit.Area.GetLocalObject("MAIN_LEVEL");
             NWArea restrictedLevel = exit.Area.GetLocalObject("RESTRICTED_LEVEL");
             NWArea directorsChambers = exit.Area.GetLocalObject("DIRECTORS_CHAMBERS");

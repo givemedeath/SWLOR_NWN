@@ -5,7 +5,8 @@ using SWLOR.Game.Server.NWN;
 using SWLOR.Game.Server.Service;
 
 using SWLOR.Game.Server.ValueObject.Dialog;
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Conversation
 {
@@ -82,10 +83,10 @@ namespace SWLOR.Game.Server.Conversation
 
             int numberFound = 0;
             int nth = 1;
-            NWCreature nearest = (_.GetNearestObjectToLocation(OBJECT_TYPE_CREATURE, location, nth));
+            NWCreature nearest = (NWScript.GetNearestObjectToLocation(OBJECT_TYPE_CREATURE, location, nth));
             while (nearest.IsValid)
             {
-                if (_.GetDistanceBetweenLocations(location, nearest.Location) > MaxDistance) break;
+                if (NWScript.GetDistanceBetweenLocations(location, nearest.Location) > MaxDistance) break;
 
                 if (nearest.IsPlayer)
                 {
@@ -93,20 +94,20 @@ namespace SWLOR.Game.Server.Conversation
                 }
 
                 nth++;
-                nearest = (_.GetNearestObjectToLocation(OBJECT_TYPE_CREATURE, location, nth));
+                nearest = (NWScript.GetNearestObjectToLocation(OBJECT_TYPE_CREATURE, location, nth));
             }
 
             if (numberFound <= 0)
             {
-                _.FloatingTextStringOnCreature("You don't see anyone outside.", GetPC().Object, FALSE);
+                NWScript.FloatingTextStringOnCreature("You don't see anyone outside.", GetPC().Object, FALSE);
             }
             else if (numberFound == 1)
             {
-                _.FloatingTextStringOnCreature("You see one person outside.", GetPC().Object, FALSE);
+                NWScript.FloatingTextStringOnCreature("You see one person outside.", GetPC().Object, FALSE);
             }
             else
             {
-                _.FloatingTextStringOnCreature("You see " + numberFound + " people outside.", GetPC().Object, FALSE);
+                NWScript.FloatingTextStringOnCreature("You see " + numberFound + " people outside.", GetPC().Object, FALSE);
             }
 
         }

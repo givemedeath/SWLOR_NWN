@@ -7,7 +7,8 @@ using SWLOR.Game.Server.NWN;
 using SWLOR.Game.Server.Service;
 
 using SWLOR.Game.Server.ValueObject;
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Item.Medicine
 {
@@ -65,9 +66,9 @@ namespace SWLOR.Game.Server.Item.Medicine
                 int fpRecover = (int)(dbPlayer.MaxFP * (0.01f * baseHeal));
                 int hpRecover = (int)(target.MaxHP * (0.01f * baseHeal));
 
-                _.PlaySound("use_bacta");
-                _.ApplyEffectToObject(DURATION_TYPE_INSTANT, _.EffectResurrection(), target);
-                _.ApplyEffectToObject(DURATION_TYPE_INSTANT, _.EffectHeal(hpRecover), target);
+                NWScript.PlaySound("use_bacta");
+                NWScript.ApplyEffectToObject(DURATION_TYPE_INSTANT, NWScript.EffectResurrection(), target);
+                NWScript.ApplyEffectToObject(DURATION_TYPE_INSTANT, NWScript.EffectHeal(hpRecover), target);
                 dbPlayer.CurrentFP = fpRecover;
                 DataService.SubmitDataChange(dbPlayer, DatabaseActionType.Update);
                 player.SendMessage("You successfully resuscitate " + target.Name + "!");
@@ -79,8 +80,8 @@ namespace SWLOR.Game.Server.Item.Medicine
             {
                 baseHeal = (int)(baseHeal * effectivenessPercent);
                 int hpRecover = (int)(target.MaxHP * (0.01f * baseHeal));
-                _.ApplyEffectToObject(DURATION_TYPE_INSTANT, _.EffectResurrection(), target);
-                _.ApplyEffectToObject(DURATION_TYPE_INSTANT, _.EffectHeal(hpRecover), target);
+                NWScript.ApplyEffectToObject(DURATION_TYPE_INSTANT, NWScript.EffectResurrection(), target);
+                NWScript.ApplyEffectToObject(DURATION_TYPE_INSTANT, NWScript.EffectHeal(hpRecover), target);
                 player.SendMessage("You successfully resuscitate " + target.Name + "!");
             }
         }

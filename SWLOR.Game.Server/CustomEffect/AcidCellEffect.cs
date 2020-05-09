@@ -4,7 +4,8 @@ using SWLOR.Game.Server.Enumeration;
 using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.Service;
 
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.CustomEffect
 {
@@ -26,7 +27,7 @@ namespace SWLOR.Game.Server.CustomEffect
             oTarget.SetLocalInt(AbilityService.LAST_ATTACK + oCaster.GlobalID, AbilityService.ATTACK_DOT);
             oCaster.AssignCommand(() =>
             {
-                _.ApplyEffectToObject(DURATION_TYPE_INSTANT, _.EffectDamage(damage, DAMAGE_TYPE_ACID), oTarget);
+                NWScript.ApplyEffectToObject(DURATION_TYPE_INSTANT, NWScript.EffectDamage(damage, DAMAGE_TYPE_ACID), oTarget);
             });
         }
 

@@ -3,6 +3,7 @@ using SWLOR.Game.Server.Data.Entity;
 using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.Service;
 using SWLOR.Game.Server.ValueObject;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Scripts.Placeable.QuestSystem.ItemCollector
 {
@@ -10,11 +11,11 @@ namespace SWLOR.Game.Server.Scripts.Placeable.QuestSystem.ItemCollector
     {
         public void Main()
         {
-            NWPlaceable container = _.OBJECT_SELF;
+            NWPlaceable container = NWScript.OBJECT_SELF;
 
             container.IsUseable = false;
 
-            NWPlayer oPC = (_.GetLastOpenedBy());
+            NWPlayer oPC = (NWScript.GetLastOpenedBy());
             int questID = container.GetLocalInt("QUEST_ID");
             PCQuestStatus status = DataService.PCQuestStatus.GetByPlayerAndQuestID(oPC.GlobalID, questID);
 

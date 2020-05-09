@@ -9,7 +9,8 @@ using SWLOR.Game.Server.NWN;
 using SWLOR.Game.Server.Service;
 
 using SWLOR.Game.Server.ValueObject;
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Item
 {
@@ -35,7 +36,7 @@ namespace SWLOR.Game.Server.Item
             }
 
             // Get the base.
-            string starshipID = _.GetLocalString(_.GetArea(target), "PC_BASE_STRUCTURE_ID");
+            string starshipID = NWScript.GetLocalString(NWScript.GetArea(target), "PC_BASE_STRUCTURE_ID");
             Guid starshipGuid = new Guid(starshipID);
             PCBaseStructure starship = DataService.PCBaseStructure.GetByID(starshipGuid);
             PCBase starkillerBase = DataService.PCBase.GetByID(starship.PCBaseID);
@@ -43,8 +44,8 @@ namespace SWLOR.Game.Server.Item
             starkillerBase.Starcharts |= starcharts;
             DataService.SubmitDataChange(starkillerBase, DatabaseActionType.Update);
 
-            _.ApplyEffectToObject(DURATION_TYPE_INSTANT, _.EffectVisualEffect(VFX_IMP_CONFUSION_S), target);
-            _.FloatingTextStringOnCreature("Starcharts loaded!", player);
+            NWScript.ApplyEffectToObject(DURATION_TYPE_INSTANT, NWScript.EffectVisualEffect(VFX_IMP_CONFUSION_S), target);
+            NWScript.FloatingTextStringOnCreature("Starcharts loaded!", player);
             item.Destroy();
         }
 

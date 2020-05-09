@@ -6,7 +6,8 @@ using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.NWN;
 using SWLOR.Game.Server.Service;
 
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.CustomEffect
 {
@@ -21,7 +22,7 @@ namespace SWLOR.Game.Server.CustomEffect
 
             player.AssignCommand(() =>
             {
-                _.ActionPlayAnimation(ANIMATION_LOOPING_SIT_CROSS, 1.0f, 6.1f);
+                NWScript.ActionPlayAnimation(ANIMATION_LOOPING_SIT_CROSS, 1.0f, 6.1f);
             });
 
             player.IsBusy = true;
@@ -41,7 +42,7 @@ namespace SWLOR.Game.Server.CustomEffect
 
             // Pull original position from data
             string[] values = data.Split(',');
-            Vector originalPosition = _.Vector
+            Vector originalPosition = NWScript.Vector
             (
                 Convert.ToSingle(values[0]),
                 Convert.ToSingle(values[1]),
@@ -66,16 +67,16 @@ namespace SWLOR.Game.Server.CustomEffect
 
             player.AssignCommand(() =>
             {
-                _.ActionPlayAnimation(ANIMATION_LOOPING_SIT_CROSS, 1.0f, 6.1f);
+                NWScript.ActionPlayAnimation(ANIMATION_LOOPING_SIT_CROSS, 1.0f, 6.1f);
             });
 
             if (restTick >= 6)
             {
                 int amount = CalculateAmount(player);
 
-                _.ApplyEffectToObject(DURATION_TYPE_INSTANT, _.EffectHeal(amount), player);
-                Effect vfx = _.EffectVisualEffect(VFX_IMP_HEAD_HOLY);
-                _.ApplyEffectToObject(DURATION_TYPE_INSTANT, vfx, player);
+                NWScript.ApplyEffectToObject(DURATION_TYPE_INSTANT, NWScript.EffectHeal(amount), player);
+                Effect vfx = NWScript.EffectVisualEffect(VFX_IMP_HEAD_HOLY);
+                NWScript.ApplyEffectToObject(DURATION_TYPE_INSTANT, vfx, player);
                 restTick = 0;
             }
 

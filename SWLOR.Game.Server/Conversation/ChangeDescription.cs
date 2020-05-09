@@ -4,6 +4,7 @@ using NWN;
 using SWLOR.Game.Server.Service;
 
 using SWLOR.Game.Server.ValueObject.Dialog;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Conversation
 {
@@ -33,7 +34,7 @@ namespace SWLOR.Game.Server.Conversation
         {
             string header = "Please type the new description for your character into the chat box. Then press the 'Next' button.\n\n";
             header += ColorTokenService.Green("Current Description: ") + "\n\n";
-            header += _.GetDescription(GetPC().Object);
+            header += NWScript.GetDescription(GetPC().Object);
             SetPageHeader("MainPage", header);
             GetPC().SetLocalInt("LISTENING_FOR_DESCRIPTION", 1);
         }
@@ -64,7 +65,7 @@ namespace SWLOR.Game.Server.Conversation
 
                     if (string.IsNullOrWhiteSpace(newDescription))
                     {
-                        _.FloatingTextStringOnCreature("Type in a new description to the chat bar and then press 'Next'.", GetPC().Object, _.FALSE);
+                        NWScript.FloatingTextStringOnCreature("Type in a new description to the chat bar and then press 'Next'.", GetPC().Object, NWScript.FALSE);
                         return;
                     }
 

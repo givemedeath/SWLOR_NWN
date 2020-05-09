@@ -3,6 +3,7 @@ using SWLOR.Game.Server.Enumeration;
 using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.Service;
 using SWLOR.Game.Server.ValueObject;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Scripts.Placeable.ScavengePoint
 {
@@ -18,8 +19,8 @@ namespace SWLOR.Game.Server.Scripts.Placeable.ScavengePoint
 
         public void Main()
         {
-            NWPlaceable point = (_.OBJECT_SELF);
-            NWPlayer oPC = (_.GetLastOpenedBy());
+            NWPlaceable point = (NWScript.OBJECT_SELF);
+            NWPlayer oPC = (NWScript.GetLastOpenedBy());
             if (!oPC.IsPlayer) return;
 
             var effectiveStats = PlayerStatService.GetPlayerItemEffectiveStats(oPC);
@@ -42,7 +43,7 @@ namespace SWLOR.Game.Server.Scripts.Placeable.ScavengePoint
             if (delta > 8)
             {
                 oPC.SendMessage("You aren't skilled enough to scavenge through this. (Required Level: " + (level - 8) + ")");
-                oPC.AssignCommand(() => _.ActionInteractObject(point.Object));
+                oPC.AssignCommand(() => NWScript.ActionInteractObject(point.Object));
                 return;
             }
 
@@ -56,7 +57,7 @@ namespace SWLOR.Game.Server.Scripts.Placeable.ScavengePoint
                 dc--;
             }
 
-            oPC.AssignCommand(() => _.ActionPlayAnimation(_.ANIMATION_LOOPING_GET_LOW, 1.0f, 2.0f));
+            oPC.AssignCommand(() => NWScript.ActionPlayAnimation(NWScript.ANIMATION_LOOPING_GET_LOW, 1.0f, 2.0f));
 
             for (int attempt = 1; attempt <= searchAttempts; attempt++)
             {
@@ -73,7 +74,7 @@ namespace SWLOR.Game.Server.Scripts.Placeable.ScavengePoint
 
                     if (!string.IsNullOrWhiteSpace(spawnItem.Resref) && spawnItem.Quantity > 0)
                     {
-                        _.CreateItemOnObject(spawnItem.Resref, point.Object, spawnItem.Quantity);
+                        NWScript.CreateItemOnObject(spawnItem.Resref, point.Object, spawnItem.Quantity);
                     }
 
                     float xp = SkillService.CalculateRegisteredSkillLevelAdjustedXP(200, level, rank);

@@ -1,5 +1,6 @@
 ﻿using NWN;
 using SWLOR.Game.Server.GameObject;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Scripts.Placeable.TrashCan
 {
@@ -15,7 +16,7 @@ namespace SWLOR.Game.Server.Scripts.Placeable.TrashCan
 
         public void Main()
         {
-            NWPlaceable self = (_.OBJECT_SELF);
+            NWPlaceable self = (NWScript.OBJECT_SELF);
             foreach (NWItem item in self.InventoryItems)
             {
                 item.Destroy();

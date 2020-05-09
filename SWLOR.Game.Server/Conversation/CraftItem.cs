@@ -6,7 +6,8 @@ using SWLOR.Game.Server.Data.Entity;
 using SWLOR.Game.Server.Service;
 
 using SWLOR.Game.Server.ValueObject.Dialog;
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Conversation
 {
@@ -83,10 +84,10 @@ namespace SWLOR.Game.Server.Conversation
             {
                 model.Access = CraftingAccessType.None;
 
-                _.SetEventScript(device.Object, EVENT_SCRIPT_PLACEABLE_ON_USED, "script_1");
-                _.SetEventScript(device.Object, EVENT_SCRIPT_PLACEABLE_ON_OPEN, string.Empty);
-                _.SetEventScript(device.Object, EVENT_SCRIPT_PLACEABLE_ON_CLOSED, string.Empty);
-                _.SetEventScript(device.Object, EVENT_SCRIPT_PLACEABLE_ON_INVENTORYDISTURBED, string.Empty);
+                NWScript.SetEventScript(device.Object, EVENT_SCRIPT_PLACEABLE_ON_USED, "script_1");
+                NWScript.SetEventScript(device.Object, EVENT_SCRIPT_PLACEABLE_ON_OPEN, string.Empty);
+                NWScript.SetEventScript(device.Object, EVENT_SCRIPT_PLACEABLE_ON_CLOSED, string.Empty);
+                NWScript.SetEventScript(device.Object, EVENT_SCRIPT_PLACEABLE_ON_INVENTORYDISTURBED, string.Empty);
             }
 
 
@@ -148,9 +149,9 @@ namespace SWLOR.Game.Server.Conversation
             {
                 case 1: // Examine Base Item
                     CraftBlueprint entity = CraftService.GetBlueprintByID(model.BlueprintID);
-                    NWPlaceable tempContainer = (_.GetObjectByTag("craft_temp_store"));
-                    NWItem examineItem = (_.CreateItemOnObject(entity.ItemResref, tempContainer.Object));
-                    GetPC().AssignCommand(() => _.ActionExamine(examineItem.Object));
+                    NWPlaceable tempContainer = (NWScript.GetObjectByTag("craft_temp_store"));
+                    NWItem examineItem = (NWScript.CreateItemOnObject(entity.ItemResref, tempContainer.Object));
+                    GetPC().AssignCommand(() => NWScript.ActionExamine(examineItem.Object));
                     examineItem.Destroy(0.1f);
                     break;
                 case 2: // Create item
@@ -203,16 +204,16 @@ namespace SWLOR.Game.Server.Conversation
             device.IsLocked = false;
             model.IsAccessingStorage = true;
 
-            _.SetEventScript(device.Object, EVENT_SCRIPT_PLACEABLE_ON_USED, string.Empty);
-            _.SetEventScript(device.Object, EVENT_SCRIPT_PLACEABLE_ON_OPEN, "script_2");
-            _.SetEventScript(device.Object, EVENT_SCRIPT_PLACEABLE_ON_CLOSED, "script_3");
-            _.SetEventScript(device.Object, EVENT_SCRIPT_PLACEABLE_ON_INVENTORYDISTURBED, "script_4");
+            NWScript.SetEventScript(device.Object, EVENT_SCRIPT_PLACEABLE_ON_USED, string.Empty);
+            NWScript.SetEventScript(device.Object, EVENT_SCRIPT_PLACEABLE_ON_OPEN, "script_2");
+            NWScript.SetEventScript(device.Object, EVENT_SCRIPT_PLACEABLE_ON_CLOSED, "script_3");
+            NWScript.SetEventScript(device.Object, EVENT_SCRIPT_PLACEABLE_ON_INVENTORYDISTURBED, "script_4");
 
             device.SetLocalString("SCRIPT_2", "Placeable.CraftingDevice.OnOpened");
             device.SetLocalString("SCRIPT_3", "Placeable.CraftingDevice.OnClosed");
             device.SetLocalString("SCRIPT_4", "Placeable.CraftingDevice.OnDisturbed");
 
-            GetPC().AssignCommand(() => _.ActionInteractObject(device.Object));
+            GetPC().AssignCommand(() => NWScript.ActionInteractObject(device.Object));
             EndConversation();
         }
 

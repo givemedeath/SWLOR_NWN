@@ -1,5 +1,6 @@
 ﻿using NWN;
 using SWLOR.Game.Server.GameObject;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Event.Creature
 {
@@ -9,7 +10,7 @@ namespace SWLOR.Game.Server.Event.Creature
 
         public OnCreatureSpawn()
         {
-            Self = _.OBJECT_SELF;
+            Self = NWScript.OBJECT_SELF;
         }
     }
 }

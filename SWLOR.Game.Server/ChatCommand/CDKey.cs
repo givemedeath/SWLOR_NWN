@@ -2,6 +2,7 @@
 using SWLOR.Game.Server.ChatCommand.Contracts;
 using SWLOR.Game.Server.Enumeration;
 using SWLOR.Game.Server.GameObject;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 
 namespace SWLOR.Game.Server.ChatCommand
@@ -18,7 +19,7 @@ namespace SWLOR.Game.Server.ChatCommand
         /// <param name="args"></param>
         public void DoAction(NWPlayer user, NWObject target, NWLocation targetLocation, params string[] args)
         {
-            string cdKey = _.GetPCPublicCDKey(user);
+            string cdKey = NWScript.GetPCPublicCDKey(user);
             user.SendMessage("Your public CD Key is: " + cdKey);
         }
 

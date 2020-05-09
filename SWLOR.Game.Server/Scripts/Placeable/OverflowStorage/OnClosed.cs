@@ -1,5 +1,6 @@
 ﻿using NWN;
 using SWLOR.Game.Server.GameObject;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Scripts.Placeable.OverflowStorage
 {
@@ -15,7 +16,7 @@ namespace SWLOR.Game.Server.Scripts.Placeable.OverflowStorage
 
         public void Main()
         {
-            NWPlaceable container = (_.OBJECT_SELF);
+            NWPlaceable container = (NWScript.OBJECT_SELF);
             container.DestroyAllInventoryItems();
             container.Destroy();
         }

@@ -14,7 +14,8 @@ using SWLOR.Game.Server.Quest;
 using SWLOR.Game.Server.Quest.Contracts;
 using SWLOR.Game.Server.Quest.Objective;
 using SWLOR.Game.Server.Scripting;
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Service
 {
@@ -117,7 +118,7 @@ namespace SWLOR.Game.Server.Service
         /// </summary>
         private static void OnCreatureDeath()
         {
-            NWCreature creature = _.OBJECT_SELF;
+            NWCreature creature = NWScript.OBJECT_SELF;
 
             int npcGroupID = creature.GetLocalInt("NPC_GROUP");
             if (npcGroupID <= 0) return;

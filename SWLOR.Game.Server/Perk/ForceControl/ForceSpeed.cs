@@ -4,6 +4,7 @@ using SWLOR.Game.Server.Enumeration;
 using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.NWN;
 using SWLOR.Game.Server.Service;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Perk.ForceControl
 {
@@ -51,31 +52,31 @@ namespace SWLOR.Game.Server.Perk.ForceControl
             switch (spellTier)
             {
                 case 1:
-                    effect = _.EffectMovementSpeedIncrease(10);
-                    effect = _.EffectLinkEffects(effect, _.EffectAbilityIncrease(_.ABILITY_DEXTERITY, 2));
+                    effect = NWScript.EffectMovementSpeedIncrease(10);
+                    effect = NWScript.EffectLinkEffects(effect, NWScript.EffectAbilityIncrease(NWScript.ABILITY_DEXTERITY, 2));
                     duration = 60f;
                     break;
                 case 2:
-                    effect = _.EffectMovementSpeedIncrease(20);
-                    effect = _.EffectLinkEffects(effect, _.EffectAbilityIncrease(_.ABILITY_DEXTERITY, 4));
+                    effect = NWScript.EffectMovementSpeedIncrease(20);
+                    effect = NWScript.EffectLinkEffects(effect, NWScript.EffectAbilityIncrease(NWScript.ABILITY_DEXTERITY, 4));
                     duration = 90f;
                     break;
                 case 3:
-                    effect = _.EffectMovementSpeedIncrease(30);
-                    effect = _.EffectLinkEffects(effect, _.EffectAbilityIncrease(_.ABILITY_DEXTERITY, 6));
-                    effect = _.EffectLinkEffects(effect, _.EffectModifyAttacks(1));
+                    effect = NWScript.EffectMovementSpeedIncrease(30);
+                    effect = NWScript.EffectLinkEffects(effect, NWScript.EffectAbilityIncrease(NWScript.ABILITY_DEXTERITY, 6));
+                    effect = NWScript.EffectLinkEffects(effect, NWScript.EffectModifyAttacks(1));
                     duration = 120f;
                     break;
                 case 4:
-                    effect = _.EffectMovementSpeedIncrease(40);
-                    effect = _.EffectLinkEffects(effect, _.EffectAbilityIncrease(_.ABILITY_DEXTERITY, 8));
-                    effect = _.EffectLinkEffects(effect, _.EffectModifyAttacks(1));
+                    effect = NWScript.EffectMovementSpeedIncrease(40);
+                    effect = NWScript.EffectLinkEffects(effect, NWScript.EffectAbilityIncrease(NWScript.ABILITY_DEXTERITY, 8));
+                    effect = NWScript.EffectLinkEffects(effect, NWScript.EffectModifyAttacks(1));
                     duration = 150f;
                     break;
                 case 5:
-                    effect = _.EffectMovementSpeedIncrease(50);
-                    effect = _.EffectLinkEffects(effect, _.EffectAbilityIncrease(_.ABILITY_DEXTERITY, 10));
-                    effect = _.EffectLinkEffects(effect, _.EffectModifyAttacks(1));
+                    effect = NWScript.EffectMovementSpeedIncrease(50);
+                    effect = NWScript.EffectLinkEffects(effect, NWScript.EffectAbilityIncrease(NWScript.ABILITY_DEXTERITY, 10));
+                    effect = NWScript.EffectLinkEffects(effect, NWScript.EffectModifyAttacks(1));
                     duration = 180f;
                     break;
                 default:
@@ -90,8 +91,8 @@ namespace SWLOR.Game.Server.Perk.ForceControl
                 creature.SendMessage("Lucky Force Speed!");
             }
 
-            _.ApplyEffectToObject(_.DURATION_TYPE_TEMPORARY, effect, target, duration);
-            _.ApplyEffectToObject(_.DURATION_TYPE_INSTANT, _.EffectVisualEffect(_.VFX_IMP_AC_BONUS), target);
+            NWScript.ApplyEffectToObject(DurationType.Temporary, effect, target, duration);
+            NWScript.ApplyEffectToObject(DurationType.Instant, NWScript.EffectVisualEffect(NWScript.VFX_IMP_AC_BONUS), target);
 
             if (creature.IsPlayer)
             {

@@ -5,7 +5,8 @@ using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.Service;
 
 using SWLOR.Game.Server.ValueObject.Dialog;
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Conversation
 {
@@ -23,7 +24,7 @@ namespace SWLOR.Game.Server.Conversation
 
         public override void Initialize()
         {
-            NWPlaceable device = _.OBJECT_SELF;
+            NWPlaceable device = NWScript.OBJECT_SELF;
             NWArea area = device.Area;
 
             int terminalColorID = device.GetLocalInt("TERMINAL_COLOR");
@@ -55,7 +56,7 @@ namespace SWLOR.Game.Server.Conversation
 
         public override void DoAction(NWPlayer player, string pageName, int responseID)
         {
-            NWPlaceable device = _.OBJECT_SELF;
+            NWPlaceable device = NWScript.OBJECT_SELF;
             NWArea area = device.Area;
             int terminalColorID = device.GetLocalInt("TERMINAL_COLOR");
             string terminalColor = GetColorString(terminalColorID);
@@ -68,13 +69,13 @@ namespace SWLOR.Game.Server.Conversation
             {
                 if (door.GetLocalInt("DOOR_COLOR") == terminalColorID)
                 {
-                    _.SetLocked(door, FALSE);
-                    door.AssignCommand(() => _.ActionOpenDoor(door));
+                    NWScript.SetLocked(door, FALSE);
+                    door.AssignCommand(() => NWScript.ActionOpenDoor(door));
                 }
                 else
                 {
-                    door.AssignCommand(() => _.ActionCloseDoor(door));
-                    _.SetLocked(door, TRUE);
+                    door.AssignCommand(() => NWScript.ActionCloseDoor(door));
+                    NWScript.SetLocked(door, TRUE);
                 }
             }
 

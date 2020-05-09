@@ -7,6 +7,7 @@ using SWLOR.Game.Server.Quest.Objective;
 using SWLOR.Game.Server.Quest.Reward;
 using SWLOR.Game.Server.Service;
 using SWLOR.Game.Server.ValueObject.Dialog;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Conversation
 {
@@ -190,7 +191,7 @@ namespace SWLOR.Game.Server.Conversation
                 }
 
                 // Store object is invalid or hasn't been placed.
-                NWObject store = _.GetObjectByTag(storeTag);
+                NWObject store = NWScript.GetObjectByTag(storeTag);
                 if (!store.IsValid)
                 {
                     speaker.SpeakString("ERROR: Store object could not be found. Inform a developer that either the specified tag is wrong or the store has not been placed in the module.");
@@ -198,7 +199,7 @@ namespace SWLOR.Game.Server.Conversation
                 }
 
                 // Valid store. Open it.
-                _.OpenStore(store, player);
+                NWScript.OpenStore(store, player);
             }
 
         }
@@ -318,7 +319,7 @@ namespace SWLOR.Game.Server.Conversation
             switch (responseID)
             {
                 case 1: // Accept Task
-                    quest.Accept(player, _.OBJECT_SELF);
+                    quest.Accept(player, NWScript.OBJECT_SELF);
                     LoadTaskDetailsPage();
                     LoadTaskListPage();
                     break;
@@ -344,7 +345,7 @@ namespace SWLOR.Game.Server.Conversation
             // All other quest types
             else if(quest.CanComplete(player))
             {
-                quest.Complete(player, _.OBJECT_SELF, null);
+                quest.Complete(player, NWScript.OBJECT_SELF, null);
                 EndConversation();
             }
             // Missing a requirement.

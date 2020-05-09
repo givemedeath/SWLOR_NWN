@@ -20,9 +20,10 @@ using SWLOR.Game.Server.Event.Player;
 using SWLOR.Game.Server.Messaging;
 using SWLOR.Game.Server.NWN;
 using SWLOR.Game.Server.NWN.Events.Creature;
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
 using BaseStructureType = SWLOR.Game.Server.Enumeration.BaseStructureType;
 using ChatChannel = SWLOR.Game.Server.NWNX.ChatChannel;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Service
 {
@@ -328,9 +329,9 @@ namespace SWLOR.Game.Server.Service
 
                     foreach (var area in areas)
                     {
-                        if (_.GetResRef(area) == parentBase.AreaResref)
+                        if (NWScript.GetResRef(area) == parentBase.AreaResref)
                         {
-                            location = _.GetName(area);
+                            location = NWScript.GetName(area);
                             hyphen = location.IndexOf(" - ");
                         }
                     }
@@ -386,8 +387,8 @@ namespace SWLOR.Game.Server.Service
             Guid structureID = new Guid(starship.GetLocalString("PC_BASE_STRUCTURE_ID"));
             var structureItems = DataService.PCBaseStructureItem.GetAllByPCBaseStructureID(structureID);
             
-            NWLocation location = (player != null ? player.Location : (NWLocation) _.Location(starship, _.Vector(1, 1, 0), 0));
-            bay = _.CreateObject(OBJECT_TYPE_PLACEABLE, "resource_bay", location);
+            NWLocation location = (player != null ? player.Location : (NWLocation) NWScript.Location(starship, NWScript.Vector(1, 1, 0), 0));
+            bay = NWScript.CreateObject(OBJECT_TYPE_PLACEABLE, "resource_bay", location);
 
             starship.SetLocalObject("STARSHIP_RESOURCE_BAY", bay.Object);
             bay.SetLocalString("PC_BASE_STRUCTURE_ID", structureID.ToString());
@@ -402,7 +403,7 @@ namespace SWLOR.Game.Server.Service
 
         private static void UpdateCargoBonus(NWArea area, NWCreature ship)
         {
-            ShipStats stats = GetShipStatsByAppearance(_.GetAppearanceType(ship));
+            ShipStats stats = GetShipStatsByAppearance(NWScript.GetAppearanceType(ship));
 
             string baseStructureID = area.GetLocalString("PC_BASE_STRUCTURE_ID");
 
@@ -417,14 +418,14 @@ namespace SWLOR.Game.Server.Service
             PCBase pcBase = DataService.PCBase.GetByID(structure.PCBaseID);
             NWPlaceable bay = GetCargoBay(area, null);
 
-            ship.SetLocalInt("WEAPONS", stats.weapons + GetCargoBonus(bay, (int)CustomItemPropertyType.StarshipWeaponsBonus));
-            ship.SetLocalInt("SHIELDS", stats.shields + GetCargoBonus(bay, (int)CustomItemPropertyType.StarshipShieldsBonus));
-            ship.SetLocalInt("STEALTH", stats.stealth + GetCargoBonus(bay, (int)CustomItemPropertyType.StarshipStealthBonus));
-            ship.SetLocalInt("SCANNING", stats.scanning + GetCargoBonus(bay, (int)CustomItemPropertyType.StarshipScanningBonus));
-            ship.SetLocalInt("SPEED", stats.speed + 25 * GetCargoBonus(bay, (int)CustomItemPropertyType.StarshipSpeedBonus));
+            ship.SetLocalInt("WEAPONS", stats.weapons + GetCargoBonus(bay, (int)ItemPropertyType.StarshipWeaponsBonus));
+            ship.SetLocalInt("SHIELDS", stats.shields + GetCargoBonus(bay, (int)ItemPropertyType.StarshipShieldsBonus));
+            ship.SetLocalInt("STEALTH", stats.stealth + GetCargoBonus(bay, (int)ItemPropertyType.StarshipStealthBonus));
+            ship.SetLocalInt("SCANNING", stats.scanning + GetCargoBonus(bay, (int)ItemPropertyType.StarshipScanningBonus));
+            ship.SetLocalInt("SPEED", stats.speed + 25 * GetCargoBonus(bay, (int)ItemPropertyType.StarshipSpeedBonus));
             ship.SetLocalInt("STRONIDIUM", pcBase.ReinforcedFuel);
             ship.SetLocalInt("HP", (int) structure.Durability);
-            ship.SetLocalFloat("RANGE", stats.range + GetCargoBonus(bay, (int)CustomItemPropertyType.StarshipRangeBonus));
+            ship.SetLocalFloat("RANGE", stats.range + GetCargoBonus(bay, (int)ItemPropertyType.StarshipRangeBonus));
         }
 
         public static int GetCargoBonus(NWPlaceable bay, int stat)
@@ -437,12 +438,12 @@ namespace SWLOR.Game.Server.Service
             foreach (var item in bay.InventoryItems)
             {
                 // Find any items with the right properties to improve starship abilities.
-                ItemProperty prop = _.GetFirstItemProperty(item);
+                ItemProperty prop = NWScript.GetFirstItemProperty(item);
 
-                while (_.GetIsItemPropertyValid(prop) == 1)
+                while (NWScript.GetIsItemPropertyValid(prop) == 1)
                 {
-                    if (_.GetItemPropertyType(prop) == stat) bonus += _.GetItemPropertyCostTableValue(prop);
-                    prop = _.GetNextItemProperty(item);
+                    if (NWScript.GetItemPropertyType(prop) == stat) bonus += NWScript.GetItemPropertyCostTableValue(prop);
+                    prop = NWScript.GetNextItemProperty(item);
                 }
             }
 
@@ -560,9 +561,9 @@ namespace SWLOR.Game.Server.Service
                 // the response text to the GUID).
                 int Count = 1;
 
-                if (_.GetName(area).StartsWith(planet))
+                if (NWScript.GetName(area).StartsWith(planet))
                 {
-                    LoggingService.Trace(TraceComponent.Space, "Checking area " + _.GetName(area) + " for landing spots.");
+                    LoggingService.Trace(TraceComponent.Space, "Checking area " + NWScript.GetName(area) + " for landing spots.");
 
                     // This area is on our planet.  
                     if (!area.Data.ContainsKey("BASE_SERVICE_STRUCTURES"))
@@ -602,7 +603,7 @@ namespace SWLOR.Game.Server.Service
 
                                                 // We have permission to dock in this base.  Moreover, we have found a dock 
                                                 // which is not occupied.  (Possibly several!).  Add each dock to our list.
-                                                landingSpots.Add("Dock " + Count.ToString() + " in " + _.GetName(area) + " (" + PlayerService.GetPlayerEntity(@base.PlayerID).CharacterName + ")", structure.ID);
+                                                landingSpots.Add("Dock " + Count.ToString() + " in " + NWScript.GetName(area) + " (" + PlayerService.GetPlayerEntity(@base.PlayerID).CharacterName + ")", structure.ID);
                                                 Count++;
                                             }
                                         }
@@ -630,8 +631,8 @@ namespace SWLOR.Game.Server.Service
 
             rank += effectiveStats.Piloting;
 
-            if (_.d100() <= (100 * rank) / (rank + DC) ||
-                (reRollIfFailed && _.d100() <= (100 * rank) / (rank + DC)))
+            if (NWScript.d100() <= (100 * rank) / (rank + DC) ||
+                (reRollIfFailed && NWScript.d100() <= (100 * rank) / (rank + DC)))
             {
                 // Success!
                 SkillService.GiveSkillXP(player, SkillType.Piloting, (int)xp);
@@ -671,7 +672,7 @@ namespace SWLOR.Game.Server.Service
             {
                 string planet = GetPlanetFromLocation(shipBase.ShipLocation);
                 // Planet names may have spaces in them - so remove any spaces before looking for the tag.
-                NWObject waypoint = _.GetObjectByTag(Regex.Replace(planet, @"\s+", "") + "_Orbit");
+                NWObject waypoint = NWScript.GetObjectByTag(Regex.Replace(planet, @"\s+", "") + "_Orbit");
                 LoggingService.Trace(TraceComponent.Space, "Found space waypoint " + waypoint.Name + " in " + waypoint.Area.Name);
 
                 if (!waypoint.IsValid)
@@ -684,7 +685,7 @@ namespace SWLOR.Game.Server.Service
                 location = waypoint.Location;
             }
 
-            NWCreature shipCreature = _.CreateObject(_.OBJECT_TYPE_CREATURE, "starship" + shipBase.BuildingStyleID.ToString(), location, 0, shipID);
+            NWCreature shipCreature = NWScript.CreateObject(ObjectType.Creature, "starship" + shipBase.BuildingStyleID.ToString(), location, 0, shipID);
 
             shipCreature.SetLocalObject("AREA", ship);
             ship.SetLocalObject("CREATURE", shipCreature);
@@ -693,7 +694,7 @@ namespace SWLOR.Game.Server.Service
             LoggingService.Trace(TraceComponent.Space, "Created ship " + shipCreature.Name + " in area " + shipCreature.Area.Name);
 
             // Once the ship has spawned (and had its base stats set), adjust them for any mods we have on board.
-            _.AssignCommand(shipCreature, () => { UpdateCargoBonus(ship, shipCreature); });
+            NWScript.AssignCommand(shipCreature, () => { UpdateCargoBonus(ship, shipCreature); });
         }
 
         public static void RemoveShipInSpace(NWArea ship)
@@ -720,9 +721,9 @@ namespace SWLOR.Game.Server.Service
             string planet = GetPlanetFromLocation(shipBase.ShipLocation);
 
             NWCreature shipCreature = ship.GetLocalObject("CREATURE");
-            NWObject waypoint = _.GetObjectByTag(Regex.Replace(planet, @"\s+", "") + "_Orbit");
+            NWObject waypoint = NWScript.GetObjectByTag(Regex.Replace(planet, @"\s+", "") + "_Orbit");
 
-            if (!shipCreature.IsValid || !waypoint.IsValid || _.GetDistanceBetween(shipCreature, waypoint) < 10.0f)
+            if (!shipCreature.IsValid || !waypoint.IsValid || NWScript.GetDistanceBetween(shipCreature, waypoint) < 10.0f)
             {
                 return true;
             }
@@ -759,40 +760,40 @@ namespace SWLOR.Game.Server.Service
             int shipAppearance = GetPCShipAppearanceByStyleID((int) shipBase.BuildingStyleID);
 
             int shipSpeed = GetShipStatsByAppearance(shipAppearance).speed + 
-                            25 * GetCargoBonus(GetCargoBay(ship, null), (int)CustomItemPropertyType.StarshipSpeedBonus);
+                            25 * GetCargoBonus(GetCargoBay(ship, null), (int)ItemPropertyType.StarshipSpeedBonus);
 
-            NWPlaceable chair = _.GetNearestObjectByTag("pilot_chair", player);
+            NWPlaceable chair = NWScript.GetNearestObjectByTag("pilot_chair", player);
             ClonePCAndSit(player, chair);
 
             // Find the dummy ship - swap the PC and the dummy ship.
             // Note that the PC is currently invisible thanks to the clone method.
-            player.Chest.SetLocalInt("APPEARANCE", _.GetAppearanceType(player));
+            player.Chest.SetLocalInt("APPEARANCE", NWScript.GetAppearanceType(player));
             player.SetLocalInt("IS_SHIP", 1);
             player.SetLocalObject("AREA", ship);
-            _.SetCreatureAppearanceType(player, shipAppearance);
+            NWScript.SetCreatureAppearanceType(player, shipAppearance);
 
-            _.SetObjectVisualTransform(player, OBJECT_VISUAL_TRANSFORM_SCALE, GetShipStatsByAppearance(shipAppearance).scale);
+            NWScript.SetObjectVisualTransform(player, OBJECT_VISUAL_TRANSFORM_SCALE, GetShipStatsByAppearance(shipAppearance).scale);
 
             // Make immune to physical damage.
-            _.ApplyEffectToObject(DURATION_TYPE_PERMANENT, _.EffectDamageImmunityIncrease(DAMAGE_TYPE_BLUDGEONING, 100), player);
+            NWScript.ApplyEffectToObject(DURATION_TYPE_PERMANENT, NWScript.EffectDamageImmunityIncrease(DAMAGE_TYPE_BLUDGEONING, 100), player);
 
-            player.AssignCommand(() => { _.ActionUnequipItem(player.LeftHand); });
-            player.AssignCommand(() => { _.ActionUnequipItem(player.RightHand); });
+            player.AssignCommand(() => { NWScript.ActionUnequipItem(player.LeftHand); });
+            player.AssignCommand(() => { NWScript.ActionUnequipItem(player.RightHand); });
 
             // Set the player's movement speed, improved by their skill and the Racer perk. 
             shipSpeed += SkillService.GetPCSkillRank(player, SkillType.Piloting) + PlayerStatService.GetPlayerItemEffectiveStats(player).Piloting +
                             10 * PerkService.GetCreaturePerkLevel(player, PerkType.Racer);
             if (shipSpeed > 100)
             {
-                _.ApplyEffectToObject(DURATION_TYPE_PERMANENT, _.EffectMovementSpeedIncrease(shipSpeed - 100), player);
+                NWScript.ApplyEffectToObject(DURATION_TYPE_PERMANENT, NWScript.EffectMovementSpeedIncrease(shipSpeed - 100), player);
             }
             else
             {
-                _.ApplyEffectToObject(DURATION_TYPE_PERMANENT, _.EffectMovementSpeedDecrease(100 - shipSpeed), player);
+                NWScript.ApplyEffectToObject(DURATION_TYPE_PERMANENT, NWScript.EffectMovementSpeedDecrease(100 - shipSpeed), player);
             }
             
             // Clean up the ship model.
-            player.AssignCommand(() => { _.ActionJumpToLocation(shipCreature.Location); });
+            player.AssignCommand(() => { NWScript.ActionJumpToLocation(shipCreature.Location); });
             player.SetLocalInt("MAX_HP", shipCreature.MaxHP);
             RemoveShipInSpace(ship);
             ship.SetLocalObject("CREATURE", player);
@@ -820,20 +821,20 @@ namespace SWLOR.Game.Server.Service
             DataService.SubmitDataChange(entity, DatabaseActionType.Update);
 
             // Apply ghost effects so we can stand on each other's heads, and create the ship again.
-            Effect eGhost = _.EffectCutsceneGhost();
-            _.ApplyEffectToObject(DURATION_TYPE_TEMPORARY, eGhost, player, 3.5f);
-            _.ApplyEffectToObject(DURATION_TYPE_TEMPORARY, eGhost, copy, 3.5f);
+            Effect eGhost = NWScript.EffectCutsceneGhost();
+            NWScript.ApplyEffectToObject(DURATION_TYPE_TEMPORARY, eGhost, player, 3.5f);
+            NWScript.ApplyEffectToObject(DURATION_TYPE_TEMPORARY, eGhost, copy, 3.5f);
             copy.Area.DeleteLocalObject("CREATURE");
             CreateShipInSpace(copy.Area, player.Location);
-            player.AssignCommand(() => { _.ClearAllActions(); _.ActionJumpToLocation(copy.Location); });
+            player.AssignCommand(() => { NWScript.ClearAllActions(); NWScript.ActionJumpToLocation(copy.Location); });
 
             // Make ourselves invisible for 2.5s and destroy the copy at the same time.  
-            _.ApplyEffectToObject(DURATION_TYPE_TEMPORARY, _.EffectVisualEffect(VFX_DUR_CUTSCENE_INVISIBILITY), player, 2.5f);
+            NWScript.ApplyEffectToObject(DURATION_TYPE_TEMPORARY, NWScript.EffectVisualEffect(VFX_DUR_CUTSCENE_INVISIBILITY), player, 2.5f);
             copy.Destroy(2.5f);
 
             // Set our appearance back to normal (now that we're invisible). 
-            _.SetCreatureAppearanceType(player, player.Chest.GetLocalInt("APPEARANCE"));
-            _.SetObjectVisualTransform(player, OBJECT_VISUAL_TRANSFORM_SCALE, 1.0f);
+            NWScript.SetCreatureAppearanceType(player, player.Chest.GetLocalInt("APPEARANCE"));
+            NWScript.SetObjectVisualTransform(player, OBJECT_VISUAL_TRANSFORM_SCALE, 1.0f);
             player.DeleteLocalInt("IS_SHIP");
             player.DeleteLocalObject("AREA");
             player.DeleteLocalObject("COPY");
@@ -841,7 +842,7 @@ namespace SWLOR.Game.Server.Service
             player.RemoveEffect(EFFECT_TYPE_MOVEMENT_SPEED_DECREASE);
             player.RemoveEffect(EFFECT_TYPE_DAMAGE_IMMUNITY_INCREASE);
 
-            _.ExportSingleCharacter(player);
+            NWScript.ExportSingleCharacter(player);
         }
 
         public static void DoCrewGuns(NWPlayer player, NWArea ship)
@@ -852,28 +853,28 @@ namespace SWLOR.Game.Server.Service
                 return; 
             }
 
-            NWPlaceable chair = _.GetNearestObjectByTag("gunner_chair", player);
+            NWPlaceable chair = NWScript.GetNearestObjectByTag("gunner_chair", player);
             ClonePCAndSit(player, chair);
 
             NWCreature shipCreature = ship.GetLocalObject("CREATURE");
-            player.Chest.SetLocalInt("APPEARANCE", _.GetAppearanceType(player));
-            _.SetCreatureAppearanceType(player, APPEARANCE_TYPE_INVISIBLE_HUMAN_MALE);
+            player.Chest.SetLocalInt("APPEARANCE", NWScript.GetAppearanceType(player));
+            NWScript.SetCreatureAppearanceType(player, APPEARANCE_TYPE_INVISIBLE_HUMAN_MALE);
             player.SetLocalInt("IS_GUNNER", 1);
 
             // Apply effects so we can't be seen or hit.
-            player.AssignCommand(() => { _.ActionUnequipItem(player.LeftHand); });
-            player.AssignCommand(() => { _.ActionUnequipItem(player.RightHand); });
-            _.ApplyEffectToObject(DURATION_TYPE_PERMANENT, _.EffectCutsceneGhost(), player);
-            _.ApplyEffectToObject(DURATION_TYPE_PERMANENT, _.EffectInvisibility(INVISIBILITY_TYPE_NORMAL), player);
-            _.ApplyEffectToObject(DURATION_TYPE_PERMANENT, _.EffectMovementSpeedIncrease(200), player);
+            player.AssignCommand(() => { NWScript.ActionUnequipItem(player.LeftHand); });
+            player.AssignCommand(() => { NWScript.ActionUnequipItem(player.RightHand); });
+            NWScript.ApplyEffectToObject(DURATION_TYPE_PERMANENT, NWScript.EffectCutsceneGhost(), player);
+            NWScript.ApplyEffectToObject(DURATION_TYPE_PERMANENT, NWScript.EffectInvisibility(INVISIBILITY_TYPE_NORMAL), player);
+            NWScript.ApplyEffectToObject(DURATION_TYPE_PERMANENT, NWScript.EffectMovementSpeedIncrease(200), player);
 
             ship.SetLocalObject("GUNNER", player);
 
             player.AssignCommand(() => 
             {
-                _.ActionJumpToLocation(shipCreature.Location);
-                _.ActionForceFollowObject(shipCreature);
-                _.SetCommandable(0, player);
+                NWScript.ActionJumpToLocation(shipCreature.Location);
+                NWScript.ActionForceFollowObject(shipCreature);
+                NWScript.SetCommandable(0, player);
             });
 
             player.SendMessage("Type /exit to exit gunner mode.");
@@ -881,21 +882,21 @@ namespace SWLOR.Game.Server.Service
 
         public static void DoStopCrewGuns(NWPlayer player)
         {
-            _.SetCommandable(1, player);
+            NWScript.SetCommandable(1, player);
 
             NWCreature copy = player.GetLocalObject("COPY");
 
             // Apply ghost effect so we can stand on each other's heads.
-            _.ApplyEffectToObject(DURATION_TYPE_TEMPORARY, _.EffectCutsceneGhost(), copy, 3.5f);
-            player.AssignCommand(() => { _.ClearAllActions();  _.ActionJumpToLocation(copy.Location); });
+            NWScript.ApplyEffectToObject(DURATION_TYPE_TEMPORARY, NWScript.EffectCutsceneGhost(), copy, 3.5f);
+            player.AssignCommand(() => { NWScript.ClearAllActions();  NWScript.ActionJumpToLocation(copy.Location); });
 
             // Return our appearance to normal.
-            _.SetCreatureAppearanceType(player, player.Chest.GetLocalInt("APPEARANCE"));
+            NWScript.SetCreatureAppearanceType(player, player.Chest.GetLocalInt("APPEARANCE"));
             player.DeleteLocalInt("IS_GUNNER");
             player.DeleteLocalObject("COPY");
             player.RemoveEffect(EFFECT_TYPE_MOVEMENT_SPEED_INCREASE);
 
-            _.DelayCommand(2.5f, () => 
+            NWScript.DelayCommand(2.5f, () => 
             {
                 player.RemoveEffect(EFFECT_TYPE_CUTSCENEGHOST);
                 player.RemoveEffect(EFFECT_TYPE_INVISIBILITY);
@@ -923,39 +924,39 @@ namespace SWLOR.Game.Server.Service
         private static void ClonePCAndSit(NWPlayer player, NWPlaceable chair)
         {
             // Create a copy of the PC and link the two. 
-            NWObject copy = _.CopyObject(player, player.Location, _.OBJECT_INVALID, "spaceship_copy");
-            _.ChangeToStandardFaction(copy, STANDARD_FACTION_DEFENDER);
+            NWObject copy = NWScript.CopyObject(player, player.Location, NWScript.OBJECT_INVALID, "spaceship_copy");
+            NWScript.ChangeToStandardFaction(copy, STANDARD_FACTION_DEFENDER);
 
-            Effect eInv = _.EffectVisualEffect(VFX_DUR_CUTSCENE_INVISIBILITY);
-            Effect eGhost = _.EffectCutsceneGhost();
+            Effect eInv = NWScript.EffectVisualEffect(VFX_DUR_CUTSCENE_INVISIBILITY);
+            Effect eGhost = NWScript.EffectCutsceneGhost();
 
             player.SetLocalObject("COPY", copy);
             copy.SetLocalObject("OWNER", player);
 
             // Make the player invisible for a short period of time, and allow the two to move through each other. 
-            _.ApplyEffectToObject(DURATION_TYPE_PERMANENT, eGhost, copy);
-            _.ApplyEffectToObject(DURATION_TYPE_TEMPORARY, eInv, player, 2.5f);
-            _.ApplyEffectToObject(DURATION_TYPE_TEMPORARY, eGhost, player, 3.5f);
+            NWScript.ApplyEffectToObject(DURATION_TYPE_PERMANENT, eGhost, copy);
+            NWScript.ApplyEffectToObject(DURATION_TYPE_TEMPORARY, eInv, player, 2.5f);
+            NWScript.ApplyEffectToObject(DURATION_TYPE_TEMPORARY, eGhost, player, 3.5f);
 
             // Clear the copy's inventory and gold. (This won't clear equipped items). 
-            _.TakeGoldFromCreature(_.GetGold(copy), copy, 1);
-            NWItem item = _.GetFirstItemInInventory(copy);
+            NWScript.TakeGoldFromCreature(NWScript.GetGold(copy), copy, 1);
+            NWItem item = NWScript.GetFirstItemInInventory(copy);
             while (item.IsValid)
             {
-                _.SetDroppableFlag(item, FALSE);
+                NWScript.SetDroppableFlag(item, FALSE);
                 item.Destroy();
-                item = _.GetNextItemInInventory(copy);
+                item = NWScript.GetNextItemInInventory(copy);
             }
 
             // Make sure the clone isn't doing anything silly (like walking waypoints).
             // Then sit in the chair. 
-            _.AssignCommand(copy, () => { _.ClearAllActions(); });
-            _.DelayCommand(1.0f, ()=> { _.AssignCommand(copy, () => { _.ActionSit(chair); } ); });
+            NWScript.AssignCommand(copy, () => { NWScript.ClearAllActions(); });
+            NWScript.DelayCommand(1.0f, ()=> { NWScript.AssignCommand(copy, () => { NWScript.ActionSit(chair); } ); });
         }
 
         private static void OnModuleLeave()
         {
-            NWPlayer player = _.GetExitingObject();
+            NWPlayer player = NWScript.GetExitingObject();
             // If a player logs out in space, clean things up. 
             if (player.GetLocalInt("IS_SHIP") == 1)
             {
@@ -971,7 +972,7 @@ namespace SWLOR.Game.Server.Service
         private static void OnModuleNWNXChat()
         {
             // Is the speaker a pilot or gunner?
-            NWPlayer speaker = _.OBJECT_SELF;
+            NWPlayer speaker = NWScript.OBJECT_SELF;
             if (!speaker.IsPlayer) return;
 
             // Ignore Tells, DM messages etc..
@@ -1002,7 +1003,7 @@ namespace SWLOR.Game.Server.Service
                 }
                 else
                 {
-                    _.AssignCommand(speaker.GetLocalObject("COPY"), () => { _.SpeakString(message); });
+                    NWScript.AssignCommand(speaker.GetLocalObject("COPY"), () => { NWScript.SpeakString(message); });
                 }
 
                 return;
@@ -1010,13 +1011,13 @@ namespace SWLOR.Game.Server.Service
 
             // Can a clone of a pilot or gunner hear the speaker?
             int nNth = 1;
-            NWCreature copy = _.GetNearestObjectByTag("spaceship_copy", speaker, nNth);
+            NWCreature copy = NWScript.GetNearestObjectByTag("spaceship_copy", speaker, nNth);
 
             while (copy.IsValid)
             {
                 ((NWPlayer)copy.GetLocalObject("OWNER")).SendMessage(speaker.Name + ": " + message);
                 nNth++;
-                copy = _.GetNearestObjectByTag("spaceship_copy", speaker, nNth);
+                copy = NWScript.GetNearestObjectByTag("spaceship_copy", speaker, nNth);
             }
         }
 
@@ -1026,8 +1027,8 @@ namespace SWLOR.Game.Server.Service
             {
                 if (creature.IsPC || creature.IsDM)
                 {
-                    _.FloatingTextStringOnCreature(message, creature);
-                    _.ApplyEffectToObject(DURATION_TYPE_INSTANT, _.EffectVisualEffect(VFX_FNF_SCREEN_BUMP), creature);
+                    NWScript.FloatingTextStringOnCreature(message, creature);
+                    NWScript.ApplyEffectToObject(DURATION_TYPE_INSTANT, NWScript.EffectVisualEffect(VFX_FNF_SCREEN_BUMP), creature);
                     // TODO - play sound.
                 }
                 else if (creature.Tag == "spaceship_copy")
@@ -1075,7 +1076,7 @@ namespace SWLOR.Game.Server.Service
                 totalChance += encounter.Chance;
             }
 
-            int random = _.Random(totalChance - 1);
+            int random = NWScript.Random(totalChance - 1);
 
             foreach (var encounter in encounters)
             {
@@ -1085,8 +1086,8 @@ namespace SWLOR.Game.Server.Service
                     if (encounter.TypeID == 1 || encounter.TypeID == 4)
                     {
                         // For now, do pirates (4) instead of customs (1).
-                        string resref = _.d2() == 1 ? "pirate_fighter_1" : "pirate_fighter_2";
-                        NWCreature pirate = _.CreateObject(OBJECT_TYPE_CREATURE, resref, trigger.Location);
+                        string resref = NWScript.d2() == 1 ? "pirate_fighter_1" : "pirate_fighter_2";
+                        NWCreature pirate = NWScript.CreateObject(OBJECT_TYPE_CREATURE, resref, trigger.Location);
                         pirate.SetLocalInt("DC", encounter.Difficulty);
                         pirate.SetLocalInt("LOOT_TABLE_ID", encounter.LootTable);
                         // TODO - play proximity alert sound.
@@ -1101,7 +1102,7 @@ namespace SWLOR.Game.Server.Service
                         else
                         {
                             player.SendMessage("The asteroid hits your ship!");
-                            int damage = _.d6(3);
+                            int damage = NWScript.d6(3);
 
                             // Apply the damage.
                             int targetHP = player.GetLocalInt("HP") - damage;
@@ -1110,8 +1111,8 @@ namespace SWLOR.Game.Server.Service
                             if (targetHP <= 0)
                             {
                                 // Boom!
-                                _.ApplyEffectAtLocation(DURATION_TYPE_TEMPORARY, _.EffectVisualEffect(VFX_FNF_IMPLOSION), player.Location, 2.0f);
-                                _.ApplyEffectToObject(DURATION_TYPE_INSTANT, _.EffectDeath(), player);
+                                NWScript.ApplyEffectAtLocation(DURATION_TYPE_TEMPORARY, NWScript.EffectVisualEffect(VFX_FNF_IMPLOSION), player.Location, 2.0f);
+                                NWScript.ApplyEffectToObject(DURATION_TYPE_INSTANT, NWScript.EffectDeath(), player);
                             }
                             else
                             {
@@ -1143,8 +1144,8 @@ namespace SWLOR.Game.Server.Service
 
                             var itemDetails = LootService.PickRandomItemFromLootTable(encounter.LootTable);
 
-                            var tempStorage = _.GetObjectByTag("TEMP_ITEM_STORAGE");
-                            NWItem item = _.CreateItemOnObject(itemDetails.Resref, tempStorage, itemDetails.Quantity);
+                            var tempStorage = NWScript.GetObjectByTag("TEMP_ITEM_STORAGE");
+                            NWItem item = NWScript.CreateItemOnObject(itemDetails.Resref, tempStorage, itemDetails.Quantity);
 
                             // Guard against invalid resrefs and missing items.
                             if (!item.IsValid)
@@ -1260,7 +1261,7 @@ namespace SWLOR.Game.Server.Service
             float fAngle = _.VectorToAngle(vDiff) - _.GetFacing(attacker);
             float fTargetDistance = _.GetDistanceBetween(attacker, target);*/
 
-            int check = _.d100();
+            int check = NWScript.d100();
             LoggingService.Trace(TraceComponent.Space, "Check result " + check);
 
             if (check < (100 * attackerPiloting) / (attackerPiloting + defenderPiloting))
@@ -1270,8 +1271,8 @@ namespace SWLOR.Game.Server.Service
                 if (target.IsPC) SkillService.GiveSkillXP(new NWPlayer(target), SkillType.Piloting, (int)SkillService.CalculateRegisteredSkillLevelAdjustedXP(25, attackerPiloting, defenderPiloting));
                 if (gunner) SkillService.GiveSkillXP(pcGunner, SkillType.Piloting, (int)SkillService.CalculateRegisteredSkillLevelAdjustedXP(100, defenderPiloting, attackerPiloting));
 
-                Effect eBeam = _.EffectBeam(447, attacker, BODY_NODE_CHEST);
-                _.ApplyEffectToObject(DURATION_TYPE_TEMPORARY, eBeam, target, 0.5f);
+                Effect eBeam = NWScript.EffectBeam(447, attacker, BODY_NODE_CHEST);
+                NWScript.ApplyEffectToObject(DURATION_TYPE_TEMPORARY, eBeam, target, 0.5f);
 
                 // Reduce the attacker's Stronidium by half their weapon strength.
                 attackStron -= attackWeapons/2;
@@ -1296,8 +1297,8 @@ namespace SWLOR.Game.Server.Service
                 if (targetHP <= 0)
                 {
                     // Boom!
-                    _.ApplyEffectAtLocation(DURATION_TYPE_TEMPORARY, _.EffectVisualEffect(VFX_FNF_IMPLOSION), target.Location, 2.0f);
-                    _.ApplyEffectToObject(DURATION_TYPE_INSTANT, _.EffectDeath(), target);
+                    NWScript.ApplyEffectAtLocation(DURATION_TYPE_TEMPORARY, NWScript.EffectVisualEffect(VFX_FNF_IMPLOSION), target.Location, 2.0f);
+                    NWScript.ApplyEffectToObject(DURATION_TYPE_INSTANT, NWScript.EffectDeath(), target);
                 }
                 else
                 {
@@ -1317,8 +1318,8 @@ namespace SWLOR.Game.Server.Service
                 if (gunner) SkillService.GiveSkillXP(pcGunner, SkillType.Piloting, (int)SkillService.CalculateRegisteredSkillLevelAdjustedXP(25, defenderPiloting, attackerPiloting));
 
                 // Get a miss location near the target.
-                Effect eBeam = _.EffectBeam(447, attacker, BODY_NODE_CHEST, 1);
-                _.ApplyEffectToObject(DURATION_TYPE_TEMPORARY, eBeam, target, 0.5f);
+                Effect eBeam = NWScript.EffectBeam(447, attacker, BODY_NODE_CHEST, 1);
+                NWScript.ApplyEffectToObject(DURATION_TYPE_TEMPORARY, eBeam, target, 0.5f);
 
                 /* See amove comment about making a custom spell that uses this.
                 Vector vTarget = _.GetPosition(target);
@@ -1427,13 +1428,13 @@ namespace SWLOR.Game.Server.Service
 
         private static void OnCreatureSpawn()
         {
-            NWCreature creature = _.OBJECT_SELF;
+            NWCreature creature = NWScript.OBJECT_SELF;
 
             // Only do things for ships. 
-            ShipStats stats = GetShipStatsByAppearance(_.GetAppearanceType(creature));
+            ShipStats stats = GetShipStatsByAppearance(NWScript.GetAppearanceType(creature));
             if (stats.scale == default(float)) return;
 
-            _.SetObjectVisualTransform(creature, OBJECT_VISUAL_TRANSFORM_SCALE, stats.scale);
+            NWScript.SetObjectVisualTransform(creature, OBJECT_VISUAL_TRANSFORM_SCALE, stats.scale);
             if (String.IsNullOrWhiteSpace(creature.GetLocalString("BEHAVIOUR"))) creature.SetLocalString("BEHAVIOUR", "StarshipBehaviour");
 
             // Save off our stats.
@@ -1448,19 +1449,19 @@ namespace SWLOR.Game.Server.Service
             creature.SetLocalFloat("RANGE", stats.range);
 
             // Make immune to physical damage.
-            _.ApplyEffectToObject(DURATION_TYPE_PERMANENT, _.EffectDamageImmunityIncrease(DAMAGE_TYPE_BLUDGEONING, 100), creature);
+            NWScript.ApplyEffectToObject(DURATION_TYPE_PERMANENT, NWScript.EffectDamageImmunityIncrease(DAMAGE_TYPE_BLUDGEONING, 100), creature);
         }
 
         private static void ShootValidTarget(NWCreature creature)
         {
-            ShipStats stats = GetShipStatsByAppearance(_.GetAppearanceType(creature));
+            ShipStats stats = GetShipStatsByAppearance(NWScript.GetAppearanceType(creature));
 
             // Fire weapons.
             bool hasGunner = false;
             int shape = SHAPE_SPELLCYLINDER;
             float range = stats.range;
 
-            Location targetLocation = _.Location(
+            Location targetLocation = NWScript.Location(
                 creature.Area.Object,
                 BiowarePosition.GetChangedPosition(creature.Position, range, creature.Facing),
                 creature.Facing + 180.0f);
@@ -1479,14 +1480,14 @@ namespace SWLOR.Game.Server.Service
                 }
             }
 
-            NWCreature target = _.GetFirstObjectInShape(shape, range, targetLocation, TRUE, OBJECT_TYPE_CREATURE, creature.Position);
+            NWCreature target = NWScript.GetFirstObjectInShape(shape, range, targetLocation, TRUE, OBJECT_TYPE_CREATURE, creature.Position);
             while (target.IsValid)
             {
 
-                if (_.GetIsEnemy(target, creature) == TRUE &&
+                if (NWScript.GetIsEnemy(target, creature) == TRUE &&
                     !target.IsDead &&
                     target.GetLocalInt("IS_GUNNER") == 0 &&
-                    _.GetDistanceBetween(creature, target) <= range &&
+                    NWScript.GetDistanceBetween(creature, target) <= range &&
                     !target.HasAnyEffect(EFFECT_TYPE_INVISIBILITY, EFFECT_TYPE_SANCTUARY))
                 {
                     LoggingService.Trace(TraceComponent.Space, "Found valid target: " + target.Name);
@@ -1494,17 +1495,17 @@ namespace SWLOR.Game.Server.Service
                     break;
                 }
 
-                target = _.GetNextObjectInShape(shape, range, targetLocation, TRUE, OBJECT_TYPE_CREATURE, creature.Position);
+                target = NWScript.GetNextObjectInShape(shape, range, targetLocation, TRUE, OBJECT_TYPE_CREATURE, creature.Position);
             }
         }
 
         private static void OnCreatureHeartbeat()
         {
-            NWCreature creature = _.OBJECT_SELF;
+            NWCreature creature = NWScript.OBJECT_SELF;
 
             // Only do things for armed ships. 
             if (creature.IsDead) return;
-            ShipStats stats = GetShipStatsByAppearance(_.GetAppearanceType(creature));
+            ShipStats stats = GetShipStatsByAppearance(NWScript.GetAppearanceType(creature));
             if (stats.scale == default(float)) return;
             if (creature.GetLocalInt("WEAPONS") == 0) return;
 
@@ -1513,20 +1514,20 @@ namespace SWLOR.Game.Server.Service
 
             // Shoot twice per round.
             ShootValidTarget(creature);            
-            _.DelayCommand(3.0f, ()=>{ ShootValidTarget(creature); });
+            NWScript.DelayCommand(3.0f, ()=>{ ShootValidTarget(creature); });
         }
 
         private static void OnModuleEquipItem()
         {
-            NWPlayer equipper = _.GetPCItemLastEquippedBy();
-            if (equipper.GetLocalInt("IS_CUSTOMIZING_ITEM") == _.TRUE) return; // Don't run heavy code when customizing equipment.
+            NWPlayer equipper = NWScript.GetPCItemLastEquippedBy();
+            if (equipper.GetLocalInt("IS_CUSTOMIZING_ITEM") == NWScript.TRUE) return; // Don't run heavy code when customizing equipment.
 
             if (equipper.GetLocalInt("IS_SHIP") > 0)
             {
-                NWItem item = _.GetPCItemLastEquipped();
+                NWItem item = NWScript.GetPCItemLastEquipped();
 
                 // Using ActionUnequipItem doesn't seem to work.  So copy and destroy.
-                _.CopyItem(item, equipper, 1);
+                NWScript.CopyItem(item, equipper, 1);
                 item.Destroy();
                 equipper.SendMessage("You cannot equip items while flying a ship.");
             }
@@ -1534,51 +1535,51 @@ namespace SWLOR.Game.Server.Service
 
         public static void OnPhysicalAttacked(NWCreature creature, NWCreature attacker)
         {
-            ShipStats stats = GetShipStatsByAppearance(_.GetAppearanceType(creature));
+            ShipStats stats = GetShipStatsByAppearance(NWScript.GetAppearanceType(creature));
 
             if (stats.scale == default(float)) return;
 
-            if (_.GetDistanceBetween(creature, attacker) < stats.range)
+            if (NWScript.GetDistanceBetween(creature, attacker) < stats.range)
             {
-                _.AssignCommand(creature, () => { _.SetFacingPoint(attacker.Position); });
+                NWScript.AssignCommand(creature, () => { NWScript.SetFacingPoint(attacker.Position); });
             }
             else
             {
-                _.AssignCommand(creature, () => { _.ActionMoveToObject(attacker); });
+                NWScript.AssignCommand(creature, () => { NWScript.ActionMoveToObject(attacker); });
             }
         }
 
         public static void OnPerception(NWCreature creature, NWCreature perceived)
         {
-            ShipStats stats = GetShipStatsByAppearance(_.GetAppearanceType(creature));
+            ShipStats stats = GetShipStatsByAppearance(NWScript.GetAppearanceType(creature));
 
             if (stats.scale == default(float)) return;
 
-            if (_.GetIsEnemy(perceived, creature) == 0) return;
+            if (NWScript.GetIsEnemy(perceived, creature) == 0) return;
             if (perceived.GetLocalInt("IS_GUNNER") == 1) return;
 
             // Would be ideal to respect turning circles and only turn the ship a bit at a time. Less urgent now since 
             // the heartbeat code handles turning. 
-            if (_.GetDistanceBetween(creature, perceived) < stats.range)
+            if (NWScript.GetDistanceBetween(creature, perceived) < stats.range)
             {
-                _.AssignCommand(creature, () => { _.ClearAllActions(); _.SetFacingPoint(perceived.Position); });
+                NWScript.AssignCommand(creature, () => { NWScript.ClearAllActions(); NWScript.SetFacingPoint(perceived.Position); });
 
                 // Fire guns. One definite shot...
                 DoSpaceAttack(creature, perceived, creature.GetLocalInt("HAS_GUNNER") == 1);
 
                 // ... and a second shot later in the round if there is still a valid target.  
-                _.DelayCommand(3.0f, () => { ShootValidTarget(creature); });
+                NWScript.DelayCommand(3.0f, () => { ShootValidTarget(creature); });
             }
             else
             {
-                _.AssignCommand(creature, () => { _.ActionMoveToObject(perceived, 1, stats.range - 2); });
+                NWScript.AssignCommand(creature, () => { NWScript.ActionMoveToObject(perceived, 1, stats.range - 2); });
             }
         }
 
         private static bool AdjustFacingAndAttack(NWCreature creature)
         {
             // If we have an enemy in front of us, process them. 
-            Location targetLocation = _.Location(
+            Location targetLocation = NWScript.Location(
                 creature.Area.Object,
                 BiowarePosition.GetChangedPosition(creature.Position, 25.0f, creature.Facing),
                 creature.Facing + 180.0f);
@@ -1592,22 +1593,22 @@ namespace SWLOR.Game.Server.Service
                 targetLocation = creature.Location;
             }
 
-            NWCreature enemy = _.GetFirstObjectInShape(shape, 25.0f, targetLocation, 1, OBJECT_TYPE_CREATURE);
+            NWCreature enemy = NWScript.GetFirstObjectInShape(shape, 25.0f, targetLocation, 1, OBJECT_TYPE_CREATURE);
 
             while (enemy.IsValid)
             {
-                if (_.GetIsEnemy(enemy, creature) == 1)
+                if (NWScript.GetIsEnemy(enemy, creature) == 1)
                 {
                     OnPerception(creature, enemy);
                     return true;
                 }
 
-                enemy = _.GetNextObjectInShape(shape, 25.0f, targetLocation, 1, OBJECT_TYPE_CREATURE);
+                enemy = NWScript.GetNextObjectInShape(shape, 25.0f, targetLocation, 1, OBJECT_TYPE_CREATURE);
             }
 
-            enemy = _.GetNearestCreature(CREATURE_TYPE_REPUTATION, REPUTATION_TYPE_ENEMY, creature);
+            enemy = NWScript.GetNearestCreature(CREATURE_TYPE_REPUTATION, REPUTATION_TYPE_ENEMY, creature);
 
-            if (enemy.IsValid && _.GetDistanceBetween(enemy, creature) < 25.0f)
+            if (enemy.IsValid && NWScript.GetDistanceBetween(enemy, creature) < 25.0f)
             {
                 // We have an enemy but they are not in our front arc.  
                 float facing = BiowarePosition.GetRelativeFacing(creature, enemy);
@@ -1630,12 +1631,12 @@ namespace SWLOR.Game.Server.Service
                 }
 
                 // Move forward a little way in our new facing.  
-                targetLocation = _.Location(
+                targetLocation = NWScript.Location(
                   creature.Area.Object,
                   BiowarePosition.GetChangedPosition(creature.Position, 5.0f, myFacing),
                   myFacing + 180.0f);
 
-                _.AssignCommand(creature, () => { _.ActionMoveToLocation(targetLocation, 1); });
+                NWScript.AssignCommand(creature, () => { NWScript.ActionMoveToLocation(targetLocation, 1); });
             }
 
             return false;
@@ -1646,20 +1647,20 @@ namespace SWLOR.Game.Server.Service
         // use different AI. 
         public static void OnHeartbeat(NWCreature creature)
         {
-            ShipStats stats = GetShipStatsByAppearance(_.GetAppearanceType(creature));
+            ShipStats stats = GetShipStatsByAppearance(NWScript.GetAppearanceType(creature));
             if (stats.scale == default(float)) return;
 
             // Turn to face the nearest enemy if they are within range.
             if (AdjustFacingAndAttack(creature))
             {
                 // Target in range and arc. Check again half way through the round. 
-                _.DelayCommand(3.0f, () => { AdjustFacingAndAttack(creature); });
+                NWScript.DelayCommand(3.0f, () => { AdjustFacingAndAttack(creature); });
             }
             else
             {
                 // Target not in range, turn!
-                _.DelayCommand(2.0f, () => { AdjustFacingAndAttack(creature); });
-                _.DelayCommand(4.0f, () => { AdjustFacingAndAttack(creature); });
+                NWScript.DelayCommand(2.0f, () => { AdjustFacingAndAttack(creature); });
+                NWScript.DelayCommand(4.0f, () => { AdjustFacingAndAttack(creature); });
             }
         }
     }

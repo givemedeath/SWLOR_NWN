@@ -4,6 +4,7 @@ using SWLOR.Game.Server.Data.Entity;
 using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.Service;
 using SWLOR.Game.Server.ValueObject;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Event.Conversation.Quest.OnQuestState
 {
@@ -15,14 +16,14 @@ namespace SWLOR.Game.Server.Event.Conversation.Quest.OnQuestState
             {
                 int index = (int) args[0];
                 int state = (int) args[1];
-                NWPlayer player = _.GetPCSpeaker();
-                NWObject talkTo = _.OBJECT_SELF;
+                NWPlayer player = NWScript.GetPCSpeaker();
+                NWObject talkTo = NWScript.OBJECT_SELF;
                 int questID = talkTo.GetLocalInt("QUEST_ID_" + index);
                 if (questID <= 0) questID = talkTo.GetLocalInt("QST_ID_" + index);
 
                 if (!QuestService.QuestExistsByID(questID))
                 {
-                    _.SpeakString("ERROR: Quest #" + index + " State #" + state + " is improperly configured. Please notify an admin");
+                    NWScript.SpeakString("ERROR: Quest #" + index + " State #" + state + " is improperly configured. Please notify an admin");
                     return false;
                 }
 

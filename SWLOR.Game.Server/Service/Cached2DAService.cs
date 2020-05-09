@@ -4,6 +4,7 @@ using System.Linq;
 using NWN;
 using SWLOR.Game.Server.Event.Module;
 using SWLOR.Game.Server.Messaging;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Service
 {
@@ -32,7 +33,7 @@ namespace SWLOR.Game.Server.Service
             const int NumberOfRows = 150;
             for (int x = 0; x <= NumberOfRows; x++)
             {
-                string value = _.Get2DAString(File, "Value", x);
+                string value = NWScript.Get2DAString(File, "Value", x);
                 if (string.IsNullOrWhiteSpace(value) || value == "0") continue; // Ignore empty / zero values.
 
                 int valueNumber = Convert.ToInt32(value);

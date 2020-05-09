@@ -7,9 +7,10 @@ using SWLOR.Game.Server.Enumeration;
 using SWLOR.Game.Server.NWNX;
 using SWLOR.Game.Server.Service;
 using SWLOR.Game.Server.ValueObject;
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
 using System;
 using SWLOR.Game.Server.NWN;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.AI
 {
@@ -273,13 +274,13 @@ namespace SWLOR.Game.Server.AI
 
             // Cycle through each nearby creature. Process their flags individually if necessary.
             int nth = 1;
-            NWCreature creature = _.GetNearestObject(OBJECT_TYPE_CREATURE, self, nth);
+            NWCreature creature = NWScript.GetNearestObject(OBJECT_TYPE_CREATURE, self, nth);
             while (creature.IsValid)
             {
                 float aggroRange = GetAggroRange(creature);
                 float linkRange = GetLinkRange(creature);
 
-                float distance = _.GetDistanceBetween(creature, self);                  
+                float distance = NWScript.GetDistanceBetween(creature, self);                  
                 if (distance > aggroRange && distance > linkRange) break;
 
                 if ((flags & AIFlags.AggroNearby) != 0)
@@ -292,7 +293,7 @@ namespace SWLOR.Game.Server.AI
                     Link(self, creature);
                 }
                 nth++;
-                creature = _.GetNearestObject(OBJECT_TYPE_CREATURE, self, nth);
+                creature = NWScript.GetNearestObject(OBJECT_TYPE_CREATURE, self, nth);
             }
         }
 
@@ -340,7 +341,7 @@ namespace SWLOR.Game.Server.AI
             if (linkRange <= 0.0f) linkRange = 12.0f;
 
             // Check distance. If too far away stop processing.
-            if (_.GetDistanceBetween(self, nearby) > linkRange) return;
+            if (NWScript.GetDistanceBetween(self, nearby) > linkRange) return;
             
             // Is the nearby object an NPC?
             if (!nearby.IsNPC) return;
@@ -349,7 +350,7 @@ namespace SWLOR.Game.Server.AI
             if (nearby.IsDead) return;
 
             // Is the nearby creature an enemy?
-            if (_.GetIsEnemy(nearby, self) == TRUE) return;
+            if (NWScript.GetIsEnemy(nearby, self) == TRUE) return;
 
             // Does the calling creature have the same racial type as the nearby creature?
             if (self.RacialType != nearby.RacialType) return;
@@ -376,13 +377,13 @@ namespace SWLOR.Game.Server.AI
                 return;
             }
 
-            if (_.GetCurrentAction(self.Object) == _.ACTION_INVALID &&
-                _.IsInConversation(self.Object) == _.FALSE &&
-                _.GetCurrentAction(self.Object) != _.ACTION_RANDOMWALK &&
-                _.GetCurrentAction(self.Object) != _.ACTION_MOVETOPOINT &&
+            if (NWScript.GetCurrentAction(self.Object) == NWScript.ACTION_INVALID &&
+                NWScript.IsInConversation(self.Object) == NWScript.FALSE &&
+                NWScript.GetCurrentAction(self.Object) != NWScript.ACTION_RANDOMWALK &&
+                NWScript.GetCurrentAction(self.Object) != NWScript.ACTION_MOVETOPOINT &&
                 RandomService.Random(100) <= 25)
             {
-                self.AssignCommand(_.ActionRandomWalk);
+                self.AssignCommand(NWScript.ActionRandomWalk);
             }
         }
 
@@ -391,19 +392,19 @@ namespace SWLOR.Game.Server.AI
             if (self.IsInCombat || !EnmityService.IsEnmityTableEmpty(self))
                 return;
 
-            if (_.GetCurrentAction(self.Object) == _.ACTION_INVALID &&
-                _.IsInConversation(self.Object) == _.FALSE &&
-                _.GetCurrentAction(self.Object) != _.ACTION_RANDOMWALK)
+            if (NWScript.GetCurrentAction(self.Object) == NWScript.ACTION_INVALID &&
+                NWScript.IsInConversation(self.Object) == NWScript.FALSE &&
+                NWScript.GetCurrentAction(self.Object) != NWScript.ACTION_RANDOMWALK)
             {
                 var flags = GetAIFlags(self);
                 Location spawnLocation = self.GetLocalLocation("AI_SPAWN_POINT");
                 // If creature also has the RandomWalk flag, only send them back to the spawn point
                 // if they go outside the range (15 meters)
                 if ((flags & AIFlags.RandomWalk) != 0 &&
-                    _.GetDistanceBetweenLocations(self.Location, spawnLocation) <= 15.0f)
+                    NWScript.GetDistanceBetweenLocations(self.Location, spawnLocation) <= 15.0f)
                     return;
 
-                self.AssignCommand(() => _.ActionMoveToLocation(spawnLocation));
+                self.AssignCommand(() => NWScript.ActionMoveToLocation(spawnLocation));
             }
         }
 
@@ -421,7 +422,7 @@ namespace SWLOR.Game.Server.AI
             Dictionary<int, AIPerkDetails> cache = self.Data["PERK_FEATS"];
             if (cache.Count <= 0) return;
 
-            NWObject target = _.GetAttackTarget(self);
+            NWObject target = NWScript.GetAttackTarget(self);
             if (!target.IsValid) return;
 
             // Pull back whatever concentration effect is currently active, if any.
@@ -440,7 +441,7 @@ namespace SWLOR.Game.Server.AI
                 
                 self.AssignCommand(() =>
                 {
-                    _.ActionUseFeat(perkDetails.FeatID, target);
+                    NWScript.ActionUseFeat(perkDetails.FeatID, target);
                 });
 
                 break;

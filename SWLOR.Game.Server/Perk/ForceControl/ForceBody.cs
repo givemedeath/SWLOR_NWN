@@ -3,6 +3,7 @@ using SWLOR.Game.Server.Data.Entity;
 using SWLOR.Game.Server.Enumeration;
 using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.Service;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Perk.ForceControl
 {
@@ -76,7 +77,7 @@ namespace SWLOR.Game.Server.Perk.ForceControl
             if (recovery < 1) recovery = 1;
 
             // Damage user.
-            _.ApplyEffectToObject(_.DURATION_TYPE_INSTANT, _.EffectDamage(recovery), creature);
+            NWScript.ApplyEffectToObject(DurationType.Instant, NWScript.EffectDamage(recovery), creature);
             
             // Check lucky chance.
             int luck = PerkService.GetCreaturePerkLevel(creature, PerkType.Lucky);
@@ -90,7 +91,7 @@ namespace SWLOR.Game.Server.Perk.ForceControl
             AbilityService.RestorePlayerFP(target.Object, recovery);
 
             // Play VFX
-            _.ApplyEffectToObject(_.DURATION_TYPE_INSTANT, _.EffectVisualEffect(_.VFX_IMP_HEAD_ODD), target);
+            NWScript.ApplyEffectToObject(DurationType.Instant, NWScript.EffectVisualEffect(NWScript.VFX_IMP_HEAD_ODD), target);
 
             // Grant XP, if player.
             if (creature.IsPlayer)

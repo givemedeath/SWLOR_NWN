@@ -3,6 +3,7 @@ using SWLOR.Game.Server.GameObject;
 
 using NWN;
 using SWLOR.Game.Server.Service;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 
 namespace SWLOR.Game.Server.Perk.Shields
@@ -82,7 +83,7 @@ namespace SWLOR.Game.Server.Perk.Shields
 
             if (RandomService.Random(100) + 1 <= chance)
             {
-                _.ApplyEffectToObject(_.DURATION_TYPE_TEMPORARY, _.EffectAttackIncrease(ab), creature.Object, length);
+                NWScript.ApplyEffectToObject(DurationType.Temporary, NWScript.EffectAttackIncrease(ab), creature.Object, length);
                 creature.SendMessage(ColorTokenService.Combat("You perform a defensive maneuver."));
             }
         }

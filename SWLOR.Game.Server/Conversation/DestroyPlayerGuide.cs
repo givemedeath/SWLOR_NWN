@@ -3,6 +3,7 @@ using SWLOR.Game.Server.GameObject;
 
 
 using SWLOR.Game.Server.ValueObject.Dialog;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Conversation
 {
@@ -29,8 +30,8 @@ namespace SWLOR.Game.Server.Conversation
             switch (responseID)
             {
                 case 1:
-                    NWItem item = (_.GetItemPossessedBy(player.Object, "player_guide"));
-                    _.DestroyObject(item.Object);
+                    NWItem item = (NWScript.GetItemPossessedBy(player.Object, "player_guide"));
+                    NWScript.DestroyObject(item.Object);
                     EndConversation();
                     break;
             }

@@ -5,6 +5,7 @@ using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.Service;
 
 using SWLOR.Game.Server.ValueObject.Dialog;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Conversation
 {
@@ -39,9 +40,9 @@ namespace SWLOR.Game.Server.Conversation
 
             player.FloatingText("Song Selected: " + song.DisplayName);
 
-            _.MusicBackgroundChangeDay(player.Area, song.AmbientMusicID);
-            _.MusicBackgroundChangeNight(player.Area, song.AmbientMusicID);
-            _.MusicBackgroundPlay(player.Area);
+            NWScript.MusicBackgroundChangeDay(player.Area, song.AmbientMusicID);
+            NWScript.MusicBackgroundChangeNight(player.Area, song.AmbientMusicID);
+            NWScript.MusicBackgroundPlay(player.Area);
         }
 
         public override void Back(NWPlayer player, string beforeMovePage, string afterMovePage)

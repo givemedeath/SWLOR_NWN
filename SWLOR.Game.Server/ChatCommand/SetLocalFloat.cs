@@ -2,6 +2,7 @@
 using SWLOR.Game.Server.ChatCommand.Contracts;
 using SWLOR.Game.Server.Enumeration;
 using SWLOR.Game.Server.GameObject;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.ChatCommand
 {
@@ -19,7 +20,7 @@ namespace SWLOR.Game.Server.ChatCommand
             string variableName = args[0];
             float value = float.Parse(args[1]);
 
-            _.SetLocalFloat(target, variableName, value);
+            NWScript.SetLocalFloat(target, variableName, value);
 
             user.SendMessage("Local float set: " + variableName + " = " + value);
         }

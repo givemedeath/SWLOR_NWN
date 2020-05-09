@@ -8,7 +8,8 @@ using SWLOR.Game.Server.NWN;
 using SWLOR.Game.Server.Service;
 
 using SWLOR.Game.Server.ValueObject;
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Item
 {
@@ -18,7 +19,7 @@ namespace SWLOR.Game.Server.Item
 
         public CustomData StartUseItem(NWCreature user, NWItem item, NWObject target, Location targetLocation)
         {
-            _.ApplyEffectAtLocation(DURATION_TYPE_TEMPORARY, _.EffectVisualEffect(VFX_DUR_PARALYZE_HOLD), target.Location, Seconds(user, item, target, targetLocation, null));
+            NWScript.ApplyEffectAtLocation(DURATION_TYPE_TEMPORARY, NWScript.EffectVisualEffect(VFX_DUR_PARALYZE_HOLD), target.Location, Seconds(user, item, target, targetLocation, null));
             return null;
         }
 
@@ -38,7 +39,7 @@ namespace SWLOR.Game.Server.Item
                 return;
             }
 
-            _.ApplyEffectAtLocation(DURATION_TYPE_INSTANT, _.EffectVisualEffect(VFX_FNF_SUMMON_MONSTER_3), effectLocation);
+            NWScript.ApplyEffectAtLocation(DURATION_TYPE_INSTANT, NWScript.EffectVisualEffect(VFX_FNF_SUMMON_MONSTER_3), effectLocation);
 
             if (user.IsPlayer && user.GetLocalInt(target.GlobalID.ToString()) == FALSE)
             {

@@ -7,6 +7,7 @@ using SWLOR.Game.Server.Service;
 
 using SWLOR.Game.Server.ValueObject;
 using SWLOR.Game.Server.ValueObject.Dialog;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Conversation
 {
@@ -14,7 +15,7 @@ namespace SWLOR.Game.Server.Conversation
     {
         protected NWPlayer GetPC()
         {
-            return (_.GetPCSpeaker());
+            return (NWScript.GetPCSpeaker());
         }
 
         protected NWObject GetDialogTarget()

@@ -2,6 +2,7 @@
 using NWN;
 using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.Service;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Scripts.Placeable.StructureRubble
 {
@@ -17,16 +18,16 @@ namespace SWLOR.Game.Server.Scripts.Placeable.StructureRubble
 
         public void Main()
         {
-            int disturbType = _.GetInventoryDisturbType();
-            NWItem item = (_.GetInventoryDisturbItem());
-            NWCreature creature = (_.GetLastDisturbed());
-            NWPlaceable container = (_.OBJECT_SELF);
+            int disturbType = NWScript.GetInventoryDisturbType();
+            NWItem item = (NWScript.GetInventoryDisturbItem());
+            NWCreature creature = (NWScript.GetLastDisturbed());
+            NWPlaceable container = (NWScript.OBJECT_SELF);
 
-            if (disturbType == _.INVENTORY_DISTURB_TYPE_ADDED)
+            if (disturbType == NWScript.INVENTORY_DISTURB_TYPE_ADDED)
             {
                 ItemService.ReturnItem(creature, item);
             }
-            else if (disturbType == _.INVENTORY_DISTURB_TYPE_REMOVED)
+            else if (disturbType == NWScript.INVENTORY_DISTURB_TYPE_REMOVED)
             {
                 if (!container.InventoryItems.Any())
                 {

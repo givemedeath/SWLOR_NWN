@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using NWN;
 using SWLOR.Game.Server.GameObject;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Scripts.Placeable.ScavengePoint
 {
@@ -16,8 +17,8 @@ namespace SWLOR.Game.Server.Scripts.Placeable.ScavengePoint
 
         public void Main()
         {
-            NWPlaceable point = (_.OBJECT_SELF);
-            NWPlayer player = _.GetLastClosedBy();
+            NWPlaceable point = (NWScript.OBJECT_SELF);
+            NWPlayer player = NWScript.GetLastClosedBy();
 
             if (!player.IsPlayer) return;
 

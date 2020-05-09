@@ -4,6 +4,7 @@ using SWLOR.Game.Server.Data.Entity;
 using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.NWN;
 using SWLOR.Game.Server.Service;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Scripts.Placeable.TutorialPortal
 {
@@ -19,26 +20,26 @@ namespace SWLOR.Game.Server.Scripts.Placeable.TutorialPortal
 
         public void Main()
         {
-            NWPlayer player = (_.GetLastUsedBy());
-            NWPlaceable warp = (_.OBJECT_SELF);
-            bool isExit = warp.GetLocalInt("IS_EXIT") == _.TRUE;
+            NWPlayer player = (NWScript.GetLastUsedBy());
+            NWPlaceable warp = (NWScript.OBJECT_SELF);
+            bool isExit = warp.GetLocalInt("IS_EXIT") == NWScript.TRUE;
 
             if (isExit)
             {
                 Player entity = PlayerService.GetPlayerEntity(player.GlobalID);
                 NWArea area = NWModule.Get().Areas.Single(x => x.Resref == entity.LocationAreaResref);
-                Vector position = _.Vector((float) entity.LocationX, (float) entity.LocationY, (float) entity.LocationZ);
-                Location location = _.Location(area.Object,
+                Vector position = NWScript.Vector((float) entity.LocationX, (float) entity.LocationY, (float) entity.LocationZ);
+                Location location = NWScript.Location(area.Object,
                     position,
                     (float) entity.LocationOrientation);
 
-                player.AssignCommand(() => _.ActionJumpToLocation(location));
+                player.AssignCommand(() => NWScript.ActionJumpToLocation(location));
             }
             else
             {
                 PlayerService.SaveLocation(player);
-                NWObject waypoint = (_.GetWaypointByTag("TUTORIAL_WP"));
-                player.AssignCommand(() => _.ActionJumpToLocation(waypoint.Location));
+                NWObject waypoint = (NWScript.GetWaypointByTag("TUTORIAL_WP"));
+                player.AssignCommand(() => NWScript.ActionJumpToLocation(waypoint.Location));
             }
         }
     }

@@ -7,7 +7,8 @@ using SWLOR.Game.Server.Item.Contracts;
 using SWLOR.Game.Server.NWN;
 using SWLOR.Game.Server.Service;
 using SWLOR.Game.Server.ValueObject;
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Item
 {
@@ -253,7 +254,7 @@ namespace SWLOR.Game.Server.Item
             if (durationEffect != null)
             {
                 //Apply AOE
-                ApplyEffectAtLocation(_.DURATION_TYPE_TEMPORARY, durationEffect, targetLocation, duration * 6.0f);
+                ApplyEffectAtLocation(DurationType.Temporary, durationEffect, targetLocation, duration * 6.0f);
             }
             else
             {
@@ -269,7 +270,7 @@ namespace SWLOR.Game.Server.Item
                     {
                         case "FRAG":
                             damageEffect = EffectDamage(RandomService.D6(perkLevel), DAMAGE_TYPE_FIRE);
-                            damageEffect = EffectLinkEffects(EffectDamage(RandomService.D6(perkLevel), _.DAMAGE_TYPE_PIERCING), damageEffect);
+                            damageEffect = EffectLinkEffects(EffectDamage(RandomService.D6(perkLevel), NWScript.DAMAGE_TYPE_PIERCING), damageEffect);
                             if (RandomService.D6(1) > 4)
                             {
                                 Console.WriteLine("grenade effect bleeding - frag");
@@ -324,8 +325,8 @@ namespace SWLOR.Game.Server.Item
 
                     Console.WriteLine("applying effects to " + GetName(targetCreature));
 
-                    if (damageEffect != null) ApplyEffectToObject(_.DURATION_TYPE_INSTANT, damageEffect, targetCreature);
-                    if (durationEffect != null) ApplyEffectToObject(_.DURATION_TYPE_TEMPORARY, durationEffect, targetCreature, duration * 6.0f);
+                    if (damageEffect != null) ApplyEffectToObject(DurationType.Instant, damageEffect, targetCreature);
+                    if (durationEffect != null) ApplyEffectToObject(DurationType.Temporary, durationEffect, targetCreature, duration * 6.0f);
 
                     if (!targetCreature.IsPlayer)
                     {
@@ -339,7 +340,7 @@ namespace SWLOR.Game.Server.Item
 
         public static void grenadeAoe(NWObject oTarget, string grenadeType)
         {
-            NWCreature user = GetAreaOfEffectCreator(_.OBJECT_SELF);
+            NWCreature user = GetAreaOfEffectCreator(NWScript.OBJECT_SELF);
             int perkLevel = PerkService.GetCreaturePerkLevel(user, PerkType.GrenadeProficiency);
             int duration = 1;
             Effect impactEffect = null;
@@ -377,8 +378,8 @@ namespace SWLOR.Game.Server.Item
 
             if (GetIsObjectValid(oTarget) == TRUE)
             {
-                if (impactEffect != null) ApplyEffectToObject(_.DURATION_TYPE_INSTANT, impactEffect, oTarget);
-                if (durationEffect != null) ApplyEffectToObject(_.DURATION_TYPE_TEMPORARY, durationEffect, oTarget, duration * 6.0f);
+                if (impactEffect != null) ApplyEffectToObject(DurationType.Instant, impactEffect, oTarget);
+                if (durationEffect != null) ApplyEffectToObject(DurationType.Temporary, durationEffect, oTarget, duration * 6.0f);
                 if (!oTarget.IsPlayer)
                 {
                     SkillService.RegisterPCToNPCForSkill(user.Object, oTarget, SkillType.Throwing);

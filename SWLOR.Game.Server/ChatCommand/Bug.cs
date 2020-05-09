@@ -7,6 +7,7 @@ using SWLOR.Game.Server.Data.Entity;
 using SWLOR.Game.Server.Service;
 
 using SWLOR.Game.Server.ValueObject;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.ChatCommand
 {
@@ -31,7 +32,7 @@ namespace SWLOR.Game.Server.ChatCommand
             BugReport report = new BugReport
             {
                 SenderPlayerID = user.IsPlayer ? new Guid?(user.GlobalID): null,
-                CDKey = _.GetPCPublicCDKey(user),
+                CDKey = NWScript.GetPCPublicCDKey(user),
                 Text = message,
                 TargetName = target.IsValid ? target.Name : user.Name,
                 AreaResref = user.Area.Resref,

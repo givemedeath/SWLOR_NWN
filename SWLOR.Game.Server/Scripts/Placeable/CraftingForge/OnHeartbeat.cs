@@ -1,5 +1,6 @@
 ﻿using NWN;
 using SWLOR.Game.Server.GameObject;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Scripts.Placeable.CraftingForge
 {
@@ -7,7 +8,7 @@ namespace SWLOR.Game.Server.Scripts.Placeable.CraftingForge
     {
         public void Main()
         {
-            NWPlaceable forge = (_.OBJECT_SELF);
+            NWPlaceable forge = (NWScript.OBJECT_SELF);
             int charges = forge.GetLocalInt("FORGE_CHARGES");
 
             if (charges > 0)

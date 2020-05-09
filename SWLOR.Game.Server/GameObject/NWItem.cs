@@ -5,7 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using SWLOR.Game.Server.NWN;
 using SWLOR.Game.Server.NWN.Enum.Item;
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.GameObject
 {
@@ -16,39 +17,39 @@ namespace SWLOR.Game.Server.GameObject
         {
         }
 
-        public virtual NWCreature Possessor => _.GetItemPossessor(Object);
+        public virtual NWCreature Possessor => GetItemPossessor(Object);
 
-        public virtual int BaseItemType => _.GetBaseItemType(Object);
+        public virtual BaseItem BaseItemType => GetBaseItemType(Object);
 
         public virtual bool IsDroppable
         {
-            get => _.GetDroppableFlag(Object) == 1;
-            set => _.SetDroppableFlag(Object, value ? 1 : 0);
+            get => GetDroppableFlag(Object);
+            set => NWScript.SetDroppableFlag(Object, value);
         }
 
         public virtual bool IsCursed
         {
-            get => _.GetItemCursedFlag(Object) == 1;
-            set => _.SetItemCursedFlag(Object, value ? 1 : 0);
+            get => GetItemCursedFlag(Object);
+            set => NWScript.SetItemCursedFlag(Object, value);
         }
 
         public virtual bool IsStolen
         {
-            get => _.GetStolenFlag(Object) == 1;
-            set => _.SetStolenFlag(Object, value ? 1 : 0);
+            get => GetStolenFlag(Object);
+            set => NWScript.SetStolenFlag(Object, value);
         }
 
         public virtual bool IsIdentified
         {
-            get => _.GetIdentified(Object) == 1;
-            set => _.SetIdentified(Object, value ? 1 : 0);
+            get => GetIdentified(Object);
+            set => NWScript.SetIdentified(Object, value);
         }
-        public virtual int AC => _.GetItemACValue(Object);
+        public virtual int AC => GetItemACValue(Object);
 
         public virtual int Charges
         {
-            get => _.GetItemCharges(Object);
-            set => _.SetItemCharges(Object, value);
+            get => GetItemCharges(Object);
+            set => SetItemCharges(Object, value);
         }
 
         public virtual int ReduceCharges(int reduceBy = 1)
@@ -60,17 +61,17 @@ namespace SWLOR.Game.Server.GameObject
 
         public virtual int StackSize
         {
-            get => _.GetItemStackSize(Object);
-            set => _.SetItemStackSize(Object, value);
+            get => GetItemStackSize(Object);
+            set => SetItemStackSize(Object, value);
         }
 
-        public virtual float Weight => _.GetWeight(Object) * 0.1f;
+        public virtual float Weight => GetWeight(Object) * 0.1f;
 
         public virtual IEnumerable<ItemProperty> ItemProperties
         {
             get
             {
-                for (ItemProperty ip = _.GetFirstItemProperty(Object); _.GetIsItemPropertyValid(ip) == TRUE; ip = _.GetNextItemProperty(Object))
+                for (ItemProperty ip = GetFirstItemProperty(Object); GetIsItemPropertyValid(ip) == true; ip = GetNextItemProperty(Object))
                 {
                     yield return ip;
                 }
@@ -86,12 +87,12 @@ namespace SWLOR.Game.Server.GameObject
         {
             get
             {
-                int armorClass = GetItemPropertyValueAndRemove((int)CustomItemPropertyType.ArmorClass);
-                if (armorClass <= -1) return _.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_AC");
+                int armorClass = GetItemPropertyValueAndRemove(ItemPropertyType.ArmorClass);
+                if (armorClass <= -1) return NWScript.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_AC");
                 CustomAC = armorClass;
                 return armorClass;
             }
-            set => _.SetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_AC", value);
+            set => NWScript.SetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_AC", value);
         }
         public virtual CustomItemType CustomItemType
         {
@@ -99,8 +100,8 @@ namespace SWLOR.Game.Server.GameObject
             {
                 // Item property takes precedence, followed by local int on the item, 
                 // followed by hard-calculating it based on base item type.
-                int itemType = GetItemPropertyValueAndRemove((int)CustomItemPropertyType.ItemType);
-                CustomItemType storedItemType = (CustomItemType)_.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_TYPE");
+                int itemType = GetItemPropertyValueAndRemove(ItemPropertyType.ItemType);
+                CustomItemType storedItemType = (CustomItemType)NWScript.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_TYPE");
 
                 if (itemType > -1)
                 {
@@ -123,104 +124,104 @@ namespace SWLOR.Game.Server.GameObject
 
                 return type;
             }
-            set => _.SetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_TYPE", (int)value);
+            set => NWScript.SetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_TYPE", (int)value);
         }
 
 
         private CustomItemType GetCustomItemType(NWItem item)
         {
-            if (item.GetLocalInt("LIGHTSABER") == TRUE)
+            if (item.GetLocalInt("LIGHTSABER") == 1)
             {
                 return CustomItemType.Lightsaber;
             }
 
-            int[] vibroblades =
+            BaseItem[] vibroblades =
             {
-                BASE_ITEM_BASTARDSWORD,
-                BASE_ITEM_LONGSWORD,
-                BASE_ITEM_KATANA,
-                BASE_ITEM_SCIMITAR,
-                BASE_ITEM_BATTLEAXE
+                BaseItem.BastardSword,
+                BaseItem.Longsword,
+                BaseItem.Katana,
+                BaseItem.Scimitar,
+                BaseItem.BattleAxe
             };
 
-            int[] finesseVibroblades =
+            BaseItem[] finesseVibroblades =
             {
-                BASE_ITEM_DAGGER,
-                BASE_ITEM_RAPIER,
-                BASE_ITEM_SHORTSWORD,
-                BASE_ITEM_KUKRI,
-                BASE_ITEM_SICKLE,
-                BASE_ITEM_WHIP,
-                BASE_ITEM_HANDAXE
+                BaseItem.Dagger,
+                BaseItem.Rapier,
+                BaseItem.ShortSword,
+                BaseItem.Kukri,
+                BaseItem.Sickle,
+                BaseItem.Whip,
+                BaseItem.HandAxe
             };
 
-            int[] batons =
+            BaseItem[] batons =
             {
-                BASE_ITEM_CLUB,
-                BASE_ITEM_LIGHTFLAIL,
-                BASE_ITEM_LIGHTHAMMER,
-                BASE_ITEM_LIGHTMACE,
-                BASE_ITEM_MORNINGSTAR
+                BaseItem.Club,
+                BaseItem.LightFlail,
+                BaseItem.LightHammer,
+                BaseItem.LightMace,
+                BaseItem.MorningStar
             };
 
-            int[] lightsabers =
+            BaseItem[] lightsabers =
             {
-                (int)BaseItem.Lightsaber
+                BaseItem.Lightsaber
             };
 
-            int[] heavyVibroblades =
+            BaseItem[] heavyVibroblades =
             {
-                BASE_ITEM_GREATAXE,
-                BASE_ITEM_GREATSWORD,
-                BASE_ITEM_DWARVENWARAXE
+                BaseItem.GreatAxe,
+                BaseItem.GreatSword,
+                BaseItem.DwarvenWarAxe
             };
 
 
-            int[] polearms =
+            BaseItem[] polearms =
             {
-                BASE_ITEM_HALBERD,
-                BASE_ITEM_SCYTHE,
-                BASE_ITEM_SHORTSPEAR,
-                BASE_ITEM_TRIDENT
+                BaseItem.Halberd,
+                BaseItem.Scythe,
+                BaseItem.ShortSpear,
+                BaseItem.Trident
             };
 
-            int[] twinVibroblades =
+            BaseItem[] twinVibroblades =
             {
-                BASE_ITEM_DOUBLEAXE,
-                BASE_ITEM_TWOBLADEDSWORD
+                BaseItem.DoubleAxe,
+                BaseItem.TwoBladedSword
             };
 
-            int[] saberstaffs =
+            BaseItem[] saberstaffs =
             {
-                (int)BaseItem.Saberstaff
+                BaseItem.Saberstaff
             };
 
-            int[] martialArts =
+            BaseItem[] martialArts =
             {
-                BASE_ITEM_GLOVES,
-                BASE_ITEM_BRACER,
-                BASE_ITEM_KAMA,
-                BASE_ITEM_QUARTERSTAFF
+                BaseItem.Gloves,
+                BaseItem.Bracer,
+                BaseItem.Kama,
+                BaseItem.QuarterStaff
             };
 
-            int[] blasterRifles =
+            BaseItem[] blasterRifles =
             {
-                BASE_ITEM_LIGHTCROSSBOW,
-                BASE_ITEM_HEAVYCROSSBOW
+                BaseItem.LightCrossbow,
+                BaseItem.HeavyCrossbow
             };
 
-            int[] blasterPistol =
+            BaseItem[] blasterPistol =
             {
-                BASE_ITEM_SHORTBOW,
-                BASE_ITEM_LONGBOW,
+                BaseItem.ShortBow,
+                BaseItem.Longbow,
             };
 
-            int[] throwing =
+            BaseItem[] throwing =
             {
-                BASE_ITEM_SLING,
-                BASE_ITEM_DART,
-                BASE_ITEM_SHURIKEN,
-                BASE_ITEM_THROWINGAXE
+                BaseItem.Sling,
+                BaseItem.Dart,
+                BaseItem.Shuriken,
+                BaseItem.ThrowingAxe
             };
 
 
@@ -243,217 +244,217 @@ namespace SWLOR.Game.Server.GameObject
             return CustomItemType.None;
         }
 
-        private void SetCustomProperty(string propertyName, CustomItemPropertyType type, int value)
+        private void SetCustomProperty(string propertyName, ItemPropertyType type, int value)
         {
-            GetItemPropertyValueAndRemove((int)type); // We're setting, so just remove it and ignore the return value.
-            _.SetLocalInt(Object, propertyName, value);
+            GetItemPropertyValueAndRemove(type); // We're setting, so just remove it and ignore the return value.
+            NWScript.SetLocalInt(Object, propertyName, value);
         }
 
         public virtual int RecommendedLevel
         {
             get
             {
-                int recommendedLevel = GetItemPropertyValueAndRemove((int)CustomItemPropertyType.RecommendedLevel);
-                if (recommendedLevel <= -1) return _.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_TYPE_RECOMMENDED_LEVEL");
+                int recommendedLevel = GetItemPropertyValueAndRemove(ItemPropertyType.RecommendedLevel);
+                if (recommendedLevel <= -1) return NWScript.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_TYPE_RECOMMENDED_LEVEL");
                 RecommendedLevel = recommendedLevel;
                 return recommendedLevel;
             }
-            set => SetCustomProperty("CUSTOM_ITEM_PROPERTY_TYPE_RECOMMENDED_LEVEL", CustomItemPropertyType.RecommendedLevel, value);
+            set => SetCustomProperty("CUSTOM_ITEM_PROPERTY_TYPE_RECOMMENDED_LEVEL", ItemPropertyType.RecommendedLevel, value);
         }
 
         public virtual int LevelIncrease
         {
             get
             {
-                int levelIncrease = GetItemPropertyValueAndRemove((int)CustomItemPropertyType.LevelIncrease);
-                if (levelIncrease <= -1) return _.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_TYPE_LEVEL_INCREASE");
+                int levelIncrease = GetItemPropertyValueAndRemove(ItemPropertyType.LevelIncrease);
+                if (levelIncrease <= -1) return NWScript.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_TYPE_LEVEL_INCREASE");
                 LevelIncrease = levelIncrease;
                 return levelIncrease;
             }
-            set => SetCustomProperty("CUSTOM_ITEM_PROPERTY_TYPE_LEVEL_INCREASE", CustomItemPropertyType.LevelIncrease, value);
+            set => SetCustomProperty("CUSTOM_ITEM_PROPERTY_TYPE_LEVEL_INCREASE", ItemPropertyType.LevelIncrease, value);
         }
 
         public virtual int HarvestingBonus
         {
             get
             {
-                int craftBonus = GetItemPropertyValueAndRemove((int)CustomItemPropertyType.HarvestingBonus);
-                if (craftBonus <= -1) return _.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_HARVESTING_BONUS");
+                int craftBonus = GetItemPropertyValueAndRemove(ItemPropertyType.HarvestingBonus);
+                if (craftBonus <= -1) return NWScript.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_HARVESTING_BONUS");
                 HarvestingBonus = craftBonus;
                 return craftBonus;
             }
-            set => SetCustomProperty("CUSTOM_ITEM_PROPERTY_HARVESTING_BONUS", CustomItemPropertyType.HarvestingBonus, value);
+            set => SetCustomProperty("CUSTOM_ITEM_PROPERTY_HARVESTING_BONUS", ItemPropertyType.HarvestingBonus, value);
         }
 
         public virtual int PilotingBonus
         {
             get
             {
-                int craftBonus = GetItemPropertyValueAndRemove((int)CustomItemPropertyType.PilotingBonus);
-                if (craftBonus <= -1) return _.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_PILOTING_BONUS");
+                int craftBonus = GetItemPropertyValueAndRemove(ItemPropertyType.PilotingBonus);
+                if (craftBonus <= -1) return NWScript.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_PILOTING_BONUS");
                 PilotingBonus = craftBonus;
                 return craftBonus;
             }
-            set => SetCustomProperty("CUSTOM_ITEM_PROPERTY_PILOTING_BONUS", CustomItemPropertyType.PilotingBonus, value);
+            set => SetCustomProperty("CUSTOM_ITEM_PROPERTY_PILOTING_BONUS", ItemPropertyType.PilotingBonus, value);
         }
 
         public virtual int ScanningBonus
         {
             get
             {
-                int craftBonus = GetItemPropertyValueAndRemove((int)CustomItemPropertyType.ScanningBonus);
-                if (craftBonus <= -1) return _.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_SCANNING_BONUS");
+                int craftBonus = GetItemPropertyValueAndRemove(ItemPropertyType.ScanningBonus);
+                if (craftBonus <= -1) return NWScript.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_SCANNING_BONUS");
                 ScanningBonus = craftBonus;
                 return craftBonus;
             }
-            set => SetCustomProperty("CUSTOM_ITEM_PROPERTY_SCANNING_BONUS", CustomItemPropertyType.ScanningBonus, value);
+            set => SetCustomProperty("CUSTOM_ITEM_PROPERTY_SCANNING_BONUS", ItemPropertyType.ScanningBonus, value);
         }
 
         public virtual int ScavengingBonus
         {
             get
             {
-                int craftBonus = GetItemPropertyValueAndRemove((int)CustomItemPropertyType.ScavengingBonus);
-                if (craftBonus <= -1) return _.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_SCAVENGING_BONUS");
+                int craftBonus = GetItemPropertyValueAndRemove(ItemPropertyType.ScavengingBonus);
+                if (craftBonus <= -1) return NWScript.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_SCAVENGING_BONUS");
                 ScavengingBonus = craftBonus;
                 return craftBonus;
             }
-            set => SetCustomProperty("CUSTOM_ITEM_PROPERTY_SCAVENGING_BONUS", CustomItemPropertyType.ScavengingBonus, value);
+            set => SetCustomProperty("CUSTOM_ITEM_PROPERTY_SCAVENGING_BONUS", ItemPropertyType.ScavengingBonus, value);
         }
 
         public virtual int CooldownRecovery
         {
             get
             {
-                int cooldownRecovery = GetItemPropertyValueAndRemove((int)CustomItemPropertyType.CastingSpeed);
+                int cooldownRecovery = GetItemPropertyValueAndRemove(ItemPropertyType.CastingSpeed);
                 // Variable name is kept as-is for backwards compatibility.
-                if (cooldownRecovery <= 0) return _.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_CASTING_SPEED");
+                if (cooldownRecovery <= 0) return NWScript.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_CASTING_SPEED");
 
                 if (cooldownRecovery <= 99) cooldownRecovery = -cooldownRecovery;
                 else cooldownRecovery = cooldownRecovery - 99;
                 CooldownRecovery = cooldownRecovery;
                 return cooldownRecovery;
             }
-            set => SetCustomProperty("CUSTOM_ITEM_PROPERTY_CASTING_SPEED", CustomItemPropertyType.CastingSpeed, value);
+            set => SetCustomProperty("CUSTOM_ITEM_PROPERTY_CASTING_SPEED", ItemPropertyType.CastingSpeed, value);
         }
 
         public virtual int CraftBonusArmorsmith
         {
             get
             {
-                int craftBonus = GetItemPropertyValueAndRemove((int)CustomItemPropertyType.CraftBonusArmorsmith);
-                if (craftBonus <= -1) return _.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_CRAFT_BONUS_ARMORSMITH");
+                int craftBonus = GetItemPropertyValueAndRemove(ItemPropertyType.CraftBonusArmorsmith);
+                if (craftBonus <= -1) return NWScript.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_CRAFT_BONUS_ARMORSMITH");
                 CraftBonusArmorsmith = craftBonus;
                 return craftBonus;
             }
-            set => SetCustomProperty("CUSTOM_ITEM_PROPERTY_CRAFT_BONUS_ARMORSMITH", CustomItemPropertyType.CraftBonusArmorsmith, value);
+            set => SetCustomProperty("CUSTOM_ITEM_PROPERTY_CRAFT_BONUS_ARMORSMITH", ItemPropertyType.CraftBonusArmorsmith, value);
         }
         public virtual int CraftBonusWeaponsmith
         {
             get
             {
-                int craftBonus = GetItemPropertyValueAndRemove((int)CustomItemPropertyType.CraftBonusWeaponsmith);
-                if (craftBonus <= -1) return _.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_CRAFT_BONUS_WEAPONSMITH");
+                int craftBonus = GetItemPropertyValueAndRemove(ItemPropertyType.CraftBonusWeaponsmith);
+                if (craftBonus <= -1) return NWScript.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_CRAFT_BONUS_WEAPONSMITH");
                 CraftBonusWeaponsmith = craftBonus;
                 return craftBonus;
             }
-            set => SetCustomProperty("CUSTOM_ITEM_PROPERTY_CRAFT_BONUS_WEAPONSMITH", CustomItemPropertyType.CraftBonusWeaponsmith, value);
+            set => SetCustomProperty("CUSTOM_ITEM_PROPERTY_CRAFT_BONUS_WEAPONSMITH", ItemPropertyType.CraftBonusWeaponsmith, value);
         }
         public virtual int CraftBonusCooking
         {
             get
             {
-                int craftBonus = GetItemPropertyValueAndRemove((int)CustomItemPropertyType.CraftBonusCooking);
-                if (craftBonus <= -1) return _.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_CRAFT_BONUS_COOKING");
+                int craftBonus = GetItemPropertyValueAndRemove(ItemPropertyType.CraftBonusCooking);
+                if (craftBonus <= -1) return NWScript.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_CRAFT_BONUS_COOKING");
                 CraftBonusCooking = craftBonus;
                 return craftBonus;
             }
-            set => SetCustomProperty("CUSTOM_ITEM_PROPERTY_CRAFT_BONUS_COOKING", CustomItemPropertyType.CraftBonusCooking, value);
+            set => SetCustomProperty("CUSTOM_ITEM_PROPERTY_CRAFT_BONUS_COOKING", ItemPropertyType.CraftBonusCooking, value);
         }
         public virtual int CraftBonusEngineering
         {
             get
             {
-                int craftBonus = GetItemPropertyValueAndRemove((int)CustomItemPropertyType.CraftBonusEngineering);
-                if (craftBonus <= -1) return _.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_CRAFT_BONUS_ENGINEERING");
+                int craftBonus = GetItemPropertyValueAndRemove(ItemPropertyType.CraftBonusEngineering);
+                if (craftBonus <= -1) return NWScript.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_CRAFT_BONUS_ENGINEERING");
                 CraftBonusEngineering = craftBonus;
                 return craftBonus;
             }
-            set => SetCustomProperty("CUSTOM_ITEM_PROPERTY_CRAFT_BONUS_ENGINEERING", CustomItemPropertyType.CraftBonusEngineering, value);
+            set => SetCustomProperty("CUSTOM_ITEM_PROPERTY_CRAFT_BONUS_ENGINEERING", ItemPropertyType.CraftBonusEngineering, value);
         }
         public virtual int CraftBonusFabrication
         {
             get
             {
-                int craftBonus = GetItemPropertyValueAndRemove((int)CustomItemPropertyType.CraftBonusFabrication);
-                if (craftBonus <= -1) return _.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_CRAFT_BONUS_FABRICATION");
+                int craftBonus = GetItemPropertyValueAndRemove(ItemPropertyType.CraftBonusFabrication);
+                if (craftBonus <= -1) return NWScript.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_CRAFT_BONUS_FABRICATION");
                 CraftBonusFabrication = craftBonus;
                 return craftBonus;
             }
-            set => SetCustomProperty("CUSTOM_ITEM_PROPERTY_CRAFT_BONUS_FABRICATION", CustomItemPropertyType.CraftBonusFabrication, value);
+            set => SetCustomProperty("CUSTOM_ITEM_PROPERTY_CRAFT_BONUS_FABRICATION", ItemPropertyType.CraftBonusFabrication, value);
         }
         public virtual SkillType AssociatedSkillType
         {
             get
             {
-                int skillType = GetItemPropertyValueAndRemove((int)CustomItemPropertyType.AssociatedSkill);
-                if (skillType <= -1) return (SkillType)_.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_ASSOCIATED_SKILL_ID");
+                int skillType = GetItemPropertyValueAndRemove(ItemPropertyType.AssociatedSkill);
+                if (skillType <= -1) return (SkillType)NWScript.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_ASSOCIATED_SKILL_ID");
                 AssociatedSkillType = (SkillType)skillType;
                 return (SkillType)skillType;
             }
             set 
             {
-                GetItemPropertyValueAndRemove((int)CustomItemPropertyType.AssociatedSkill);
-                _.SetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_ASSOCIATED_SKILL_ID", (int)value);
+                GetItemPropertyValueAndRemove(ItemPropertyType.AssociatedSkill);
+                NWScript.SetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_ASSOCIATED_SKILL_ID", (int)value);
             }
         }
         public virtual int CraftTierLevel
         {
             get
             {
-                int craftTier = GetItemPropertyValueAndRemove((int)CustomItemPropertyType.CraftTierLevel);
-                if (craftTier <= -1) return _.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_CRAFT_TIER_LEVEL");
+                int craftTier = GetItemPropertyValueAndRemove(ItemPropertyType.CraftTierLevel);
+                if (craftTier <= -1) return NWScript.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_CRAFT_TIER_LEVEL");
                 CraftTierLevel = craftTier;
                 return craftTier;
             }
-            set => SetCustomProperty("CUSTOM_ITEM_PROPERTY_CRAFT_TIER_LEVEL", CustomItemPropertyType.CraftTierLevel, value);
+            set => SetCustomProperty("CUSTOM_ITEM_PROPERTY_CRAFT_TIER_LEVEL", ItemPropertyType.CraftTierLevel, value);
         }
         public virtual int HPBonus
         {
             get
             {
-                int hpBonus = GetItemPropertyValueAndRemove((int)CustomItemPropertyType.HPBonus);
-                if (hpBonus <= -1) return _.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_HP_BONUS");
+                int hpBonus = GetItemPropertyValueAndRemove(ItemPropertyType.HPBonus);
+                if (hpBonus <= -1) return NWScript.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_HP_BONUS");
                 HPBonus = hpBonus;
                 return hpBonus;
             }
-            set => SetCustomProperty("CUSTOM_ITEM_PROPERTY_HP_BONUS", CustomItemPropertyType.HPBonus, value);
+            set => SetCustomProperty("CUSTOM_ITEM_PROPERTY_HP_BONUS", ItemPropertyType.HPBonus, value);
         }
         public virtual int FPBonus
         {
             get
             {
-                int fpBonus = GetItemPropertyValueAndRemove((int)CustomItemPropertyType.FPBonus);
-                if (fpBonus <= -1) return _.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_FP_BONUS");
+                int fpBonus = GetItemPropertyValueAndRemove(ItemPropertyType.FPBonus);
+                if (fpBonus <= -1) return NWScript.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_FP_BONUS");
                 FPBonus = fpBonus;
                 return fpBonus;
             }
-            set => SetCustomProperty("CUSTOM_ITEM_PROPERTY_FP_BONUS", CustomItemPropertyType.FPBonus, value);
+            set => SetCustomProperty("CUSTOM_ITEM_PROPERTY_FP_BONUS", ItemPropertyType.FPBonus, value);
         }
 
         public virtual int EnmityRate
         {
             get
             {
-                int enmityRate = GetItemPropertyValueAndRemove((int)CustomItemPropertyType.EnmityRate);
-                if (enmityRate <= 0) return _.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_ENMITY_RATE");
+                int enmityRate = GetItemPropertyValueAndRemove(ItemPropertyType.EnmityRate);
+                if (enmityRate <= 0) return NWScript.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_ENMITY_RATE");
 
                 if (enmityRate <= 50) enmityRate = -enmityRate;
                 else enmityRate = enmityRate - 50;
                 EnmityRate = enmityRate;
                 return enmityRate;
             }
-            set => SetCustomProperty("CUSTOM_ITEM_PROPERTY_ENMITY_RATE", CustomItemPropertyType.EnmityRate, value);
+            set => SetCustomProperty("CUSTOM_ITEM_PROPERTY_ENMITY_RATE", ItemPropertyType.EnmityRate, value);
         }
 
         
@@ -461,168 +462,168 @@ namespace SWLOR.Game.Server.GameObject
         {
             get
             {
-                int luckBonus = GetItemPropertyValueAndRemove((int)CustomItemPropertyType.LuckBonus);
-                if (luckBonus <= -1) return _.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_LUCK_BONUS");
+                int luckBonus = GetItemPropertyValueAndRemove(ItemPropertyType.LuckBonus);
+                if (luckBonus <= -1) return NWScript.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_LUCK_BONUS");
                 LuckBonus = luckBonus;
                 return luckBonus;
             }
-            set => SetCustomProperty("CUSTOM_ITEM_PROPERTY_LUCK_BONUS", CustomItemPropertyType.LuckBonus, value);
+            set => SetCustomProperty("CUSTOM_ITEM_PROPERTY_LUCK_BONUS", ItemPropertyType.LuckBonus, value);
         }
         public virtual int MeditateBonus
         {
             get
             {
-                int meditateBonus = GetItemPropertyValueAndRemove((int)CustomItemPropertyType.MeditateBonus);
-                if (meditateBonus <= -1) return _.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_MEDITATE_BONUS");
+                int meditateBonus = GetItemPropertyValueAndRemove(ItemPropertyType.MeditateBonus);
+                if (meditateBonus <= -1) return NWScript.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_MEDITATE_BONUS");
                 MeditateBonus = meditateBonus;
                 return meditateBonus;
             }
-            set => SetCustomProperty("CUSTOM_ITEM_PROPERTY_MEDITATE_BONUS", CustomItemPropertyType.MeditateBonus, value);
+            set => SetCustomProperty("CUSTOM_ITEM_PROPERTY_MEDITATE_BONUS", ItemPropertyType.MeditateBonus, value);
         }
         public virtual int RestBonus
         {
             get
             {
-                int restBonus = GetItemPropertyValueAndRemove((int)CustomItemPropertyType.RestBonus);
-                if (restBonus <= -1) return _.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_REST_BONUS");
+                int restBonus = GetItemPropertyValueAndRemove(ItemPropertyType.RestBonus);
+                if (restBonus <= -1) return NWScript.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_REST_BONUS");
                 RestBonus = restBonus;
                 return restBonus;
             }
-            set => SetCustomProperty("CUSTOM_ITEM_PROPERTY_REST_BONUS", CustomItemPropertyType.RestBonus, value);
+            set => SetCustomProperty("CUSTOM_ITEM_PROPERTY_REST_BONUS", ItemPropertyType.RestBonus, value);
         }
         public virtual int MedicineBonus
         {
             get
             {
-                int medicineBonus = GetItemPropertyValueAndRemove((int)CustomItemPropertyType.MedicineBonus);
-                if (medicineBonus <= -1) return _.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_MEDICINE_BONUS");
+                int medicineBonus = GetItemPropertyValueAndRemove(ItemPropertyType.MedicineBonus);
+                if (medicineBonus <= -1) return NWScript.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_MEDICINE_BONUS");
                 MedicineBonus = medicineBonus;
                 return medicineBonus;
             }
-            set => SetCustomProperty("CUSTOM_ITEM_PROPERTY_MEDICINE_BONUS", CustomItemPropertyType.MedicineBonus, value);
+            set => SetCustomProperty("CUSTOM_ITEM_PROPERTY_MEDICINE_BONUS", ItemPropertyType.MedicineBonus, value);
         }
         public virtual int HPRegenBonus
         {
             get
             {
-                int hpRegenBonus = GetItemPropertyValueAndRemove((int)CustomItemPropertyType.HPRegenBonus);
-                if (hpRegenBonus <= -1) return _.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_HP_REGEN_BONUS");
+                int hpRegenBonus = GetItemPropertyValueAndRemove(ItemPropertyType.HPRegenBonus);
+                if (hpRegenBonus <= -1) return NWScript.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_HP_REGEN_BONUS");
                 HPRegenBonus = hpRegenBonus;
                 return hpRegenBonus;
             }
-            set => SetCustomProperty("CUSTOM_ITEM_PROPERTY_HP_REGEN_BONUS", CustomItemPropertyType.HPRegenBonus, value);
+            set => SetCustomProperty("CUSTOM_ITEM_PROPERTY_HP_REGEN_BONUS", ItemPropertyType.HPRegenBonus, value);
         }
         public virtual int FPRegenBonus
         {
             get
             {
-                int fpRegenBonus = GetItemPropertyValueAndRemove((int)CustomItemPropertyType.FPRegenBonus);
-                if (fpRegenBonus <= -1) return _.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_FP_REGEN_BONUS");
+                int fpRegenBonus = GetItemPropertyValueAndRemove(ItemPropertyType.FPRegenBonus);
+                if (fpRegenBonus <= -1) return NWScript.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_FP_REGEN_BONUS");
                 FPRegenBonus = fpRegenBonus;
                 return fpRegenBonus;
             }
-            set => SetCustomProperty("CUSTOM_ITEM_PROPERTY_FP_REGEN_BONUS", CustomItemPropertyType.FPRegenBonus, value);
+            set => SetCustomProperty("CUSTOM_ITEM_PROPERTY_FP_REGEN_BONUS", ItemPropertyType.FPRegenBonus, value);
         }
         public virtual int BaseAttackBonus
         {
             get
             {
-                int baseAttackBonus = GetItemPropertyValueAndRemove((int)CustomItemPropertyType.BaseAttackBonus);
-                if (baseAttackBonus <= -1) return _.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_BASE_ATTACK_BONUS");
+                int baseAttackBonus = GetItemPropertyValueAndRemove(ItemPropertyType.BaseAttackBonus);
+                if (baseAttackBonus <= -1) return NWScript.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_BASE_ATTACK_BONUS");
                 BaseAttackBonus = baseAttackBonus;
                 return baseAttackBonus;
             }
-            set => SetCustomProperty("CUSTOM_ITEM_PROPERTY_BASE_ATTACK_BONUS", CustomItemPropertyType.BaseAttackBonus, value);
+            set => SetCustomProperty("CUSTOM_ITEM_PROPERTY_BASE_ATTACK_BONUS", ItemPropertyType.BaseAttackBonus, value);
         }
         public virtual int StructureBonus
         {
             get
             {
-                int structureBonus = GetItemPropertyValueAndRemove((int)CustomItemPropertyType.StructureBonus);
-                if (structureBonus <= -1) return _.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_STRUCTURE_BONUS");
+                int structureBonus = GetItemPropertyValueAndRemove(ItemPropertyType.StructureBonus);
+                if (structureBonus <= -1) return NWScript.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_STRUCTURE_BONUS");
                 StructureBonus = structureBonus;
                 return structureBonus;
             }
-            set => SetCustomProperty("CUSTOM_ITEM_PROPERTY_STRUCTURE_BONUS", CustomItemPropertyType.StructureBonus, value);
+            set => SetCustomProperty("CUSTOM_ITEM_PROPERTY_STRUCTURE_BONUS", ItemPropertyType.StructureBonus, value);
         }
 
         public virtual int SneakAttackBonus
         {
-            get => _.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_SNEAK_ATTACK_BONUS");
-            set => _.SetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_SNEAK_ATTACK_BONUS", value);
+            get => NWScript.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_SNEAK_ATTACK_BONUS");
+            set => NWScript.SetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_SNEAK_ATTACK_BONUS", value);
         }
 
         public virtual int DamageBonus
         {
-            get => _.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_DAMAGE_BONUS");
-            set => _.SetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_DAMAGE_BONUS", value);
+            get => NWScript.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_DAMAGE_BONUS");
+            set => NWScript.SetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_DAMAGE_BONUS", value);
         }
 
         public virtual int StrengthBonus
         {
-            get => _.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_STRENGTH_BONUS");
-            set => _.SetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_STRENGTH_BONUS", value);
+            get => NWScript.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_STRENGTH_BONUS");
+            set => NWScript.SetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_STRENGTH_BONUS", value);
         }
         public virtual int DexterityBonus
         {
-            get => _.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_DEXTERITY_BONUS");
-            set => _.SetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_DEXTERITY_BONUS", value);
+            get => NWScript.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_DEXTERITY_BONUS");
+            set => NWScript.SetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_DEXTERITY_BONUS", value);
         }
         public virtual int ConstitutionBonus
         {
-            get => _.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_CONSTITUTION_BONUS");
-            set => _.SetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_CONSTITUTION_BONUS", value);
+            get => NWScript.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_CONSTITUTION_BONUS");
+            set => NWScript.SetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_CONSTITUTION_BONUS", value);
         }
         public virtual int WisdomBonus
         {
-            get => _.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_WISDOM_BONUS");
-            set => _.SetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_WISDOM_BONUS", value);
+            get => NWScript.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_WISDOM_BONUS");
+            set => NWScript.SetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_WISDOM_BONUS", value);
         }
         public virtual int IntelligenceBonus
         {
-            get => _.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_INTELLIGENCE_BONUS");
-            set => _.SetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_INTELLIGENCE_BONUS", value);
+            get => NWScript.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_INTELLIGENCE_BONUS");
+            set => NWScript.SetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_INTELLIGENCE_BONUS", value);
         }
         public virtual int CharismaBonus
         {
-            get => _.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_CHARISMA_BONUS");
-            set => _.SetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_CHARISMA_BONUS", value);
+            get => NWScript.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_CHARISMA_BONUS");
+            set => NWScript.SetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_CHARISMA_BONUS", value);
         }
         public virtual int DurationBonus
         {
-            get => _.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_DURATION_BONUS");
-            set => _.SetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_DURATION_BONUS", value);
+            get => NWScript.GetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_DURATION_BONUS");
+            set => NWScript.SetLocalInt(Object, "CUSTOM_ITEM_PROPERTY_DURATION_BONUS", value);
         }
 
         public virtual void ReduceItemStack()
         {
-            int stackSize = _.GetItemStackSize(Object);
+            int stackSize = GetItemStackSize(Object);
             if (stackSize > 1)
             {
-                _.SetItemStackSize(Object, stackSize - 1);
+                SetItemStackSize(Object, stackSize - 1);
             }
             else
             {
-                _.DestroyObject(Object);
+                DestroyObject(Object);
             }
         }
 
-        public virtual bool IsRanged => _.GetWeaponRanged(Object) == 1;
+        public virtual bool IsRanged => GetWeaponRanged(Object);
 
 
-        public int GetItemPropertyValueAndRemove(int itemPropertyID)
+        public int GetItemPropertyValueAndRemove(ItemPropertyType itemPropertyType)
         {
-            ItemProperty ip = _.GetFirstItemProperty(Object);
-            while (_.GetIsItemPropertyValid(ip) == TRUE)
+            ItemProperty ip = GetFirstItemProperty(Object);
+            while (GetIsItemPropertyValid(ip) == true)
             {
-                if (_.GetItemPropertyType(ip) == itemPropertyID)
+                if (GetItemPropertyType(ip) == itemPropertyType)
                 {
-                    var result = _.GetItemPropertyCostTableValue(ip);
-                    _.RemoveItemProperty(Object, ip);
+                    var result = GetItemPropertyCostTableValue(ip);
+                    RemoveItemProperty(Object, ip);
                     return result;
                 }
 
-                ip = _.GetNextItemProperty(Object);
+                ip = GetNextItemProperty(Object);
             }
 
             return -1;

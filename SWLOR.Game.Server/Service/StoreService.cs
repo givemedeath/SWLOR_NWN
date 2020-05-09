@@ -8,6 +8,7 @@ using SWLOR.Game.Server.Event.Module;
 using SWLOR.Game.Server.Event.Store;
 using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.Messaging;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Service
 {
@@ -35,13 +36,13 @@ namespace SWLOR.Game.Server.Service
             foreach (var area in NWModule.Get().Areas)
             {
                 // Loop through any stores in this area.
-                foreach (var store in area.Objects.Where(x => x.ObjectType == _.OBJECT_TYPE_STORE))
+                foreach (var store in area.Objects.Where(x => x.ObjectType == NWScript.OBJECT_TYPE_STORE))
                 {
                     // Loop through the store's inventory (i.e items which are being sold)
                     foreach (var item in store.InventoryItems)
                     {
                         // Mark this item so it doesn't get cleaned up.
-                        item.SetLocalInt("STORE_SERVICE_IS_STORE_ITEM", _.TRUE);
+                        item.SetLocalInt("STORE_SERVICE_IS_STORE_ITEM", NWScript.TRUE);
                     }
 
                     _stores.Add(store);
@@ -51,7 +52,7 @@ namespace SWLOR.Game.Server.Service
 
         private static void OnModuleAcquireItem()
         {
-            NWItem item = _.GetModuleItemAcquired();
+            NWItem item = NWScript.GetModuleItemAcquired();
             item.DeleteLocalInt("STORE_SERVICE_IS_STORE_ITEM");
         }
 
@@ -94,21 +95,21 @@ namespace SWLOR.Game.Server.Service
             // We'll look for any items which aren't part of this store and destroy them.
             foreach (var item in store.InventoryItems)
             {
-                if (item.GetLocalInt("STORE_SERVICE_IS_STORE_ITEM") == _.TRUE) continue;
+                if (item.GetLocalInt("STORE_SERVICE_IS_STORE_ITEM") == NWScript.TRUE) continue;
                 item.Destroy();
             }
         }
 
         private static void OnStoreOpened()
         {
-            NWObject store = _.OBJECT_SELF;
+            NWObject store = NWScript.OBJECT_SELF;
             int playersAccessing = store.GetLocalInt("STORE_SERVICE_PLAYERS_ACCESSING") + 1;
             store.SetLocalInt("STORE_SERVICE_PLAYERS_ACCESSING", playersAccessing);
         }
 
         private static void OnStoreClosed()
         {
-            NWObject store = _.OBJECT_SELF;
+            NWObject store = NWScript.OBJECT_SELF;
             int playersAccessing = store.GetLocalInt("STORE_SERVICE_PLAYERS_ACCESSING") - 1;
             if (playersAccessing <= 0)
             {

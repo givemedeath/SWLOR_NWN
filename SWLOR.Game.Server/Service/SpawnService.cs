@@ -13,7 +13,8 @@ using SWLOR.Game.Server.NWN;
 using SWLOR.Game.Server.NWNX;
 using SWLOR.Game.Server.SpawnRule.Contracts;
 using SWLOR.Game.Server.ValueObject;
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Service
 {
@@ -32,8 +33,8 @@ namespace SWLOR.Game.Server.Service
             MessageHub.Instance.Subscribe<OnModuleLoad>(message => OnModuleLoad());
             MessageHub.Instance.Subscribe<OnObjectProcessorRan>(message => ProcessSpawns());
 
-            MessageHub.Instance.Subscribe<OnAreaEnter>(message => ToggleCreatureEvents(_.OBJECT_SELF));
-            MessageHub.Instance.Subscribe<OnAreaExit>(message => ToggleCreatureEvents(_.OBJECT_SELF));
+            MessageHub.Instance.Subscribe<OnAreaEnter>(message => ToggleCreatureEvents(NWScript.OBJECT_SELF));
+            MessageHub.Instance.Subscribe<OnAreaExit>(message => ToggleCreatureEvents(NWScript.OBJECT_SELF));
 
             MessageHub.Instance.Subscribe<OnAreaInstanceCreated>(message => OnAreaInstanceCreated(message.Instance));
             MessageHub.Instance.Subscribe<OnAreaInstanceDestroyed>(message => OnAreaInstanceDestroyed(message.Instance));

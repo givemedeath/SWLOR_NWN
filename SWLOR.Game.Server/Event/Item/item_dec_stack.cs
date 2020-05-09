@@ -13,15 +13,15 @@ namespace NWN.Scripts
         // ReSharper disable once UnusedMember.Local
         public static void Main()
         {
-            if (_.OBJECT_SELF == null) return;
+            if (SWLOR.Game.Server.NWN.NWScript.OBJECT_SELF == null) return;
 
-            NWItem item = _.OBJECT_SELF;
+            NWItem item = SWLOR.Game.Server.NWN.NWScript.OBJECT_SELF;
             if (!item.IsValid) return;
 
             // We ignore any decrements to shurikens, darts, and throwing axes.
-            if(item.BaseItemType == _.BASE_ITEM_SHURIKEN ||
-               item.BaseItemType == _.BASE_ITEM_DART ||
-               item.BaseItemType == _.BASE_ITEM_THROWINGAXE)
+            if(item.BaseItemType == SWLOR.Game.Server.NWN.NWScript.BASE_ITEM_SHURIKEN ||
+               item.BaseItemType == SWLOR.Game.Server.NWN.NWScript.BASE_ITEM_DART ||
+               item.BaseItemType == SWLOR.Game.Server.NWN.NWScript.BASE_ITEM_THROWINGAXE)
             {
                 NWNXEvents.SkipEvent();
             }

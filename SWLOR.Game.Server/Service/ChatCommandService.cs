@@ -13,7 +13,8 @@ using SWLOR.Game.Server.Event.Module;
 using SWLOR.Game.Server.Messaging;
 using SWLOR.Game.Server.NWN.Enum;
 using SWLOR.Game.Server.NWNX;
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Service
 {
@@ -85,7 +86,7 @@ namespace SWLOR.Game.Server.Service
 
         private static void OnModuleNWNXChat()
         {
-            NWPlayer sender = _.OBJECT_SELF;
+            NWPlayer sender = NWScript.OBJECT_SELF;
             string originalMessage = NWNXChat.GetMessage().Trim();
 
             if (!CanHandleChat(sender, originalMessage))
@@ -131,7 +132,7 @@ namespace SWLOR.Game.Server.Service
                 sender.SetLocalString("CHAT_COMMAND_ARGS", args);
                 sender.SendMessage("Please use your 'Chat Command Targeter' feat to select the target of this chat command.");
 
-                if (_.GetHasFeat(Feat.ChatCommandTargeter, sender) || sender.IsDM)
+                if (NWScript.GetHasFeat(Feat.ChatCommandTargeter, sender) || sender.IsDM)
                 {
                     NWNXCreature.AddFeatByLevel(sender, Feat.ChatCommandTargeter, 1);
 
@@ -151,7 +152,7 @@ namespace SWLOR.Game.Server.Service
 
         private static void OnModuleUseFeat()
         {
-            NWPlayer pc = _.OBJECT_SELF;
+            NWPlayer pc = NWScript.OBJECT_SELF;
             int featID = Convert.ToInt32(NWNXEvents.GetEventData("FEAT_ID")); 
 
             if (featID != (int)Feat.ChatCommandTargeter) return;
@@ -185,7 +186,7 @@ namespace SWLOR.Game.Server.Service
         {
             if (target == null)
             {
-                target = _.OBJECT_INVALID;
+                target = NWScript.OBJECT_INVALID;
             }
 
             if (targetLocation == null)

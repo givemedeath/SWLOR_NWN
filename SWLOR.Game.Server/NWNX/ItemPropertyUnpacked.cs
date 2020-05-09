@@ -1,5 +1,6 @@
 ﻿using NWN;
 using SWLOR.Game.Server.GameObject;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.NWNX
 {
@@ -21,7 +22,7 @@ namespace SWLOR.Game.Server.NWNX
 
         public ItemPropertyUnpacked()
         {
-            Creator = new NWObject(_.OBJECT_INVALID);
+            Creator = new NWObject(NWScript.OBJECT_INVALID);
             Tag = string.Empty;
         }
     }

@@ -4,7 +4,8 @@ using SWLOR.Game.Server.Enumeration;
 using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.Service;
 
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Perk.MartialArts
 {
@@ -47,7 +48,7 @@ namespace SWLOR.Game.Server.Perk.MartialArts
             if (perkLevel >= 7)
             {
                 var members = creature.PartyMembers.Where(x => Equals(x, creature) || 
-                                                             _.GetDistanceBetween(creature, x) <= 10.0f && x.CurrentHP < x.MaxHP);
+                                                             NWScript.GetDistanceBetween(creature, x) <= 10.0f && x.CurrentHP < x.MaxHP);
                 foreach (var member in members)
                 {
                     DoHeal(member, perkLevel, min);
@@ -66,8 +67,8 @@ namespace SWLOR.Game.Server.Perk.MartialArts
 
             heal = RandomService.Random(minimum, heal);
 
-            _.ApplyEffectToObject(DURATION_TYPE_INSTANT, _.EffectHeal(heal), target);
-            _.ApplyEffectToObject(DURATION_TYPE_INSTANT, _.EffectVisualEffect(VFX_IMP_HEALING_G), target);
+            NWScript.ApplyEffectToObject(DURATION_TYPE_INSTANT, NWScript.EffectHeal(heal), target);
+            NWScript.ApplyEffectToObject(DURATION_TYPE_INSTANT, NWScript.EffectVisualEffect(VFX_IMP_HEALING_G), target);
         }
 
         public void OnPurchased(NWCreature creature, int newLevel)

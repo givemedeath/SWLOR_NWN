@@ -10,8 +10,9 @@ using SWLOR.Game.Server.Messaging;
 using SWLOR.Game.Server.NWNX;
 
 using SWLOR.Game.Server.ValueObject;
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
 using BaseStructureType = SWLOR.Game.Server.Enumeration.BaseStructureType;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Service
 {
@@ -83,7 +84,7 @@ namespace SWLOR.Game.Server.Service
             // Player is online. Give them the gold directly and notify them they sold an item.
             if (player != null && player.IsValid)
             {
-                _.GiveGoldToCreature(player, amount);
+                NWScript.GiveGoldToCreature(player, amount);
                 player.FloatingText("You sold an item on the Galactic Trade Network for " + amount + " credits.");
                 return;
             }
@@ -100,7 +101,7 @@ namespace SWLOR.Game.Server.Service
         /// </summary>
         private static void OnModuleEnter()
         {
-            NWPlayer player = _.GetEnteringObject();
+            NWPlayer player = NWScript.GetEnteringObject();
             if (!player.IsPlayer) return;
 
             Player dbPlayer = DataService.Player.GetByID(player.GlobalID);
@@ -108,7 +109,7 @@ namespace SWLOR.Game.Server.Service
             if (dbPlayer.GoldTill > 0)
             {
                 player.FloatingText("You sold goods on the GTN Market while you were offline. " + dbPlayer.GoldTill + " credits have been transferred to your account.");
-                _.GiveGoldToCreature(player, dbPlayer.GoldTill);
+                NWScript.GiveGoldToCreature(player, dbPlayer.GoldTill);
                 dbPlayer.GoldTill = 0;
                 DataService.SubmitDataChange(dbPlayer, DatabaseActionType.Update);
             }
@@ -260,12 +261,12 @@ namespace SWLOR.Game.Server.Service
             // Check item properties
             foreach (var prop in properties)
             {
-                var propertyType = _.GetItemPropertyType(prop);
+                var propertyType = NWScript.GetItemPropertyType(prop);
                 // Check for components
-                if (propertyType == (int) CustomItemPropertyType.ComponentType)
+                if (propertyType == (int) ItemPropertyType.ComponentType)
                 {
                     // IDs are mapped to the iprp_comptype.2da file.
-                    switch (_.GetItemPropertyCostTableValue(prop))
+                    switch (NWScript.GetItemPropertyCostTableValue(prop))
                     {
                         case 1: return 33;
                         case 2: return 34;
@@ -336,19 +337,19 @@ namespace SWLOR.Game.Server.Service
                 }
 
                 // Check for mods
-                if (propertyType == (int)CustomItemPropertyType.BlueMod)
+                if (propertyType == (int)ItemPropertyType.BlueMod)
                 {
                     return 98;
                 }
-                if (propertyType == (int)CustomItemPropertyType.GreenMod)
+                if (propertyType == (int)ItemPropertyType.GreenMod)
                 {
                     return 99;
                 }
-                if (propertyType == (int)CustomItemPropertyType.RedMod)
+                if (propertyType == (int)ItemPropertyType.RedMod)
                 {
                     return 100;
                 }
-                if (propertyType == (int)CustomItemPropertyType.YellowMod)
+                if (propertyType == (int)ItemPropertyType.YellowMod)
                 {
                     return 101;
                 }

@@ -10,6 +10,7 @@ using SWLOR.Game.Server.NWNX;
 using SWLOR.Game.Server.Service;
 using SWLOR.Game.Server.ValueObject;
 using ComponentType = SWLOR.Game.Server.Data.Entity.ComponentType;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Scripts.Placeable.MolecularReassembler
 {
@@ -34,14 +35,14 @@ namespace SWLOR.Game.Server.Scripts.Placeable.MolecularReassembler
             // Remove the immobilization effect
             foreach (var effect in _player.Effects)
             {
-                if (_.GetEffectTag(effect) == "CRAFTING_IMMOBILIZATION")
+                if (NWScript.GetEffectTag(effect) == "CRAFTING_IMMOBILIZATION")
                 {
-                    _.RemoveEffect(_player, effect);
+                    NWScript.RemoveEffect(_player, effect);
                 }
             }
 
             // Check for a fuel cell in the player's inventory again. If it doesn't exist, we exit early with an error message.
-            NWItem fuel = _.GetItemPossessedBy(_player, "ass_power");
+            NWItem fuel = NWScript.GetItemPossessedBy(_player, "ass_power");
             if (!fuel.IsValid)
             {
                 _player.SendMessage(ColorTokenService.Red("A 'Reassembly Fuel Cell' was not found in your inventory. Reassembly failed."));
@@ -53,13 +54,13 @@ namespace SWLOR.Game.Server.Scripts.Placeable.MolecularReassembler
 
             _playerItemStats = PlayerStatService.GetPlayerItemEffectiveStats(_player);
             string serializedSalvageItem = data.SerializedSalvageItem;
-            NWPlaceable tempStorage = _.GetObjectByTag("TEMP_ITEM_STORAGE");
+            NWPlaceable tempStorage = NWScript.GetObjectByTag("TEMP_ITEM_STORAGE");
             NWItem item = SerializationService.DeserializeItem(serializedSalvageItem, tempStorage);
             int salvageComponentTypeID = data.SalvageComponentTypeID;
             _componentType = DataService.ComponentType.GetByID(salvageComponentTypeID);
 
             // Create an item with no bonuses every time.
-            _.CreateItemOnObject(_componentType.ReassembledResref, _player);
+            NWScript.CreateItemOnObject(_componentType.ReassembledResref, _player);
 
             // Now check specific custom properties which are stored as local variables on the item.
             xp += ProcessProperty(item.HarvestingBonus, 3, ComponentBonusType.HarvestingUp);
@@ -118,7 +119,7 @@ namespace SWLOR.Game.Server.Scripts.Placeable.MolecularReassembler
 
             ItemPropertyUnpacked bonusIP = new ItemPropertyUnpacked
             {
-                Property = (int)CustomItemPropertyType.ComponentBonus,
+                Property = (int)ItemPropertyType.ComponentBonus,
                 SubType = (int)bonus,
                 CostTable = 62,
                 CostTableValue = 0,
@@ -151,7 +152,7 @@ namespace SWLOR.Game.Server.Scripts.Placeable.MolecularReassembler
                         // Roll succeeded. Create item.
                         bonusIP.CostTableValue = maxBonuses;
                         ItemProperty bonusIPPacked = NWNXItemProperty.PackIP(bonusIP);
-                        NWItem item = _.CreateItemOnObject(resref, _player);
+                        NWItem item = NWScript.CreateItemOnObject(resref, _player);
                         item.RecommendedLevel = levelIncrease;
                         BiowareXP2.IPSafeAddItemProperty(item, bonusIPPacked, 0.0f, AddItemPropertyPolicy.ReplaceExisting, true, false);
 
@@ -173,7 +174,7 @@ namespace SWLOR.Game.Server.Scripts.Placeable.MolecularReassembler
                         int levelIncrease = (int)(amount * levelsPerBonus);
                         bonusIP.CostTableValue = amount;
                         ItemProperty bonusIPPacked = NWNXItemProperty.PackIP(bonusIP);
-                        NWItem item = _.CreateItemOnObject(resref, _player);
+                        NWItem item = NWScript.CreateItemOnObject(resref, _player);
                         item.RecommendedLevel = levelIncrease;
                         BiowareXP2.IPSafeAddItemProperty(item, bonusIPPacked, 0.0f, AddItemPropertyPolicy.ReplaceExisting, true, false);
 

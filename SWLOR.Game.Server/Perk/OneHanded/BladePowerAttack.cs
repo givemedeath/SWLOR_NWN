@@ -6,7 +6,8 @@ using SWLOR.Game.Server.NWN.Enum;
 using SWLOR.Game.Server.NWNX;
 using SWLOR.Game.Server.Service;
 
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Perk.OneHanded
 {
@@ -80,13 +81,13 @@ namespace SWLOR.Game.Server.Perk.OneHanded
             {
                 NWNXCreature.RemoveFeat(creature, Feat.PowerAttack);
                 NWNXCreature.RemoveFeat(creature, Feat.ImprovedPowerAttack);
-                if (_.GetActionMode(creature, ACTION_MODE_POWER_ATTACK) == TRUE)
+                if (NWScript.GetActionMode(creature, ACTION_MODE_POWER_ATTACK) == TRUE)
                 {
-                    _.SetActionMode(creature, ACTION_MODE_POWER_ATTACK, FALSE);
+                    NWScript.SetActionMode(creature, ACTION_MODE_POWER_ATTACK, FALSE);
                 }
-                if (_.GetActionMode(creature, ACTION_MODE_IMPROVED_POWER_ATTACK) == TRUE)
+                if (NWScript.GetActionMode(creature, ACTION_MODE_IMPROVED_POWER_ATTACK) == TRUE)
                 {
-                    _.SetActionMode(creature, ACTION_MODE_IMPROVED_POWER_ATTACK, FALSE);
+                    NWScript.SetActionMode(creature, ACTION_MODE_IMPROVED_POWER_ATTACK, FALSE);
                 }
                 return;
             }

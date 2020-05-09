@@ -7,6 +7,7 @@ using SWLOR.Game.Server.Event.SWLOR;
 using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.Messaging;
 using SWLOR.Game.Server.ValueObject;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Scripts.Area
 {
@@ -38,8 +39,8 @@ namespace SWLOR.Game.Server.Scripts.Area
 
             for (int x = 1; x <= CopyCount; x++)
             {
-                NWArea copy = _.CopyArea(source);
-                copy.SetLocalInt("IS_AREA_INSTANCE", _.TRUE);
+                NWArea copy = NWScript.CopyArea(source);
+                copy.SetLocalInt("IS_AREA_INSTANCE", NWScript.TRUE);
                 copy.Data["BASE_SERVICE_STRUCTURES"] = new List<AreaStructure>();
                 MessageHub.Instance.Publish(new OnAreaInstanceCreated(copy));
             }

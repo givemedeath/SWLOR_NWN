@@ -17,7 +17,8 @@ using SWLOR.Game.Server.Event.SWLOR;
 using SWLOR.Game.Server.NWN;
 using SWLOR.Game.Server.NWN.Enum;
 using SWLOR.Game.Server.ValueObject;
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 using PerkExecutionType = SWLOR.Game.Server.Enumeration.PerkExecutionType;
 
 namespace SWLOR.Game.Server.Service
@@ -59,14 +60,14 @@ namespace SWLOR.Game.Server.Service
         /// </summary>
         private static void OnModuleEnter()
         {
-            NWPlayer pc = _.GetEnteringObject();
+            NWPlayer pc = NWScript.GetEnteringObject();
             if (!pc.IsPlayer) return;
 
             // Reapply the visual effect icon to player if they logged in with an active concentration ability.
             Player dbPlayer = DataService.Player.GetByID(pc.GlobalID);
             if (dbPlayer.ActiveConcentrationPerkID != null)
             {
-                _.ApplyEffectToObject(_.DURATION_TYPE_PERMANENT, _.EffectSkillIncrease(_.SKILL_USE_MAGIC_DEVICE, 1), pc);
+                NWScript.ApplyEffectToObject(NWScript.DURATION_TYPE_PERMANENT, NWScript.EffectSkillIncrease(NWScript.SKILL_USE_MAGIC_DEVICE, 1), pc);
                 ConcentratingCreatures.Add(pc.Object); // Ensure you use .Object because we need to add it as an NWCreature, not an NWPlayer
             }
         }
@@ -142,7 +143,7 @@ namespace SWLOR.Game.Server.Service
 
             // Activator and target must be in the same area and within line of sight.
             if (activator.Area.Resref != target.Area.Resref ||
-                    _.LineOfSightObject(activator.Object, target.Object) == FALSE)
+                    NWScript.LineOfSightObject(activator.Object, target.Object) == FALSE)
             {
                 activator.SendMessage("You cannot see your target.");
                 return false;
@@ -221,7 +222,7 @@ namespace SWLOR.Game.Server.Service
         {
             // Activator is the creature who used the feat.
             // Target is who the activator selected to use this feat on.
-            NWCreature activator = _.OBJECT_SELF;
+            NWCreature activator = NWScript.OBJECT_SELF;
             NWCreature target = NWNXObject.StringToObject(NWNXEvents.GetEventData("TARGET_OBJECT_ID"));
             int featID = Convert.ToInt32(NWNXEvents.GetEventData("FEAT_ID"));
 
@@ -379,7 +380,7 @@ namespace SWLOR.Game.Server.Service
 
             creature.DeleteLocalInt("ACTIVE_CONCENTRATION_ABILITY_TICK");
             creature.DeleteLocalObject("CONCENTRATION_TARGET");
-            creature.RemoveEffect(_.EFFECT_TYPE_SKILL_INCREASE); // Remove the effect icon.
+            creature.RemoveEffect(NWScript.EFFECT_TYPE_SKILL_INCREASE); // Remove the effect icon.
 
             ConcentratingCreatures.Remove(creature);
         }
@@ -435,7 +436,7 @@ namespace SWLOR.Game.Server.Service
                 }
                 // Is the target still within range and in the same area?
                 else if (creature.Area.Object != target.Area.Object ||
-                         _.GetDistanceBetween(creature, target) > 50.0f)
+                         NWScript.GetDistanceBetween(creature, target) > 50.0f)
                 {
                     creature.SendMessage("Concentration effect has ended because your target has gone out of range.");
                     EndConcentrationEffect(creature);
@@ -465,7 +466,7 @@ namespace SWLOR.Game.Server.Service
 
         private static void OnModuleDeath()
         {
-            NWPlayer player = _.GetLastPlayerDied();
+            NWPlayer player = NWScript.GetLastPlayerDied();
             if (!player.IsPlayer) return;
 
             EndConcentrationEffect(player);
@@ -539,11 +540,11 @@ namespace SWLOR.Game.Server.Service
             }
 
             // If player is in stealth mode, force them out of stealth mode.
-            if (_.GetActionMode(activator.Object, ACTION_MODE_STEALTH) == 1)
-                _.SetActionMode(activator.Object, ACTION_MODE_STEALTH, 0);
+            if (NWScript.GetActionMode(activator.Object, ACTION_MODE_STEALTH) == 1)
+                NWScript.SetActionMode(activator.Object, ACTION_MODE_STEALTH, 0);
 
             // Make the player face their target.
-            _.ClearAllActions();
+            NWScript.ClearAllActions();
             BiowarePosition.TurnToFaceObject(target, activator);
 
             // Force and Concentration Abilities will display a visual effect during the casting process.
@@ -562,16 +563,16 @@ namespace SWLOR.Game.Server.Service
             // If a VFX ID has been specified, play that effect instead of the default one.
             if (vfxID > -1)
             {
-                var vfx = _.EffectVisualEffect(vfxID);
-                vfx = _.TagEffect(vfx, "ACTIVATION_VFX");
-                _.ApplyEffectToObject(DURATION_TYPE_TEMPORARY, vfx, activator.Object, activationTime + 0.2f);
+                var vfx = NWScript.EffectVisualEffect(vfxID);
+                vfx = NWScript.TagEffect(vfx, "ACTIVATION_VFX");
+                NWScript.ApplyEffectToObject(DURATION_TYPE_TEMPORARY, vfx, activator.Object, activationTime + 0.2f);
             }
 
             // If an animation has been specified, make the player play that animation now.
             // bypassing if perk is throw saber due to couldn't get the animation to work via db table edit
             if (animationID > -1 && entity.ID != (int) PerkType.ThrowSaber)                
             {
-                activator.AssignCommand(() => _.ActionPlayAnimation(animationID, 1.0f, activationTime - 0.1f));
+                activator.AssignCommand(() => NWScript.ActionPlayAnimation(animationID, 1.0f, activationTime - 0.1f));
             }
 
             // Mark player as busy. Busy players can't take other actions (crafting, harvesting, etc.)
@@ -646,10 +647,10 @@ namespace SWLOR.Game.Server.Service
                 currentPosition.Y != position.Y ||
                 currentPosition.Z != position.Z)
             {
-                var effect = activator.Effects.SingleOrDefault(x => _.GetEffectTag(x) == "ACTIVATION_VFX");
+                var effect = activator.Effects.SingleOrDefault(x => NWScript.GetEffectTag(x) == "ACTIVATION_VFX");
                 if (effect != null)
                 {
-                    _.RemoveEffect(activator, effect);
+                    NWScript.RemoveEffect(activator, effect);
                 }
 
                 NWNXPlayer.StopGuiTimingBar(activator, "", -1);
@@ -659,7 +660,7 @@ namespace SWLOR.Game.Server.Service
                 return;
             }
 
-            _.DelayCommand(0.5f, () => { CheckForSpellInterruption(activator, spellUUID, position); });
+            NWScript.DelayCommand(0.5f, () => { CheckForSpellInterruption(activator, spellUUID, position); });
         }
 
         private static void HandleQueueWeaponSkill(NWCreature activator, Data.Entity.Perk entity, IPerkHandler ability, int spellFeatID)
@@ -677,7 +678,7 @@ namespace SWLOR.Game.Server.Service
             ApplyCooldown(activator, cooldownCategory, ability, perkFeat.PerkLevelUnlocked, 0.0f);
 
             // Player must attack within 30 seconds after queueing or else it wears off.
-            _.DelayCommand(30f, () =>
+            NWScript.DelayCommand(30f, () =>
             {
                 if (activator.GetLocalString("ACTIVE_WEAPON_SKILL_UUID") == queueUUID)
                 {
@@ -797,17 +798,17 @@ namespace SWLOR.Game.Server.Service
 
         private static void OnHitCastSpell()
         {
-            NWPlayer oPC = _.OBJECT_SELF;
+            NWPlayer oPC = NWScript.OBJECT_SELF;
             if (!oPC.IsValid) return;
 
-            NWObject oTarget = _.GetSpellTargetObject();
-            NWItem oItem = _.GetSpellCastItem();
+            NWObject oTarget = NWScript.GetSpellTargetObject();
+            NWItem oItem = NWScript.GetSpellCastItem();
 
             // If this method was triggered by our own armor (from getting hit), return. 
             if (oItem.BaseItemType == BASE_ITEM_ARMOR) return;
 
             // Flag this attack as physical so that the damage scripts treat it properly.
-            LoggingService.Trace(TraceComponent.LastAttack, "Setting attack type from " + oPC.GlobalID + " against " + _.GetName(oTarget) + " to physical (" + ATTACK_PHYSICAL.ToString() + ")");
+            LoggingService.Trace(TraceComponent.LastAttack, "Setting attack type from " + oPC.GlobalID + " against " + NWScript.GetName(oTarget) + " to physical (" + ATTACK_PHYSICAL.ToString() + ")");
             oTarget.SetLocalInt(LAST_ATTACK + oPC.GlobalID, ATTACK_PHYSICAL);
 
             HandleGrenadeProficiency(oPC, oTarget);
@@ -843,12 +844,12 @@ namespace SWLOR.Game.Server.Service
         public static void HandlePlasmaCellPerk(NWPlayer player, NWObject target)
         {
             if (!player.IsPlayer) return;
-            if (!_.GetHasFeat(Feat.PlasmaCell, player)) return;  // Check if player has the perk
+            if (!NWScript.GetHasFeat(Feat.PlasmaCell, player)) return;  // Check if player has the perk
             if (player.RightHand.CustomItemType != CustomItemType.BlasterPistol &&
                 player.RightHand.CustomItemType != CustomItemType.BlasterRifle) return; // Check if player has the right weapons
-            if (target.GetLocalInt("TRANQUILIZER_EFFECT_FIRST_RUN") == _.TRUE) return;   // Check if Tranquilizer is on to avoid conflict
-            if (player.GetLocalInt("PLASMA_CELL_TOGGLE_OFF") == _.TRUE) return;  // Check if Plasma Cell toggle is on or off
-            if (target.GetLocalInt("TRANQUILIZER_EFFECT_FIRST_RUN") == _.TRUE) return;
+            if (target.GetLocalInt("TRANQUILIZER_EFFECT_FIRST_RUN") == NWScript.TRUE) return;   // Check if Tranquilizer is on to avoid conflict
+            if (player.GetLocalInt("PLASMA_CELL_TOGGLE_OFF") == NWScript.TRUE) return;  // Check if Plasma Cell toggle is on or off
+            if (target.GetLocalInt("TRANQUILIZER_EFFECT_FIRST_RUN") == NWScript.TRUE) return;
 
             int perkLevel = PerkService.GetCreaturePerkLevel(player, PerkType.PlasmaCell);
             int chance;
@@ -911,7 +912,7 @@ namespace SWLOR.Game.Server.Service
 
         private static void HandleGrenadeProficiency(NWPlayer oPC, NWObject target)
         {
-            NWItem weapon = _.GetSpellCastItem();
+            NWItem weapon = NWScript.GetSpellCastItem();
             if (weapon.BaseItemType != BASE_ITEM_GRENADE) return;
 
             int perkLevel = PerkService.GetCreaturePerkLevel(oPC, PerkType.GrenadeProficiency);
@@ -939,7 +940,7 @@ namespace SWLOR.Game.Server.Service
 
             if (RandomService.D100(1) <= chance)
             {
-                _.ApplyEffectToObject(DURATION_TYPE_TEMPORARY, _.EffectKnockdown(), target, duration);
+                NWScript.ApplyEffectToObject(DURATION_TYPE_TEMPORARY, NWScript.EffectKnockdown(), target, duration);
             }
         }
 
@@ -1006,12 +1007,12 @@ namespace SWLOR.Game.Server.Service
         {
             const float MaxDistance = 10.0f;
             int nth = 1;
-            NWCreature nearby = _.GetNearestCreature(CREATURE_TYPE_IS_ALIVE, TRUE, sender, nth);
+            NWCreature nearby = NWScript.GetNearestCreature(CREATURE_TYPE_IS_ALIVE, TRUE, sender, nth);
             while (nearby.IsValid && GetDistanceBetween(sender, nearby) <= MaxDistance)
             {
                 nearby.SendMessage(message);
                 nth++;
-                nearby = _.GetNearestCreature(CREATURE_TYPE_IS_ALIVE, TRUE, sender, nth);
+                nearby = NWScript.GetNearestCreature(CREATURE_TYPE_IS_ALIVE, TRUE, sender, nth);
             }
         }
     }

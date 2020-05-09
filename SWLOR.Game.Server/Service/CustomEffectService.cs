@@ -16,6 +16,7 @@ using SWLOR.Game.Server.Perk;
 using SWLOR.Game.Server.Processor;
 
 using SWLOR.Game.Server.ValueObject;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Service
 {
@@ -80,7 +81,7 @@ namespace SWLOR.Game.Server.Service
 
         private static void OnModuleEnter()
         {
-            NWPlayer player = _.GetEnteringObject();
+            NWPlayer player = NWScript.GetEnteringObject();
             if (!player.IsPlayer) return;
 
             var pcEffect = DataService.PCCustomEffect.GetByPlayerStanceOrDefault(player.GlobalID);
@@ -176,7 +177,7 @@ namespace SWLOR.Game.Server.Service
             pcEffect.CustomEffectID = customEffectID;
             pcEffect.EffectiveLevel = effectiveLevel;
             pcEffect.Ticks = ticks;
-            pcEffect.CasterNWNObjectID = _.ObjectToString(caster);
+            pcEffect.CasterNWNObjectID = NWScript.ObjectToString(caster);
             DataService.SubmitDataChange(pcEffect, action);
 
             target.SendMessage(handler.StartMessage);
@@ -285,7 +286,7 @@ namespace SWLOR.Game.Server.Service
                 PlayerID = creature.GlobalID,
                 Ticks = -1,
                 CustomEffectID = customEffectID,
-                CasterNWNObjectID = _.ObjectToString(creature),
+                CasterNWNObjectID = NWScript.ObjectToString(creature),
                 EffectiveLevel = effectiveLevel,
                 StancePerkID = (int)perkType
             };
@@ -457,7 +458,7 @@ namespace SWLOR.Game.Server.Service
             if (!string.IsNullOrWhiteSpace(effect.CasterNWNObjectID))
             {
                 var obj = NWNXObject.StringToObject(effect.CasterNWNObjectID);
-                if (_.GetIsObjectValid(obj) == 1)
+                if (NWScript.GetIsObjectValid(obj) == 1)
                 {
                     caster = obj;
                 }

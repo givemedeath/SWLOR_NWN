@@ -6,13 +6,14 @@ using SWLOR.Game.Server.GameObject;
 using NWN;
 
 
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
 using SWLOR.Game.Server.Data.Entity;
 using SWLOR.Game.Server.Event.Area;
 using SWLOR.Game.Server.Event.Module;
 using SWLOR.Game.Server.Messaging;
 using SWLOR.Game.Server.NWN.Enum;
 using SWLOR.Game.Server.NWNX;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 using Skill = SWLOR.Game.Server.NWN.Enum.Skill;
 
 namespace SWLOR.Game.Server.Service
@@ -39,7 +40,7 @@ namespace SWLOR.Game.Server.Service
             {
                 if (!DataService.Player.ExistsByID(player.GlobalID))
                 {
-                    _.SetTag(player, string.Empty);
+                    NWScript.SetTag(player, string.Empty);
                 }
             }
 
@@ -47,11 +48,11 @@ namespace SWLOR.Game.Server.Service
             {
                 player.DestroyAllInventoryItems();
                 player.InitializePlayer();
-                _.AssignCommand(player, () => _.TakeGoldFromCreature(_.GetGold(player), player, 1));
+                NWScript.AssignCommand(player, () => NWScript.TakeGoldFromCreature(NWScript.GetGold(player), player, 1));
 
-                _.DelayCommand(0.5f, () =>
+                NWScript.DelayCommand(0.5f, () =>
                 {
-                    _.GiveGoldToCreature(player, 100);
+                    NWScript.GiveGoldToCreature(player, 100);
                 });
 
                 // Capture original stats before we level up the player.
@@ -63,11 +64,11 @@ namespace SWLOR.Game.Server.Service
                 int cha = NWNXCreature.GetRawAbilityScore(player, AbilityType.Charisma);
 
                 // Take player to level 5 in NWN levels so that we have access to more HP slots
-                _.GiveXPToCreature(player, 10000);
+                NWScript.GiveXPToCreature(player, 10000);
 
                 for (int level = 1; level <= 5; level++)
                 {
-                    _.LevelUpHenchman(player, player.Class1);
+                    NWScript.LevelUpHenchman(player, player.Class1);
                 }
 
                 // Set stats back to how they were on entry.
@@ -78,17 +79,17 @@ namespace SWLOR.Game.Server.Service
                 NWNXCreature.SetRawAbilityScore(player, AbilityType.Wisdom, wis);
                 NWNXCreature.SetRawAbilityScore(player, AbilityType.Charisma, cha);
 
-                NWItem knife = (_.CreateItemOnObject("survival_knife", player));
+                NWItem knife = (NWScript.CreateItemOnObject("survival_knife", player));
                 knife.Name = player.Name + "'s Survival Knife";
                 knife.IsCursed = true;
                 DurabilityService.SetMaxDurability(knife, 5);
                 DurabilityService.SetDurability(knife, 5);
                 
-                NWItem book = (_.CreateItemOnObject("player_guide", player));
+                NWItem book = (NWScript.CreateItemOnObject("player_guide", player));
                 book.Name = player.Name + "'s Player Guide";
                 book.IsCursed = true;
 
-                NWItem dyeKit = (_.CreateItemOnObject("tk_omnidye", player));
+                NWItem dyeKit = (NWScript.CreateItemOnObject("tk_omnidye", player));
                 dyeKit.IsCursed = true;
                 
                 int numberOfFeats = NWNXCreature.GetFeatCount(player);
@@ -117,11 +118,11 @@ namespace SWLOR.Game.Server.Service
 
                     NWNXCreature.SetSkillRank(player, skill, 0);
                 }
-                _.SetFortitudeSavingThrow(player, 0);
-                _.SetReflexSavingThrow(player, 0);
-                _.SetWillSavingThrow(player, 0);
+                NWScript.SetFortitudeSavingThrow(player, 0);
+                NWScript.SetReflexSavingThrow(player, 0);
+                NWScript.SetWillSavingThrow(player, 0);
 
-                var classType = _.GetClassByPosition(1, player);
+                var classType = NWScript.GetClassByPosition(1, player);
 
                 for (int index = 0; index <= 255; index++)
                 {
@@ -154,7 +155,7 @@ namespace SWLOR.Game.Server.Service
                 PlayerStatService.ApplyStatChanges(player, null, true);
                 LanguageService.InitializePlayerLanguages(player);
 
-                _.DelayCommand(1.0f, () => _.ApplyEffectToObject(DURATION_TYPE_INSTANT, _.EffectHeal(999), player));
+                NWScript.DelayCommand(1.0f, () => NWScript.ApplyEffectToObject(DURATION_TYPE_INSTANT, NWScript.EffectHeal(999), player));
 
                 InitializeHotBar(player);
             }
@@ -165,8 +166,8 @@ namespace SWLOR.Game.Server.Service
         {
             CustomRaceType race = (CustomRaceType)player.RacialType;
             AssociationType assType; 
-            int goodEvil = _.GetAlignmentGoodEvil(player);
-            int lawChaos = _.GetAlignmentLawChaos(player);
+            int goodEvil = NWScript.GetAlignmentGoodEvil(player);
+            int lawChaos = NWScript.GetAlignmentLawChaos(player);
             
             // Jedi Order -- Mandalorian -- Sith Empire
             if(goodEvil == ALIGNMENT_GOOD && lawChaos == ALIGNMENT_LAWFUL)
@@ -223,7 +224,7 @@ namespace SWLOR.Game.Server.Service
                 ID = player.GlobalID,
                 CharacterName = player.Name,
                 HitPoints = player.CurrentHP,
-                LocationAreaResref = _.GetResRef(_.GetAreaFromLocation(player.Location)),
+                LocationAreaResref = NWScript.GetResRef(NWScript.GetAreaFromLocation(player.Location)),
                 LocationX = player.Position.X,
                 LocationY = player.Position.Y,
                 LocationZ = player.Position.Z,
@@ -280,16 +281,16 @@ namespace SWLOR.Game.Server.Service
 
         private static void OnAreaEnter()
         {
-            NWPlayer player = (_.GetEnteringObject());
+            NWPlayer player = (NWScript.GetEnteringObject());
 
             SaveLocation(player);
             if(player.IsPlayer)
-                _.ExportSingleCharacter(player);
+                NWScript.ExportSingleCharacter(player);
         }
 
         private static void LoadCharacter()
         {
-            NWPlayer player = _.GetEnteringObject();
+            NWPlayer player = NWScript.GetEnteringObject();
             if (!player.IsPlayer) return;
 
             Player entity = GetPlayerEntity(player.GlobalID);
@@ -309,17 +310,17 @@ namespace SWLOR.Game.Server.Service
 
             if (damage != 0)
             {
-                _.ApplyEffectToObject(DURATION_TYPE_INSTANT, _.EffectDamage(damage), player);
+                NWScript.ApplyEffectToObject(DURATION_TYPE_INSTANT, NWScript.EffectDamage(damage), player);
             }
 
             player.IsBusy = false; // Just in case player logged out in the middle of an action.
 
             // Cleanup code in case people log out as spaceships.
             int appearance = player.Chest.GetLocalInt("APPEARANCE");
-            if (appearance > 0 && appearance != _.GetAppearanceType(player))
+            if (appearance > 0 && appearance != NWScript.GetAppearanceType(player))
             {
-                _.SetCreatureAppearanceType(player, appearance);
-                _.SetObjectVisualTransform(player, OBJECT_VISUAL_TRANSFORM_SCALE, 1.0f);
+                NWScript.SetCreatureAppearanceType(player, appearance);
+                NWScript.SetObjectVisualTransform(player, OBJECT_VISUAL_TRANSFORM_SCALE, 1.0f);
             }
         }
 
@@ -333,11 +334,11 @@ namespace SWLOR.Game.Server.Service
 
         private static void ShowMOTD()
         {
-            NWPlayer player = _.GetEnteringObject();
+            NWPlayer player = NWScript.GetEnteringObject();
             ServerConfiguration config = DataService.ServerConfiguration.Get();
             string message = ColorTokenService.Green("Welcome to " + config.ServerName + "!\n\nMOTD: ") + ColorTokenService.White(config.MessageOfTheDay);
 
-            _.DelayCommand(6.5f, () =>
+            NWScript.DelayCommand(6.5f, () =>
             {
                 player.SendMessage(message);
             });
@@ -345,42 +346,42 @@ namespace SWLOR.Game.Server.Service
 
         private static void ApplyGhostwalk()
         {
-            NWPlayer oPC = _.GetEnteringObject();
+            NWPlayer oPC = NWScript.GetEnteringObject();
 
             if (!oPC.IsPlayer) return;
 
-            var eGhostWalk = _.EffectCutsceneGhost();
-            eGhostWalk = _.TagEffect(eGhostWalk, "GHOST_WALK");
-            _.ApplyEffectToObject(_.DURATION_TYPE_PERMANENT, eGhostWalk, oPC.Object);
+            var eGhostWalk = NWScript.EffectCutsceneGhost();
+            eGhostWalk = NWScript.TagEffect(eGhostWalk, "GHOST_WALK");
+            NWScript.ApplyEffectToObject(NWScript.DURATION_TYPE_PERMANENT, eGhostWalk, oPC.Object);
 
         }
 
         private static void ApplyScriptEvents()
         {
-            NWPlayer player = _.GetEnteringObject();
+            NWPlayer player = NWScript.GetEnteringObject();
             if (!player.IsPlayer) return;
 
             // As of 2018-03-28 only the OnDialogue, OnHeartbeat, and OnUserDefined events fire for PCs.
             // The rest are included here for completeness sake.
 
             //_.SetEventScript(oPC.Object, EVENT_SCRIPT_CREATURE_ON_BLOCKED_BY_DOOR, "pc_on_blocked");
-            _.SetEventScript(player.Object, _.EVENT_SCRIPT_CREATURE_ON_DAMAGED, "pc_on_damaged");
+            NWScript.SetEventScript(player.Object, NWScript.EVENT_SCRIPT_CREATURE_ON_DAMAGED, "pc_on_damaged");
             //_.SetEventScript(oPC.Object, EVENT_SCRIPT_CREATURE_ON_DEATH, "pc_on_death");
-            _.SetEventScript(player.Object, _.EVENT_SCRIPT_CREATURE_ON_DIALOGUE, "default");
+            NWScript.SetEventScript(player.Object, NWScript.EVENT_SCRIPT_CREATURE_ON_DIALOGUE, "default");
             //_.SetEventScript(oPC.Object, EVENT_SCRIPT_CREATURE_ON_DISTURBED, "pc_on_disturb");
             //_.SetEventScript(oPC.Object, EVENT_SCRIPT_CREATURE_ON_END_COMBATROUND, "pc_on_endround");
-            _.SetEventScript(player.Object, _.EVENT_SCRIPT_CREATURE_ON_HEARTBEAT, "pc_on_heartbeat");
+            NWScript.SetEventScript(player.Object, NWScript.EVENT_SCRIPT_CREATURE_ON_HEARTBEAT, "pc_on_heartbeat");
             //_.SetEventScript(oPC.Object, EVENT_SCRIPT_CREATURE_ON_MELEE_ATTACKED, "pc_on_attacked");
             //_.SetEventScript(oPC.Object, EVENT_SCRIPT_CREATURE_ON_NOTICE, "pc_on_notice");
             //_.SetEventScript(oPC.Object, EVENT_SCRIPT_CREATURE_ON_RESTED, "pc_on_rested");
             //_.SetEventScript(oPC.Object, EVENT_SCRIPT_CREATURE_ON_SPAWN_IN, "pc_on_spawn");
             //_.SetEventScript(oPC.Object, EVENT_SCRIPT_CREATURE_ON_SPELLCASTAT, "pc_on_spellcast");
-            _.SetEventScript(player.Object, _.EVENT_SCRIPT_CREATURE_ON_USER_DEFINED_EVENT, "pc_on_user");
+            NWScript.SetEventScript(player.Object, NWScript.EVENT_SCRIPT_CREATURE_ON_USER_DEFINED_EVENT, "pc_on_user");
         }
 
         private static void OnModuleLeave()
         {
-            NWPlayer player = _.GetExitingObject();
+            NWPlayer player = NWScript.GetExitingObject();
             SaveCharacter(player);
             SaveLocation(player);
         }
@@ -404,7 +405,7 @@ namespace SWLOR.Game.Server.Service
             NWArea area = player.Area;
             if (area.IsValid && area.Tag != "ooc_area" && area.Tag != "tutorial" && !area.IsInstance)
             {
-                LoggingService.Trace(TraceComponent.Space, "Saving location in area " + _.GetName(area));
+                LoggingService.Trace(TraceComponent.Space, "Saving location in area " + NWScript.GetName(area));
                 Player entity = GetPlayerEntity(player.GlobalID);
                 entity.LocationAreaResref = area.Resref;
                 entity.LocationX = player.Position.X;
@@ -415,7 +416,7 @@ namespace SWLOR.Game.Server.Service
 
                 if (string.IsNullOrWhiteSpace(entity.RespawnAreaResref))
                 {
-                    NWObject waypoint = _.GetWaypointByTag("DTH_DEFAULT_RESPAWN_POINT");
+                    NWObject waypoint = NWScript.GetWaypointByTag("DTH_DEFAULT_RESPAWN_POINT");
                     entity.RespawnAreaResref = waypoint.Area.Resref;
                     entity.RespawnLocationOrientation = waypoint.Facing;
                     entity.RespawnLocationX = waypoint.Position.X;
@@ -427,7 +428,7 @@ namespace SWLOR.Game.Server.Service
             }
             else if (area.IsInstance)
             {
-                LoggingService.Trace(TraceComponent.Space, "Saving location in instance area " + _.GetName(area));
+                LoggingService.Trace(TraceComponent.Space, "Saving location in instance area " + NWScript.GetName(area));
                 string instanceID = area.GetLocalString("PC_BASE_STRUCTURE_ID");
                 if (string.IsNullOrWhiteSpace(instanceID))
                 {
@@ -466,7 +467,7 @@ namespace SWLOR.Game.Server.Service
 
         private static void OnModuleUseFeat()
         {
-            NWPlayer pc = (_.OBJECT_SELF);
+            NWPlayer pc = (NWScript.OBJECT_SELF);
             int featID = Convert.ToInt32(NWNXEvents.GetEventData("FEAT_ID"));
 
             if (featID != (int)Feat.OpenRestMenu) return;
@@ -520,7 +521,7 @@ namespace SWLOR.Game.Server.Service
                             amount += sturdinessLevel + 1;
                         }
                     }
-                    _.ApplyEffectToObject(_.DURATION_TYPE_INSTANT, _.EffectHeal(amount), oPC.Object);
+                    NWScript.ApplyEffectToObject(DurationType.Instant, NWScript.EffectHeal(amount), oPC.Object);
                 }
 
                 entity.RegenerationTick = rate;
@@ -569,7 +570,7 @@ namespace SWLOR.Game.Server.Service
 
             if (currentTick >= 10)
             {
-                _.ExportAllCharacters();
+                NWScript.ExportAllCharacters();
                 currentTick = 0;
             }
 

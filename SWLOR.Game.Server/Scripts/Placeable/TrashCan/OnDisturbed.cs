@@ -1,5 +1,6 @@
 ﻿using NWN;
 using SWLOR.Game.Server.GameObject;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Scripts.Placeable.TrashCan
 {
@@ -15,10 +16,10 @@ namespace SWLOR.Game.Server.Scripts.Placeable.TrashCan
 
         public void Main()
         {
-            NWItem oItem = (_.GetInventoryDisturbItem());
-            int type = _.GetInventoryDisturbType();
+            NWItem oItem = (NWScript.GetInventoryDisturbItem());
+            int type = NWScript.GetInventoryDisturbType();
 
-            if (type == _.INVENTORY_DISTURB_TYPE_ADDED)
+            if (type == NWScript.INVENTORY_DISTURB_TYPE_ADDED)
             {
                 oItem.Destroy();
             }

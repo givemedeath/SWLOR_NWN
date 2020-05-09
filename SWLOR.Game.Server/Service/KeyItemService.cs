@@ -7,6 +7,7 @@ using SWLOR.Game.Server.Enumeration;
 using SWLOR.Game.Server.Event.Module;
 using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.Messaging;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 
 namespace SWLOR.Game.Server.Service
@@ -80,11 +81,11 @@ namespace SWLOR.Game.Server.Service
 
         private static void OnModuleItemAcquired()
         {
-            NWPlayer oPC = (_.GetModuleItemAcquiredBy());
+            NWPlayer oPC = (NWScript.GetModuleItemAcquiredBy());
 
             if (!oPC.IsPlayer) return;
 
-            NWItem oItem = (_.GetModuleItemAcquired());
+            NWItem oItem = (NWScript.GetModuleItemAcquired());
             int keyItemID = oItem.GetLocalInt("KEY_ITEM_ID");
 
             if (keyItemID <= 0) return;

@@ -4,6 +4,7 @@ using SWLOR.Game.Server.Data.Entity;
 using SWLOR.Game.Server.Enumeration;
 using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.Service;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.ChatCommand
 {
@@ -24,7 +25,7 @@ namespace SWLOR.Game.Server.ChatCommand
             Player dbPlayer = DataService.Player.GetByID(target.GlobalID);
             dbPlayer.SpecializationID = (SpecializationType) type;
             DataService.SubmitDataChange(dbPlayer, DatabaseActionType.Update);
-            _.SendMessageToPC(target, "A DM has set your Force Specialization type to " + type);
+            NWScript.SendMessageToPC(target, "A DM has set your Force Specialization type to " + type);
         }
 
         public bool RequiresTarget => true;

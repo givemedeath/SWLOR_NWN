@@ -4,6 +4,7 @@ using SWLOR.Game.Server.GameObject;
 using NWN;
 using SWLOR.Game.Server.NWN;
 using SWLOR.Game.Server.Service;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 
 namespace SWLOR.Game.Server.Perk.Shields
@@ -77,8 +78,8 @@ namespace SWLOR.Game.Server.Perk.Shields
 
             if (RandomService.Random(100) + 1 <= chance)
             {
-                Effect heal = _.EffectHeal(amount);
-                _.ApplyEffectToObject(_.DURATION_TYPE_INSTANT, heal, creature.Object);
+                Effect heal = NWScript.EffectHeal(amount);
+                NWScript.ApplyEffectToObject(DurationType.Instant, heal, creature.Object);
             }
         }
 

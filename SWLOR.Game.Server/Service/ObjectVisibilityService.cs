@@ -8,7 +8,8 @@ using SWLOR.Game.Server.Messaging;
 using SWLOR.Game.Server.NWNX;
 
 
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Service
 {
@@ -24,7 +25,7 @@ namespace SWLOR.Game.Server.Service
         {
             foreach (var area in NWModule.Get().Areas)
             {
-                NWObject obj = _.GetFirstObjectInArea(area);
+                NWObject obj = NWScript.GetFirstObjectInArea(area);
                 while (obj.IsValid)
                 {
                     string visibilityObjectID = obj.GetLocalString("VISIBILITY_OBJECT_ID");
@@ -33,7 +34,7 @@ namespace SWLOR.Game.Server.Service
                         AppCache.VisibilityObjects.Add(visibilityObjectID, obj);
                     }
 
-                    obj = _.GetNextObjectInArea(area);
+                    obj = NWScript.GetNextObjectInArea(area);
                 }
             }
         }
@@ -41,7 +42,7 @@ namespace SWLOR.Game.Server.Service
 
         private static void OnModuleEnter()
         {
-            NWPlayer player = _.GetEnteringObject();
+            NWPlayer player = NWScript.GetEnteringObject();
             if (!player.IsPlayer) return;
             
             var visibilities = DataService.PCObjectVisibility.GetAllByPlayerID(player.GlobalID).ToList();
@@ -118,7 +119,7 @@ namespace SWLOR.Game.Server.Service
             {
                 target.AssignCommand(() =>
                 {
-                    _.SpeakString("Unable to locate VISIBILITY_OBJECT_ID variable. Need this in order to adjust visibility. Notify an admin if you see this message.");
+                    NWScript.SpeakString("Unable to locate VISIBILITY_OBJECT_ID variable. Need this in order to adjust visibility. Notify an admin if you see this message.");
                 });
                 return;
             }

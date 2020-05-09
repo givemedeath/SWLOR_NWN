@@ -14,9 +14,9 @@ namespace NWN.Scripts
         // ReSharper disable once UnusedMember.Local
         public static void Main()
         {
-            NWObject equipper = _.OBJECT_SELF;
+            NWObject equipper = SWLOR.Game.Server.NWN.NWScript.OBJECT_SELF;
             // Bioware Default
-            _.ExecuteScript("x2_mod_def_unequ", equipper);
+            SWLOR.Game.Server.NWN.NWScript.ExecuteScript("x2_mod_def_unequ", equipper);
 
             MessageHub.Instance.Publish(new OnModuleUnequipItem());
         }

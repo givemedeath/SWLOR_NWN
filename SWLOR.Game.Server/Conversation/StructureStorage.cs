@@ -7,7 +7,8 @@ using SWLOR.Game.Server.NWN;
 using SWLOR.Game.Server.Service;
 
 using SWLOR.Game.Server.ValueObject.Dialog;
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Conversation
 {
@@ -159,15 +160,15 @@ namespace SWLOR.Game.Server.Conversation
 
             string structureID = chest.GetLocalString("PC_BASE_STRUCTURE_ID");
             Location location = oPC.Location;
-            NWPlaceable copy = (_.CreateObject(OBJECT_TYPE_PLACEABLE, "str_storage_copy", location));
+            NWPlaceable copy = (NWScript.CreateObject(OBJECT_TYPE_PLACEABLE, "str_storage_copy", location));
             copy.Name = chest.Name;
-            copy.AssignCommand(() => _.SetFacingPoint(oPC.Position));
+            copy.AssignCommand(() => NWScript.SetFacingPoint(oPC.Position));
 
             chest.SetLocalObject("STRUCTURE_TEMP_INVENTORY_OPENED", copy.Object);
             copy.SetLocalObject("STRUCTURE_TEMP_PARENT", chest.Object);
             copy.SetLocalString("PC_BASE_STRUCTURE_ID", structureID);
 
-            oPC.AssignCommand(() => _.ActionInteractObject(copy.Object));
+            oPC.AssignCommand(() => NWScript.ActionInteractObject(copy.Object));
         }
 
     }

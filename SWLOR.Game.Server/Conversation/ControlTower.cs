@@ -8,7 +8,8 @@ using SWLOR.Game.Server.NWN;
 using SWLOR.Game.Server.Service;
 
 using SWLOR.Game.Server.ValueObject.Dialog;
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Conversation
 {
@@ -163,8 +164,8 @@ namespace SWLOR.Game.Server.Conversation
             var structure = DataService.PCBaseStructure.GetByID(structureID);
             var pcBase = DataService.PCBase.GetByID(structure.PCBaseID);
             Location location = oPC.Location;
-            bay = _.CreateObject(OBJECT_TYPE_PLACEABLE, "fuel_bay", location);
-            bay.AssignCommand(() => _.SetFacingPoint(oPC.Position));
+            bay = NWScript.CreateObject(OBJECT_TYPE_PLACEABLE, "fuel_bay", location);
+            bay.AssignCommand(() => NWScript.SetFacingPoint(oPC.Position));
 
             tower.SetLocalObject("CONTROL_TOWER_FUEL_BAY", bay.Object);
             bay.SetLocalObject("CONTROL_TOWER_PARENT", tower.Object);
@@ -173,17 +174,17 @@ namespace SWLOR.Game.Server.Conversation
             if (isStronidium)
             {
                 if(pcBase.ReinforcedFuel > 0)
-                    _.CreateItemOnObject("stronidium", bay.Object, pcBase.ReinforcedFuel);
+                    NWScript.CreateItemOnObject("stronidium", bay.Object, pcBase.ReinforcedFuel);
 
                 bay.SetLocalInt("CONTROL_TOWER_FUEL_TYPE", 1);
             }
             else
             {
                 if (pcBase.Fuel > 0)
-                    _.CreateItemOnObject("fuel_cell", bay.Object, pcBase.Fuel);
+                    NWScript.CreateItemOnObject("fuel_cell", bay.Object, pcBase.Fuel);
             }
 
-            oPC.AssignCommand(() => _.ActionInteractObject(bay.Object));
+            oPC.AssignCommand(() => NWScript.ActionInteractObject(bay.Object));
         }
 
         private void OpenResourceBay()
@@ -210,7 +211,7 @@ namespace SWLOR.Game.Server.Conversation
             Guid structureID = new Guid(tower.GetLocalString("PC_BASE_STRUCTURE_ID"));
             var structureItems = DataService.PCBaseStructureItem.GetAllByPCBaseStructureID(structureID);
             Location location = oPC.Location;
-            bay = _.CreateObject(OBJECT_TYPE_PLACEABLE, "resource_bay", location);
+            bay = NWScript.CreateObject(OBJECT_TYPE_PLACEABLE, "resource_bay", location);
 
             tower.SetLocalObject("CONTROL_TOWER_RESOURCE_BAY", bay.Object);
             bay.SetLocalObject("CONTROL_TOWER_PARENT", tower.Object);
@@ -221,7 +222,7 @@ namespace SWLOR.Game.Server.Conversation
                 SerializationService.DeserializeItem(item.ItemObject, bay);
             }
 
-            oPC.AssignCommand(() => _.ActionInteractObject(bay.Object));
+            oPC.AssignCommand(() => NWScript.ActionInteractObject(bay.Object));
         }
 
     }

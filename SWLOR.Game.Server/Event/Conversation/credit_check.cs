@@ -13,16 +13,16 @@ namespace NWN.Scripts
         {
             using (new Profiler(nameof(credit_check)))
             {
-                NWPlayer oPC = _.GetPCSpeaker();
-                NWObject oNPC = _.OBJECT_SELF;
-                int nGold = _.GetGold(oPC);
-                int reqGold = _.GetLocalInt(oNPC, "gold");
+                NWPlayer oPC = SWLOR.Game.Server.NWN.NWScript.GetPCSpeaker();
+                NWObject oNPC = SWLOR.Game.Server.NWN.NWScript.OBJECT_SELF;
+                int nGold = SWLOR.Game.Server.NWN.NWScript.GetGold(oPC);
+                int reqGold = SWLOR.Game.Server.NWN.NWScript.GetLocalInt(oNPC, "gold");
                 if (nGold > reqGold)
                 {
-                    return _.TRUE;
+                    return SWLOR.Game.Server.NWN.NWScript.TRUE;
                 }
 
-                return _.FALSE;
+                return SWLOR.Game.Server.NWN.NWScript.FALSE;
             }
         }
     }

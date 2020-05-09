@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using NWN;
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.GameObject
 {
@@ -12,17 +13,17 @@ namespace SWLOR.Game.Server.GameObject
             
         }
 
-        public int Width => _.GetAreaSize(AREA_WIDTH, Object);
+        public int Width => NWScript.GetAreaSize(AREA_WIDTH, Object);
 
-        public int Height => _.GetAreaSize(AREA_HEIGHT, Object);
+        public int Height => NWScript.GetAreaSize(AREA_HEIGHT, Object);
 
-        public bool IsInstance => _.GetLocalInt(Object, "IS_AREA_INSTANCE") == TRUE;
+        public bool IsInstance => NWScript.GetLocalInt(Object, "IS_AREA_INSTANCE") == TRUE;
 
         public IEnumerable<NWObject> Objects
         {
             get
             {
-                for (NWObject obj = _.GetFirstObjectInArea(Object); obj.IsValid; obj = _.GetNextObjectInArea(Object))
+                for (NWObject obj = NWScript.GetFirstObjectInArea(Object); obj.IsValid; obj = NWScript.GetNextObjectInArea(Object))
                 {
                     yield return obj;
                 }

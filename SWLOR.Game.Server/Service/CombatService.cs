@@ -9,7 +9,8 @@ using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.Messaging;
 using SWLOR.Game.Server.NWNX;
 using SWLOR.Game.Server.ValueObject;
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Service
 {
@@ -25,11 +26,11 @@ namespace SWLOR.Game.Server.Service
             DamageEventData data = NWNXDamage.GetDamageEventData();
 
             NWPlayer player = data.Damager.Object;
-            NWCreature target = _.OBJECT_SELF;
+            NWCreature target = NWScript.OBJECT_SELF;
 
             int attackType = target.GetLocalInt(AbilityService.LAST_ATTACK + player.GlobalID);
 
-            LoggingService.Trace(TraceComponent.LastAttack, "Last attack from " + player.GlobalID + " on " + _.GetName(target) + " was type " + attackType);
+            LoggingService.Trace(TraceComponent.LastAttack, "Last attack from " + player.GlobalID + " on " + NWScript.GetName(target) + " was type " + attackType);
 
             if (attackType == AbilityService.ATTACK_PHYSICAL)
             {
@@ -52,7 +53,7 @@ namespace SWLOR.Game.Server.Service
             if (data.Total <= 0) return;
 
             NWPlayer player = data.Damager.Object;
-            NWItem weapon = _.GetLastWeaponUsed(player);
+            NWItem weapon = NWScript.GetLastWeaponUsed(player);
             
             if (weapon.CustomItemType == CustomItemType.BlasterPistol ||
                 weapon.CustomItemType == CustomItemType.BlasterRifle)
@@ -76,9 +77,9 @@ namespace SWLOR.Game.Server.Service
             DamageEventData data = NWNXDamage.GetDamageEventData();
             if (data.Total <= 0) return;
             NWCreature damager = data.Damager.Object;
-            NWCreature target = _.OBJECT_SELF;
+            NWCreature target = NWScript.OBJECT_SELF;
 
-            NWItem damagerWeapon = _.GetLastWeaponUsed(damager);
+            NWItem damagerWeapon = NWScript.GetLastWeaponUsed(damager);
             NWItem targetWeapon = target.RightHand;
 
             int perkLevel;
@@ -169,7 +170,7 @@ namespace SWLOR.Game.Server.Service
             DamageEventData data = NWNXDamage.GetDamageEventData();
             if (data.Total <= 0) return;
 
-            NWCreature target = _.OBJECT_SELF;
+            NWCreature target = NWScript.OBJECT_SELF;
             NWItem shield = target.LeftHand;
             var concentrationEffect = AbilityService.GetActiveConcentrationEffect(target);
             double reduction = 0.0f;
@@ -200,7 +201,7 @@ namespace SWLOR.Game.Server.Service
 
                     SkillService.GiveSkillXP(target.Object, SkillType.ForceControl, xp);
                     // Play a visual effect signifying the ability was activated.
-                    _.ApplyEffectToObject(DURATION_TYPE_TEMPORARY, EffectVisualEffect(VFX_DUR_BLUR), target, 0.5f);
+                    NWScript.ApplyEffectToObject(DURATION_TYPE_TEMPORARY, EffectVisualEffect(VFX_DUR_BLUR), target, 0.5f);
                 }
             }
 
@@ -237,7 +238,7 @@ namespace SWLOR.Game.Server.Service
             if (damager.IsPlayer && sneakAttackType > 0)
             {
                 NWPlayer player = damager.Object;
-                NWCreature target = _.OBJECT_SELF;
+                NWCreature target = NWScript.OBJECT_SELF;
                 var pcPerk = PerkService.GetPCPerkByID(damager.GlobalID, (int) PerkType.SneakAttack);
                 int perkRank = pcPerk?.PerkLevel ?? 0;
                 int perkBonus = 1;
@@ -274,7 +275,7 @@ namespace SWLOR.Game.Server.Service
         {
             DamageEventData data = NWNXDamage.GetDamageEventData();
             if (data.Total <= 0) return;
-            NWObject target = _.OBJECT_SELF;
+            NWObject target = NWScript.OBJECT_SELF;
             if (!target.IsPlayer) return;
 
             NWPlayer player = target.Object;
@@ -301,7 +302,7 @@ namespace SWLOR.Game.Server.Service
             NWObject damager = data.Damager;
             bool isActive = damager.GetLocalInt("RECOVERY_BLAST_ACTIVE") == TRUE;
             damager.DeleteLocalInt("RECOVERY_BLAST_ACTIVE");
-            NWItem weapon = _.GetLastWeaponUsed(damager.Object);
+            NWItem weapon = NWScript.GetLastWeaponUsed(damager.Object);
 
             if (!isActive || weapon.CustomItemType != CustomItemType.BlasterRifle) return;
 
@@ -326,7 +327,7 @@ namespace SWLOR.Game.Server.Service
         {
             DamageEventData data = NWNXDamage.GetDamageEventData();
             if (data.Total <= 0) return;
-            NWObject self = _.OBJECT_SELF;
+            NWObject self = NWScript.OBJECT_SELF;
 
             // Ignore the first damage because it occurred during the application of the effect.
             if (self.GetLocalInt("TRANQUILIZER_EFFECT_FIRST_RUN") > 0)
@@ -335,11 +336,11 @@ namespace SWLOR.Game.Server.Service
                 return;
             }
 
-            for (var effect = _.GetFirstEffect(self.Object); _.GetIsEffectValid(effect) == TRUE; effect = _.GetNextEffect(self.Object))
+            for (var effect = NWScript.GetFirstEffect(self.Object); NWScript.GetIsEffectValid(effect) == TRUE; effect = NWScript.GetNextEffect(self.Object))
             {
-                if (_.GetEffectTag(effect) == "TRANQUILIZER_EFFECT")
+                if (NWScript.GetEffectTag(effect) == "TRANQUILIZER_EFFECT")
                 {
-                    _.RemoveEffect(self, effect);
+                    NWScript.RemoveEffect(self, effect);
                 }
             }
         }
@@ -348,7 +349,7 @@ namespace SWLOR.Game.Server.Service
         {
             DamageEventData data = NWNXDamage.GetDamageEventData();
             NWPlayer damager = data.Damager.Object;
-            NWItem damagerWeapon = _.GetLastWeaponUsed(damager);
+            NWItem damagerWeapon = NWScript.GetLastWeaponUsed(damager);
 
             if (damager.IsPlayer)
             {
@@ -406,10 +407,10 @@ namespace SWLOR.Game.Server.Service
             AbilityResistanceResult result = new AbilityResistanceResult();
 
             int attackerSkill = SkillService.GetPCSkillRank(attacker.Object, skill);
-            int attackerAbility = _.GetAbilityModifier(abilityScoreType, attacker);
+            int attackerAbility = NWScript.GetAbilityModifier(abilityScoreType, attacker);
 
             int defenderSkill = SkillService.GetPCSkillRank(defender.Object, skill);
-            int defenderAbility = _.GetAbilityModifier(abilityScoreType, defender);
+            int defenderAbility = NWScript.GetAbilityModifier(abilityScoreType, defender);
 
             // If the defender is equipped with a lightsaber, we check their lightsaber skill
             if (defender.RightHand.CustomItemType == CustomItemType.Lightsaber ||

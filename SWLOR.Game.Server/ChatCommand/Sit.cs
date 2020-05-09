@@ -3,6 +3,7 @@ using SWLOR.Game.Server.Enumeration;
 using SWLOR.Game.Server.GameObject;
 
 using NWN;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.ChatCommand
 {
@@ -18,7 +19,7 @@ namespace SWLOR.Game.Server.ChatCommand
         /// <param name="args"></param>
         public void DoAction(NWPlayer user, NWObject target, NWLocation targetLocation, params string[] args)
         {
-            user.AssignCommand(() => _.ActionPlayAnimation(_.ANIMATION_LOOPING_SIT_CROSS, 1.0f, 9999));
+            user.AssignCommand(() => NWScript.ActionPlayAnimation(NWScript.ANIMATION_LOOPING_SIT_CROSS, 1.0f, 9999));
         }
 
         public string ValidateArguments(NWPlayer user, params string[] args)

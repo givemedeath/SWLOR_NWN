@@ -16,8 +16,8 @@ namespace NWN.Scripts
             using (new Profiler(nameof(rimer_cpu_4)))
             {
                 RimerDeckType deck = RandomService.Random(4) <= 3 ? RimerDeckType.FastCreatures : RimerDeckType.BigCreatures;
-                RimerCPU.ConfigureGameSettings(_.OBJECT_SELF, deck, RimerAIDifficulty.Normal);
-                return _.FALSE;
+                RimerCPU.ConfigureGameSettings(SWLOR.Game.Server.NWN.NWScript.OBJECT_SELF, deck, RimerAIDifficulty.Normal);
+                return SWLOR.Game.Server.NWN.NWScript.FALSE;
             }
         }
     }

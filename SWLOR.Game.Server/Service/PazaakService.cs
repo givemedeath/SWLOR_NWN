@@ -2,6 +2,7 @@
 using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.ValueObject;
 using System.Collections.Generic;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 /**
  * PazaakService
@@ -74,13 +75,13 @@ namespace SWLOR.Game.Server.Service
                 int cardInDeck = collection.GetLocalInt("DECK_" + ii);
                 if (cardInDeck == index)
                 {
-                    _.SendMessageToPC(_.GetItemPossessor(collection), "You cannot remove a card that's in your play deck.");
+                    NWScript.SendMessageToPC(NWScript.GetItemPossessor(collection), "You cannot remove a card that's in your play deck.");
                     return;
                 }
             }
 
             // All good - extract it.
-            NWItem card = _.CreateItemOnObject("pazaakcard", _.GetItemPossessor(collection));
+            NWItem card = NWScript.CreateItemOnObject("pazaakcard", NWScript.GetItemPossessor(collection));
             card.SetLocalInt("PAZAAK_CARD_TYPE", collection.GetLocalInt("CARD_" + index));
             card.Name = "Pazaak Card (" + Display(collection.GetLocalInt("CARD_" + index)) + ")";
             collection.DeleteLocalInt("CARD_" + index);
@@ -96,7 +97,7 @@ namespace SWLOR.Game.Server.Service
                 int cardInDeck = collection.GetLocalInt("DECK_" + ii);
                 if (cardInDeck == collectionIndex)
                 {
-                    _.SendMessageToPC(_.GetItemPossessor(collection), "You cannot add a card that's already in your play deck.");
+                    NWScript.SendMessageToPC(NWScript.GetItemPossessor(collection), "You cannot add a card that's already in your play deck.");
                     return;
                 }
             }

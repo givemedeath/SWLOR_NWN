@@ -7,7 +7,10 @@ using SWLOR.Game.Server.Event.Module;
 using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.Messaging;
 using SWLOR.Game.Server.NWN;
+using SWLOR.Game.Server.NWN.Enum;
+using SWLOR.Game.Server.NWN.Enum.VisualEffect;
 using SWLOR.Game.Server.ValueObject;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 /*
     Name: WeatherService
@@ -158,9 +161,9 @@ namespace SWLOR.Game.Server.Service
             // This line depends on the naming scheme PlanetName - AreaName.  Change it
             // if the area naming scheme changes!
             //--------------------------------------------------------------------------
-            int index = _.GetName(oArea).IndexOf("-");
+            int index = NWScript.GetName(oArea).IndexOf("-");
             if (index <= 0) return climate;
-            string planetName = _.GetName(oArea).Substring(0, index - 1);
+            string planetName = NWScript.GetName(oArea).Substring(0, index - 1);
 
             if (planetName == "Viscara")
             {
@@ -231,7 +234,7 @@ namespace SWLOR.Game.Server.Service
         public static bool AdjustWeather()
         {
             LoggingService.Trace(TraceComponent.Weather, "Adjusting module weather");
-            NWObject oMod = _.GetModule();
+            NWObject oMod = NWScript.GetModule();
 
             //--------------------------------------------------------------------------
             // Always change the weather the very first time
@@ -239,9 +242,9 @@ namespace SWLOR.Game.Server.Service
             if (oMod.GetLocalInt(VAR_INITIALIZED) == 0)
             {
                 oMod.SetLocalInt(VAR_INITIALIZED, 1);
-                _SetHumidity(_.Random(10) + 1);
+                _SetHumidity(NWScript.Random(10) + 1);
             }
-            else if (_.GetTimeHour() != oMod.GetLocalInt(VAR_WEATHER_CHANGE))
+            else if (NWScript.GetTimeHour() != oMod.GetLocalInt(VAR_WEATHER_CHANGE))
             {
                 LoggingService.Trace(TraceComponent.Weather, "No change needed... yet.");
                 return false;
@@ -257,25 +260,25 @@ namespace SWLOR.Game.Server.Service
             //--------------------------------------------------------------------------
             // Heat is affected by time of year.
             //--------------------------------------------------------------------------
-            nHeat = _.Random(5) + (6 - _.abs(_.GetCalendarMonth() - 6)); // (0-4 + 0-6)
+            nHeat = NWScript.Random(5) + (6 - NWScript.abs(NWScript.GetCalendarMonth() - 6)); // (0-4 + 0-6)
             if (nHeat < 1) nHeat = 1;
 
             //--------------------------------------------------------------------------
             // Humidity is random but moves slowly.
             //--------------------------------------------------------------------------
-            nHumidity = nHumidity + (_.Random(2 * nWind + 1) - nWind);
+            nHumidity = nHumidity + (NWScript.Random(2 * nWind + 1) - nWind);
             if (nHumidity > 10) nHumidity = 20 - nHumidity;
             if (nHumidity < 1) nHumidity = 1 - nHumidity;
 
             //--------------------------------------------------------------------------
             // Wind is more likely to be calm, but can change quickly.
             //--------------------------------------------------------------------------
-            nWind = _.d10(2) - 10;
+            nWind = NWScript.d10(2) - 10;
             if (nWind < 1) nWind = 1 - nWind;
 
-            LoggingService.Trace(TraceComponent.Weather, "New weather settings: heat - " + _.IntToString(nHeat) +
-                                           ", humidity - " + _.IntToString(nHumidity) +
-                                               ", wind - " + _.IntToString(nWind));
+            LoggingService.Trace(TraceComponent.Weather, "New weather settings: heat - " + NWScript.IntToString(nHeat) +
+                                           ", humidity - " + NWScript.IntToString(nHumidity) +
+                                               ", wind - " + NWScript.IntToString(nWind));
 
             _SetHeatIndex(nHeat);
             _SetHumidity(nHumidity);
@@ -284,17 +287,17 @@ namespace SWLOR.Game.Server.Service
             //--------------------------------------------------------------------------
             // Work out when to next change the weather.
             //--------------------------------------------------------------------------
-            int nNextChange = _.GetTimeHour() + (11 - nWind);
+            int nNextChange = NWScript.GetTimeHour() + (11 - nWind);
             if (nNextChange > 23) nNextChange -= 24;
-            LoggingService.Trace(TraceComponent.Weather, "Change the weather next at hour " + _.IntToString(nNextChange));
+            LoggingService.Trace(TraceComponent.Weather, "Change the weather next at hour " + NWScript.IntToString(nNextChange));
             oMod.SetLocalInt(VAR_WEATHER_CHANGE, nNextChange);
 
             // Update all occupied areas with the new settings.
-            NWObject oPC = _.GetFirstPC();
-            while (_.GetIsObjectValid(oPC) == 1)
+            NWObject oPC = NWScript.GetFirstPC();
+            while (NWScript.GetIsObjectValid(oPC) == 1)
             {
-                SetWeather(_.GetArea(oPC));
-                oPC = _.GetNextPC();
+                SetWeather(NWScript.GetArea(oPC));
+                oPC = NWScript.GetNextPC();
             }
 
             return true;
@@ -302,7 +305,7 @@ namespace SWLOR.Game.Server.Service
 
         public static void SetWeather()
         {
-            SetWeather(_.OBJECT_SELF);
+            SetWeather(NWScript.OBJECT_SELF);
         }
 
         public static void SetWeather(NWObject oArea)
@@ -310,21 +313,21 @@ namespace SWLOR.Game.Server.Service
             
             if (oArea.GetLocalInt(VAR_INITIALIZED) == 0)
             {
-                if (_.GetIsAreaInterior(oArea) == 1 ||
-                    _.GetIsAreaAboveGround(oArea) == 0)
+                if (NWScript.GetIsAreaInterior(oArea) == 1 ||
+                    NWScript.GetIsAreaAboveGround(oArea) == 0)
                     return;
-                oArea.SetLocalInt(VAR_SKYBOX, _.GetSkyBox(oArea));
-                oArea.SetLocalInt(VAR_FOG_SUN, _.GetFogAmount(_.FOG_TYPE_SUN, oArea));
-                oArea.SetLocalInt(VAR_FOG_MOON, _.GetFogAmount(_.FOG_TYPE_MOON, oArea));
-                oArea.SetLocalInt(VAR_FOG_C_SUN, _.GetFogColor(_.FOG_TYPE_SUN, oArea));
-                oArea.SetLocalInt(VAR_FOG_C_MOON, _.GetFogColor(_.FOG_TYPE_MOON, oArea));
+                oArea.SetLocalInt(VAR_SKYBOX, NWScript.GetSkyBox(oArea));
+                oArea.SetLocalInt(VAR_FOG_SUN, NWScript.GetFogAmount(NWScript.FOG_TYPE_SUN, oArea));
+                oArea.SetLocalInt(VAR_FOG_MOON, NWScript.GetFogAmount(NWScript.FOG_TYPE_MOON, oArea));
+                oArea.SetLocalInt(VAR_FOG_C_SUN, NWScript.GetFogColor(NWScript.FOG_TYPE_SUN, oArea));
+                oArea.SetLocalInt(VAR_FOG_C_MOON, NWScript.GetFogColor(NWScript.FOG_TYPE_MOON, oArea));
                 oArea.SetLocalInt(VAR_INITIALIZED, 1);
             }
 
             int nHeat = GetHeatIndex(oArea);
             int nHumidity = GetHumidity(oArea);
             int nWind = GetWindStrength(oArea);
-            bool bStormy = _.GetSkyBox(oArea) == _.SKYBOX_GRASS_STORM;
+            bool bStormy = NWScript.GetSkyBox(oArea) == NWScript.SKYBOX_GRASS_STORM;
             bool bDustStorm = (oArea.GetLocalInt("DUST_STORM") == 1);
             bool bSandStorm = (oArea.GetLocalInt("SAND_STORM") == 1);
 
@@ -335,12 +338,12 @@ namespace SWLOR.Game.Server.Service
             {
                 if (nHeat < 6 && nWind < 3)
                 {
-                    _.SetWeather(oArea, _.WEATHER_CLEAR);
+                    NWScript.SetWeather(oArea, NWScript.WEATHER_CLEAR);
                 }
-                else _.SetWeather(oArea, _.WEATHER_RAIN);
+                else NWScript.SetWeather(oArea, NWScript.WEATHER_RAIN);
             }
-            else if (nHumidity > 7) _.SetWeather(oArea, _.WEATHER_SNOW);
-            else _.SetWeather(oArea, _.WEATHER_CLEAR);
+            else if (nHumidity > 7) NWScript.SetWeather(oArea, NWScript.WEATHER_SNOW);
+            else NWScript.SetWeather(oArea, NWScript.WEATHER_CLEAR);
 
             //--------------------------------------------------------------------------
             // Stormy if heat is greater than 4 only; if already stormy then 2 in 3
@@ -348,41 +351,41 @@ namespace SWLOR.Game.Server.Service
             // where x is the wind level.
             //--------------------------------------------------------------------------
             if (nHeat > 4 && nHumidity > 7 &&
-                ((bStormy && _.d20() - nWind < 1) || (bStormy && _.d3() == 1)))
+                ((bStormy && NWScript.d20() - nWind < 1) || (bStormy && NWScript.d3() == 1)))
             {
-                LoggingService.Trace(TraceComponent.Weather, "A thunderstorm is now raging in " + _.GetName(oArea));
-                _.SetSkyBox(_.SKYBOX_GRASS_STORM, oArea);
+                LoggingService.Trace(TraceComponent.Weather, "A thunderstorm is now raging in " + NWScript.GetName(oArea));
+                NWScript.SetSkyBox(NWScript.SKYBOX_GRASS_STORM, oArea);
                 Thunderstorm(oArea);
                 oArea.SetLocalInt("GS_AM_SKY_OVERRIDE", 1);
                 bStormy = true;
             }
             else
             {
-                _.SetSkyBox(oArea.GetLocalInt(VAR_SKYBOX), oArea);
+                NWScript.SetSkyBox(oArea.GetLocalInt(VAR_SKYBOX), oArea);
                 oArea.DeleteLocalInt("GS_AM_SKY_OVERRIDE");
                 bStormy = false;
             }
 
             // Does this area suffer from dust or sand storms?
-            if (!bStormy && nWind >= 9 && _.d3() == 1)
+            if (!bStormy && nWind >= 9 && NWScript.d3() == 1)
             {
                 // Dust storm - low visibility but no damage.
                 if (_GetClimate(oArea).Dust_Storm)
                 {
-                    _.SetFogColor(_.FOG_TYPE_SUN, _.FOG_COLOR_BROWN, oArea);
-                    _.SetFogColor(_.FOG_TYPE_MOON, _.FOG_COLOR_BROWN, oArea);
-                    _.SetFogAmount(_.FOG_TYPE_SUN, 80, oArea);
-                    _.SetFogAmount(_.FOG_TYPE_MOON, 80, oArea);
+                    NWScript.SetFogColor(NWScript.FOG_TYPE_SUN, NWScript.FOG_COLOR_BROWN, oArea);
+                    NWScript.SetFogColor(NWScript.FOG_TYPE_MOON, NWScript.FOG_COLOR_BROWN, oArea);
+                    NWScript.SetFogAmount(NWScript.FOG_TYPE_SUN, 80, oArea);
+                    NWScript.SetFogAmount(NWScript.FOG_TYPE_MOON, 80, oArea);
 
                     oArea.SetLocalInt("DUST_STORM", 1);
                     bDustStorm = true;
                 }
                 else if (_GetClimate(oArea).Sand_Storm)
                 {
-                    _.SetFogColor(_.FOG_TYPE_SUN, _.FOG_COLOR_ORANGE_DARK, oArea);
-                    _.SetFogColor(_.FOG_TYPE_MOON, _.FOG_COLOR_ORANGE_DARK, oArea);
-                    _.SetFogAmount(_.FOG_TYPE_SUN, 80, oArea);
-                    _.SetFogAmount(_.FOG_TYPE_MOON, 80, oArea);
+                    NWScript.SetFogColor(NWScript.FOG_TYPE_SUN, NWScript.FOG_COLOR_ORANGE_DARK, oArea);
+                    NWScript.SetFogColor(NWScript.FOG_TYPE_MOON, NWScript.FOG_COLOR_ORANGE_DARK, oArea);
+                    NWScript.SetFogAmount(NWScript.FOG_TYPE_SUN, 80, oArea);
+                    NWScript.SetFogAmount(NWScript.FOG_TYPE_MOON, 80, oArea);
 
                     oArea.SetLocalInt("SAND_STORM", 1);
                     bSandStorm = true;
@@ -394,18 +397,18 @@ namespace SWLOR.Game.Server.Service
                 oArea.DeleteLocalInt("DUST_STORM");
                 oArea.DeleteLocalInt("SAND_STORM");
 
-                _.SetFogColor(_.FOG_TYPE_SUN, oArea.GetLocalInt(VAR_FOG_C_SUN), oArea);
-                _.SetFogColor(_.FOG_TYPE_MOON, oArea.GetLocalInt(VAR_FOG_C_MOON), oArea);
-                _.SetFogAmount(_.FOG_TYPE_SUN, oArea.GetLocalInt(VAR_FOG_SUN), oArea);
-                _.SetFogAmount(_.FOG_TYPE_MOON, oArea.GetLocalInt(VAR_FOG_MOON), oArea);
+                NWScript.SetFogColor(NWScript.FOG_TYPE_SUN, oArea.GetLocalInt(VAR_FOG_C_SUN), oArea);
+                NWScript.SetFogColor(NWScript.FOG_TYPE_MOON, oArea.GetLocalInt(VAR_FOG_C_MOON), oArea);
+                NWScript.SetFogAmount(NWScript.FOG_TYPE_SUN, oArea.GetLocalInt(VAR_FOG_SUN), oArea);
+                NWScript.SetFogAmount(NWScript.FOG_TYPE_MOON, oArea.GetLocalInt(VAR_FOG_MOON), oArea);
                 bSandStorm = false;
                 bDustStorm = false;
             }
 
-            LoggingService.Trace(TraceComponent.Weather, "Area weather settings for area: " + _.GetName(oArea) +
-                                                  ", heat - " + _.IntToString(nHeat) +
-                                              ", humidity - " + _.IntToString(nHumidity) +
-                                                  ", wind - " + _.IntToString(nWind) +
+            LoggingService.Trace(TraceComponent.Weather, "Area weather settings for area: " + NWScript.GetName(oArea) +
+                                                  ", heat - " + NWScript.IntToString(nHeat) +
+                                              ", humidity - " + NWScript.IntToString(nHumidity) +
+                                                  ", wind - " + NWScript.IntToString(nWind) +
                                                  ", thunderstorm - " + bStormy.ToString() +
                                                  ", sand storm - " + bSandStorm.ToString() +
                                                  ", dust storm - " + bDustStorm.ToString());
@@ -413,16 +416,16 @@ namespace SWLOR.Game.Server.Service
 
         public static int GetWeather()
         {
-            return GetWeather(_.OBJECT_SELF);
+            return GetWeather(NWScript.OBJECT_SELF);
         }
 
         public static int GetWeather(NWObject oArea)
         {
-            LoggingService.Trace(TraceComponent.Weather, "Getting current weather for area: " + _.GetName(oArea));
+            LoggingService.Trace(TraceComponent.Weather, "Getting current weather for area: " + NWScript.GetName(oArea));
 
-            if (_.GetIsAreaInterior(oArea) == 1 || _.GetIsAreaAboveGround(oArea) == 0)
+            if (NWScript.GetIsAreaInterior(oArea) == 1 || NWScript.GetIsAreaAboveGround(oArea) == 0)
             {
-                return _.WEATHER_INVALID;
+                return NWScript.WEATHER_INVALID;
             }
 
             int nHeat = GetHeatIndex(oArea);
@@ -435,12 +438,12 @@ namespace SWLOR.Game.Server.Service
             }
 
             // Rather unfortunately, the default method is also called GetWeather. 
-            return _.GetWeather(oArea);
+            return NWScript.GetWeather(oArea);
         }
 
         public static void OnCombatRoundEnd(NWObject oCreature)
         {
-            NWObject oArea = _.GetArea(oCreature);
+            NWObject oArea = NWScript.GetArea(oCreature);
             if (oArea.GetLocalInt(VAR_INITIALIZED) == 0)
                 return;
 
@@ -451,52 +454,52 @@ namespace SWLOR.Game.Server.Service
 
         public static void ApplyAcid(NWObject oTarget, NWObject oArea)
         {
-            if ((NWObject)_.GetArea(oTarget) != oArea) return;
-            if (_.GetIsDead(oTarget) == 1) return;
-            if (_.GetIsPC(oTarget) == 1 && _.GetIsPC(_.GetMaster(oTarget)) == 0) return;
+            if ((NWObject)NWScript.GetArea(oTarget) != oArea) return;
+            if (NWScript.GetIsDead(oTarget) == 1) return;
+            if (NWScript.GetIsPC(oTarget) == 1 && NWScript.GetIsPC(NWScript.GetMaster(oTarget)) == 0) return;
 
             //apply
             Effect eEffect =
-                _.EffectLinkEffects(
-                    _.EffectVisualEffect(_.VFX_IMP_ACID_S),
-                    _.EffectDamage(
-                        _.d6(1),
-                        _.DAMAGE_TYPE_ACID));
+                NWScript.EffectLinkEffects(
+                    NWScript.EffectVisualEffect(NWScript.VFX_IMP_ACID_S),
+                    NWScript.EffectDamage(
+                        NWScript.d6(1),
+                        NWScript.DAMAGE_TYPE_ACID));
 
-            _.ApplyEffectToObject(_.DURATION_TYPE_INSTANT, eEffect, oTarget);
+            NWScript.ApplyEffectToObject(DurationType.Instant, eEffect, oTarget);
 
-            _.DelayCommand(6.0f, () => { ApplyAcid(oTarget, oArea); });
+            NWScript.DelayCommand(6.0f, () => { ApplyAcid(oTarget, oArea); });
         }
 
         public static void ApplySandstorm(NWObject oTarget, NWObject oArea)
         {
-            if ((NWObject)_.GetArea(oTarget) != oArea) return;
-            if (_.GetIsDead(oTarget) == 1) return;
-            if (_.GetIsPC(oTarget) == 1 && _.GetIsPC(_.GetMaster(oTarget)) == 0) return;
+            if ((NWObject)NWScript.GetArea(oTarget) != oArea) return;
+            if (NWScript.GetIsDead(oTarget) == 1) return;
+            if (NWScript.GetIsPC(oTarget) == 1 && NWScript.GetIsPC(NWScript.GetMaster(oTarget)) == 0) return;
 
             //apply
             Effect eEffect =
-                _.EffectLinkEffects(
-                    _.EffectVisualEffect(_.VFX_IMP_FLAME_S),
-                    _.EffectDamage(
-                        _.d6(2),
-                        _.DAMAGE_TYPE_BLUDGEONING));
+                NWScript.EffectLinkEffects(
+                    NWScript.EffectVisualEffect(NWScript.VFX_IMP_FLAME_S),
+                    NWScript.EffectDamage(
+                        NWScript.d6(2),
+                        NWScript.DAMAGE_TYPE_BLUDGEONING));
 
-            _.ApplyEffectToObject(_.DURATION_TYPE_INSTANT, eEffect, oTarget);
+            NWScript.ApplyEffectToObject(DurationType.Instant, eEffect, oTarget);
 
-            _.DelayCommand(6.0f, () => { ApplySandstorm(oTarget, oArea); });
+            NWScript.DelayCommand(6.0f, () => { ApplySandstorm(oTarget, oArea); });
         }
 
         public static void DoWeatherEffects(NWObject oCreature)
         {
-            NWObject oArea = _.GetArea(oCreature);
-            if (_.GetIsAreaInterior(oArea) == 1 || _.GetIsAreaAboveGround(oArea) == 0) return;
+            NWObject oArea = NWScript.GetArea(oCreature);
+            if (NWScript.GetIsAreaInterior(oArea) == 1 || NWScript.GetIsAreaAboveGround(oArea) == 0) return;
 
             int nHeat = GetHeatIndex(oArea);
             int nHumidity = GetHumidity(oArea);
             int nWind = GetWindStrength(oArea);
-            bool bStormy = _.GetSkyBox(oArea) == _.SKYBOX_GRASS_STORM;
-            bool bIsPC  = (_.GetIsPC(oCreature) == 1);
+            bool bStormy = NWScript.GetSkyBox(oArea) == NWScript.SKYBOX_GRASS_STORM;
+            bool bIsPC  = (NWScript.GetIsPC(oCreature) == 1);
             string sMessage = "";
             PlanetaryClimate climate = _GetClimate(oArea);
 
@@ -504,18 +507,18 @@ namespace SWLOR.Game.Server.Service
             // Apply acid rain, if applicable.  Stolen shamelessly from the Melf's Acid
             // Arrow spell.
             //--------------------------------------------------------------------------
-            if (bIsPC && _.GetWeather(oArea) == _.WEATHER_RAIN && oArea.GetLocalInt(VAR_WEATHER_ACID_RAIN) == 1)
+            if (bIsPC && NWScript.GetWeather(oArea) == NWScript.WEATHER_RAIN && oArea.GetLocalInt(VAR_WEATHER_ACID_RAIN) == 1)
             {
                 Effect eEffect =
-                  _.EffectLinkEffects(
-                      _.EffectVisualEffect(_.VFX_IMP_ACID_S),
-                      _.EffectDamage(
-                          _.d6(2),
-                          _.DAMAGE_TYPE_ACID));
+                  NWScript.EffectLinkEffects(
+                      NWScript.EffectVisualEffect(NWScript.VFX_IMP_ACID_S),
+                      NWScript.EffectDamage(
+                          NWScript.d6(2),
+                          NWScript.DAMAGE_TYPE_ACID));
 
-                _.ApplyEffectToObject(_.DURATION_TYPE_INSTANT, eEffect, oCreature);
+                NWScript.ApplyEffectToObject(DurationType.Instant, eEffect, oCreature);
 
-                _.DelayCommand(6.0f, () => { ApplyAcid(oCreature, oArea); });
+                NWScript.DelayCommand(6.0f, () => { ApplyAcid(oCreature, oArea); });
             }
             else if (bIsPC && oArea.GetLocalInt("DUST_STORM") == 1)
             {
@@ -525,15 +528,15 @@ namespace SWLOR.Game.Server.Service
             {
                 sMessage = FB_T_WEATHER_SAND_STORM;
                 Effect eEffect =
-                    _.EffectLinkEffects(
-                        _.EffectVisualEffect(_.VFX_IMP_FLAME_S),
-                        _.EffectDamage(
-                            _.d6(2),
-                            _.DAMAGE_TYPE_BLUDGEONING));
+                    NWScript.EffectLinkEffects(
+                        NWScript.EffectVisualEffect(VisualEffect.Vfx_Imp_Flame_S),
+                        NWScript.EffectDamage(
+                            NWScript.d6(2),
+                            DamageType.Bludgeoning));
 
-                _.ApplyEffectToObject(_.DURATION_TYPE_INSTANT, eEffect, oCreature);
+                NWScript.ApplyEffectToObject(DurationType.Instant, eEffect, oCreature);
 
-                _.DelayCommand(6.0f, () => { ApplySandstorm(oCreature, oArea); });
+                NWScript.DelayCommand(6.0f, () => { ApplySandstorm(oCreature, oArea); });
             }                                    
             else if (bIsPC)
             {
@@ -591,19 +594,19 @@ namespace SWLOR.Game.Server.Service
                 }
                 else if (nWind < 5)
                 {
-                    if (_.GetIsNight() == 0) sMessage = string.IsNullOrWhiteSpace(climate.special_mild) ? FB_T_WEATHER_MESSAGE_MILD : climate.special_mild;
+                    if (!NWScript.GetIsNight()) sMessage = string.IsNullOrWhiteSpace(climate.special_mild) ? FB_T_WEATHER_MESSAGE_MILD : climate.special_mild;
                     else sMessage = string.IsNullOrWhiteSpace(climate.special_mild_night) ? FB_T_WEATHER_MESSAGE_MILD_NIGHT : climate.special_mild_night;
                 }
                 else if (nWind < 8) sMessage = string.IsNullOrWhiteSpace(climate.special_cloudy) ? FB_T_WEATHER_MESSAGE_CLOUDY : climate.special_cloudy;
                 else sMessage = string.IsNullOrWhiteSpace(climate.special_windy) ? FB_T_WEATHER_MESSAGE_WINDY : climate.special_windy;
 
-                _.SendMessageToPC(oCreature, sMessage);
+                NWScript.SendMessageToPC(oCreature, sMessage);
             }
         }
         
         public static int GetHeatIndex()
         {
-            return GetHeatIndex(_.OBJECT_SELF);
+            return GetHeatIndex(NWScript.OBJECT_SELF);
         }
 
         public static int GetHeatIndex(NWObject oArea)
@@ -611,7 +614,7 @@ namespace SWLOR.Game.Server.Service
             //--------------------------------------------------------------------------
             // Areas may have one of the CLIMATE_* values stored in each weather var.
             //--------------------------------------------------------------------------
-            NWObject oMod = _.GetModule();
+            NWObject oMod = NWScript.GetModule();
             int nHeat = oMod.GetLocalInt(VAR_WEATHER_HEAT);
             if (oArea.IsValid)
             {
@@ -619,7 +622,7 @@ namespace SWLOR.Game.Server.Service
                 nHeat += _GetClimate(oArea).Heat_Modifier;
             }
 
-            nHeat = (_.GetIsNight() == 1) ? nHeat - 2 : nHeat + 2;
+            nHeat = (NWScript.GetIsNight() == true) ? nHeat - 2 : nHeat + 2;
 
             if (nHeat > 10) nHeat = 10;
             if (nHeat < 1) nHeat = 1;
@@ -629,7 +632,7 @@ namespace SWLOR.Game.Server.Service
 
         public static int GetHumidity()
         {
-            return GetHumidity(_.OBJECT_SELF);
+            return GetHumidity(NWScript.OBJECT_SELF);
         }
 
         public static int GetHumidity(NWObject oArea)
@@ -637,7 +640,7 @@ namespace SWLOR.Game.Server.Service
             //--------------------------------------------------------------------------
             // Areas may have one of the CLIMATE_* values stored in each weather var.
             //--------------------------------------------------------------------------
-            NWObject oMod = _.GetModule();
+            NWObject oMod = NWScript.GetModule();
             int nHumidity = oMod.GetLocalInt(VAR_WEATHER_HUMIDITY);
             if (oArea.IsValid)
             {
@@ -653,7 +656,7 @@ namespace SWLOR.Game.Server.Service
 
         public static int GetWindStrength()
         {
-            return GetWindStrength(_.OBJECT_SELF);
+            return GetWindStrength(NWScript.OBJECT_SELF);
         }
 
         public static int GetWindStrength(NWObject oArea)
@@ -661,7 +664,7 @@ namespace SWLOR.Game.Server.Service
             //--------------------------------------------------------------------------
             // Areas will have one of the CLIMATE_* values stored in each weather var.
             //--------------------------------------------------------------------------
-            NWObject oMod = _.GetModule();
+            NWObject oMod = NWScript.GetModule();
             int nWind = oMod.GetLocalInt(VAR_WEATHER_WIND);
             if (oArea.IsValid)
             {
@@ -672,7 +675,7 @@ namespace SWLOR.Game.Server.Service
                 // Automatic cover bonus for artificial areas such as cities (lots of
                 // buildings).
                 //----------------------------------------------------------------------
-                if (_.GetIsAreaNatural(oArea) == 0) nWind -= 1;
+                if (NWScript.GetIsAreaNatural(oArea) == 0) nWind -= 1;
             }
 
             if (nWind > 10) nWind = 10;
@@ -683,67 +686,67 @@ namespace SWLOR.Game.Server.Service
 
         private static void _SetHeatIndex(int nHeat)
         {
-            NWObject oMod = _.GetModule();
+            NWObject oMod = NWScript.GetModule();
             oMod.SetLocalInt(VAR_WEATHER_HEAT, nHeat);
         }
 
         private static void _SetHumidity(int nHumidity)
         {
-            NWObject oMod = _.GetModule();
+            NWObject oMod = NWScript.GetModule();
             oMod.SetLocalInt(VAR_WEATHER_HUMIDITY, nHumidity);
         }
 
         private static void _SetWindStrength(int nWind)
         {
-            NWObject oMod = _.GetModule();
+            NWObject oMod = NWScript.GetModule();
             oMod.SetLocalInt(VAR_WEATHER_WIND, nWind);
         }
 
         private static void _DoWindKnockdown(NWObject oCreature)
         {
-            LoggingService.Trace(TraceComponent.Weather, "Checking whether " + _.GetName(oCreature) + " is blown over");
-            int nDC = (_.GetHitDice(oCreature) / 2) + 10;
-            int nDiscipline = _.GetSkillRank(_.SKILL_DISCIPLINE, oCreature);
-            int nReflexSave = _.GetReflexSavingThrow(oCreature);
+            LoggingService.Trace(TraceComponent.Weather, "Checking whether " + NWScript.GetName(oCreature) + " is blown over");
+            int nDC = (NWScript.GetHitDice(oCreature) / 2) + 10;
+            int nDiscipline = NWScript.GetSkillRank(NWScript.SKILL_DISCIPLINE, oCreature);
+            int nReflexSave = NWScript.GetReflexSavingThrow(oCreature);
             int nSuccess;
 
             if (nDiscipline > nReflexSave)
-                nSuccess = _.GetIsSkillSuccessful(oCreature, _.SKILL_DISCIPLINE, nDC);
+                nSuccess = NWScript.GetIsSkillSuccessful(oCreature, NWScript.SKILL_DISCIPLINE, nDC);
             else
-                nSuccess = _.ReflexSave(oCreature, nDC);
+                nSuccess = NWScript.ReflexSave(oCreature, nDC);
 
             if (nSuccess == 0)
             {
-                _.ApplyEffectToObject(_.DURATION_TYPE_TEMPORARY,
-                                      _.EffectKnockdown(),
+                NWScript.ApplyEffectToObject(DurationType.Temporary,
+                                      NWScript.EffectKnockdown(),
                                       oCreature,
                                       6.0f);
-                _.FloatingTextStringOnCreature("*is unbalanced by a strong gust*", oCreature);
+                NWScript.FloatingTextStringOnCreature("*is unbalanced by a strong gust*", oCreature);
             }
         }
 
         public static void Thunderstorm(NWObject oArea)
         {
             // 1 in 3 chance of a bolt.
-            if (_.d3() != 1) return;
+            if (NWScript.d3() != 1) return;
 
             // Pick a spot. Any spot.
-            int nWidth = _.GetAreaSize(_.AREA_WIDTH, oArea);
-            int nHeight = _.GetAreaSize(_.AREA_HEIGHT, oArea);
-            int nPointWide = _.Random(nWidth * 10);
-            int nPointHigh = _.Random(nHeight * 10);
-            float fStrikeX = _.IntToFloat(nPointWide) + (_.IntToFloat(_.Random(10)) * 0.1f);
-            float fStrikeY = _.IntToFloat(nPointHigh) + (_.IntToFloat(_.Random(10)) * 0.1f);
+            int nWidth = NWScript.GetAreaSize(NWScript.AREA_WIDTH, oArea);
+            int nHeight = NWScript.GetAreaSize(NWScript.AREA_HEIGHT, oArea);
+            int nPointWide = NWScript.Random(nWidth * 10);
+            int nPointHigh = NWScript.Random(nHeight * 10);
+            float fStrikeX = NWScript.IntToFloat(nPointWide) + (NWScript.IntToFloat(NWScript.Random(10)) * 0.1f);
+            float fStrikeY = NWScript.IntToFloat(nPointHigh) + (NWScript.IntToFloat(NWScript.Random(10)) * 0.1f);
 
             // Now find out the power
-            int nPower = _.d100() + 10;
+            int nPower = NWScript.d100() + 10;
 
             // Fire ze thunderboltz!
-            _.DelayCommand(_.IntToFloat(_.Random(60)),
+            NWScript.DelayCommand(NWScript.IntToFloat(NWScript.Random(60)),
                 () =>
                 {
-                    _Thunderstorm(_.Location(oArea,
-                                               _.Vector(fStrikeX, fStrikeY),
+                    _Thunderstorm(NWScript.Location(oArea,
+                                               NWScript.Vector(fStrikeX, fStrikeY),
                                                0.0f),
                                            nPower);
                 }
@@ -752,38 +755,38 @@ namespace SWLOR.Game.Server.Service
 
         private static void _Thunderstorm(NWLocation lLocation, int nPower)
         {
-            float fRange = _.IntToFloat(nPower) * 0.1f;
+            float fRange = NWScript.IntToFloat(nPower) * 0.1f;
             // Caps on sphere of influence
             if (fRange < 3.0) fRange = 3.0f;
             if (fRange > 6.0) fRange = 6.0f;
 
             //Effects
-            Effect eEffBolt = _.EffectVisualEffect(_.VFX_IMP_LIGHTNING_M);
-            Effect eEffKnock = _.EffectKnockdown();
-            _.ApplyEffectAtLocation(_.DURATION_TYPE_INSTANT, eEffBolt, lLocation);
+            Effect eEffBolt = NWScript.EffectVisualEffect(NWScript.VFX_IMP_LIGHTNING_M);
+            Effect eEffKnock = NWScript.EffectKnockdown();
+            NWScript.ApplyEffectAtLocation(DurationType.Instant, eEffBolt, lLocation);
 
             Effect eEffDam;
-            int nType;
-            NWObject oObject = _.GetFirstObjectInShape(_.SHAPE_SPHERE, fRange, lLocation, 0, _.OBJECT_TYPE_CREATURE | _.OBJECT_TYPE_DOOR | _.OBJECT_TYPE_PLACEABLE);
-            while (_.GetIsObjectValid(oObject) == 1)
+            ObjectType nType;
+            NWObject oObject = NWScript.GetFirstObjectInShape(Shape.Sphere, fRange, lLocation, false, ObjectType.Creature | ObjectType.Door | ObjectType.Placeable);
+            while (NWScript.GetIsObjectValid(oObject) == 1)
             {
-                nType = _.GetObjectType(oObject);
-                if ((nType & (_.OBJECT_TYPE_CREATURE | _.OBJECT_TYPE_DOOR | _.OBJECT_TYPE_PLACEABLE)) == 1)
+                nType = NWScript.GetObjectType(oObject);
+                if ((nType & (ObjectType.Creature | ObjectType.Door | ObjectType.Placeable)) == 1)
                 {
-                    eEffDam = _.EffectDamage(
-                        _.FloatToInt(_.IntToFloat(nPower) - (_.GetDistanceBetweenLocations(lLocation, _.GetLocation(oObject)) * 10.0f)),
-                        _.DAMAGE_TYPE_ELECTRICAL);
-                    _.ApplyEffectToObject(_.DURATION_TYPE_INSTANT, eEffDam, oObject);
+                    eEffDam = NWScript.EffectDamage(
+                        NWScript.FloatToInt(NWScript.IntToFloat(nPower) - (NWScript.GetDistanceBetweenLocations(lLocation, NWScript.GetLocation(oObject)) * 10.0f)),
+                        NWScript.DAMAGE_TYPE_ELECTRICAL);
+                    NWScript.ApplyEffectToObject(DurationType.Instant, eEffDam, oObject);
 
-                    if (nType == _.OBJECT_TYPE_CREATURE)
+                    if (nType == ObjectType.Creature)
                     {
-                        if (_.GetIsPC(oObject) == 1) _.SendMessageToPC(oObject, FB_T_WEATHER_LIGHTNING);
+                        if (NWScript.GetIsPC(oObject) == 1) NWScript.SendMessageToPC(oObject, FB_T_WEATHER_LIGHTNING);
 
-                        _.PlayVoiceChat(_.VOICE_CHAT_PAIN1, oObject);
-                        _.ApplyEffectToObject(_.DURATION_TYPE_TEMPORARY, eEffKnock, oObject, _.IntToFloat(_.d6(1)));
+                        NWScript.PlayVoiceChat(NWScript.VOICE_CHAT_PAIN1, oObject);
+                        NWScript.ApplyEffectToObject(DurationType.Temporary, eEffKnock, oObject, NWScript.IntToFloat(NWScript.d6(1)));
                     }
                 }
-                oObject = _.GetNextObjectInShape(_.SHAPE_SPHERE, fRange, lLocation, 0, _.OBJECT_TYPE_CREATURE | _.OBJECT_TYPE_DOOR | _.OBJECT_TYPE_PLACEABLE);
+                oObject = NWScript.GetNextObjectInShape(NWScript.SHAPE_SPHERE, fRange, lLocation, 0, ObjectType.Creature | ObjectType.Door | ObjectType.Placeable);
             }
         }
 
@@ -793,12 +796,12 @@ namespace SWLOR.Game.Server.Service
             {
                 SetWeather();
 
-                LoggingService.Trace(TraceComponent.Weather, "Applying weather to creature: " + _.GetName(_.GetEnteringObject()));
+                LoggingService.Trace(TraceComponent.Weather, "Applying weather to creature: " + NWScript.GetName(NWScript.GetEnteringObject()));
 
-                DoWeatherEffects(_.GetEnteringObject());
+                DoWeatherEffects(NWScript.GetEnteringObject());
 
-                NWArea oArea = (_.OBJECT_SELF);
-                int nHour = _.GetTimeHour();
+                NWArea oArea = (NWScript.OBJECT_SELF);
+                int nHour = NWScript.GetTimeHour();
                 int nLastHour = oArea.GetLocalInt("WEATHER_LAST_HOUR");
 
                 if (nHour != nLastHour)
@@ -824,27 +827,27 @@ namespace SWLOR.Game.Server.Service
                     if (nWeather == WEATHER_FOGGY)
                     {
                         // Get the size in tiles.
-                        int nSizeX = _.GetAreaSize(_.AREA_WIDTH, oArea);
-                        int nSizeY = _.GetAreaSize(_.AREA_HEIGHT, oArea);
+                        int nSizeX = NWScript.GetAreaSize(NWScript.AREA_WIDTH, oArea);
+                        int nSizeY = NWScript.GetAreaSize(NWScript.AREA_HEIGHT, oArea);
 
                         // We want one placeable per 8 tiles.
                         int nMax = (nSizeX * nSizeY) / 8;
                         LoggingService.Trace(TraceComponent.Weather, "Creating up to " + nMax.ToString() + " mist objects.");
 
-                        for (int nCount = _.d6(); nCount < nMax; nCount++)
+                        for (int nCount = NWScript.d6(); nCount < nMax; nCount++)
                         {
-                            Vector vPosition = _.GetPosition(_.GetEnteringObject());
+                            Vector vPosition = NWScript.GetPosition(NWScript.GetEnteringObject());
 
                             // Vectors are in meters - 10 meters to a tile. 
-                            vPosition.X = _.IntToFloat(_.Random(nSizeX * 10));
-                            vPosition.Y = _.IntToFloat(_.Random(nSizeY * 10));
+                            vPosition.X = NWScript.IntToFloat(NWScript.Random(nSizeX * 10));
+                            vPosition.Y = NWScript.IntToFloat(NWScript.Random(nSizeY * 10));
 
-                            float fFacing = _.IntToFloat(_.Random(360));
+                            float fFacing = NWScript.IntToFloat(NWScript.Random(360));
 
                             string sResRef = "x3_plc_mist";
 
-                            NWPlaceable oPlaceable = _.CreateObject(_.OBJECT_TYPE_PLACEABLE, sResRef, _.Location(oArea, vPosition, fFacing));
-                            _.SetObjectVisualTransform(oPlaceable, _.OBJECT_VISUAL_TRANSFORM_SCALE, _.IntToFloat(200 + _.Random(200)) / 100.0f);
+                            NWPlaceable oPlaceable = NWScript.CreateObject(ObjectType.Placeable, sResRef, NWScript.Location(oArea, vPosition, fFacing));
+                            NWScript.SetObjectVisualTransform(oPlaceable, NWScript.OBJECT_VISUAL_TRANSFORM_SCALE, NWScript.IntToFloat(200 + NWScript.Random(200)) / 100.0f);
 
                             weatherObjects.Add(oPlaceable);
                         }
@@ -858,8 +861,8 @@ namespace SWLOR.Game.Server.Service
 
         private static void OnModuleHeartbeat()
         {
-            NWObject oMod = _.GetModule();
-            int nHour = _.GetTimeHour();
+            NWObject oMod = NWScript.GetModule();
+            int nHour = NWScript.GetTimeHour();
             int nLastHour = oMod.GetLocalInt("WEATHER_LAST_HOUR");
 
             if (nHour != nLastHour)
@@ -878,7 +881,7 @@ namespace SWLOR.Game.Server.Service
 
         public static void OnCreatureSpawn()
         {
-            DoWeatherEffects(_.OBJECT_SELF);
+            DoWeatherEffects(NWScript.OBJECT_SELF);
         }
 
         public static void SetAreaHeatModifier(NWObject oArea, int nModifier)

@@ -1,6 +1,7 @@
 ﻿using NWN;
 using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.Service;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Scripts.Placeable
 {
@@ -16,11 +17,11 @@ namespace SWLOR.Game.Server.Scripts.Placeable
 
         public void Main()
         {
-            NWPlayer player = _.GetLastUsedBy();
+            NWPlayer player = NWScript.GetLastUsedBy();
 
             if (!player.IsPlayer) return;
 
-            NWPlaceable placeable = _.OBJECT_SELF;
+            NWPlaceable placeable = NWScript.OBJECT_SELF;
             int keyItemID = placeable.GetLocalInt("KEY_ITEM_ID");
             
             if (keyItemID <= 0) return;

@@ -2,6 +2,7 @@
 
 using NWN;
 using SWLOR.Game.Server.NWN;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Bioware
 {
@@ -19,7 +20,7 @@ namespace SWLOR.Game.Server.Bioware
         {
             facer.AssignCommand(() =>
             {
-                _.SetFacingPoint(objectToFace.Position);
+                NWScript.SetFacingPoint(objectToFace.Position);
             });
         }
 
@@ -32,7 +33,7 @@ namespace SWLOR.Game.Server.Bioware
         {
             facer.AssignCommand(() =>
             {
-                _.SetFacingPoint(_.GetPositionFromLocation(locationToFace));
+                NWScript.SetFacingPoint(NWScript.GetPositionFromLocation(locationToFace));
             });
         }
         /// <summary>
@@ -43,7 +44,7 @@ namespace SWLOR.Game.Server.Bioware
         /// <returns></returns>
         public static float GetChangeInX(float fDistance, float fAngle)
         {
-            return fDistance * _.cos(fAngle);
+            return fDistance * NWScript.cos(fAngle);
         }
 
         /// <summary>
@@ -54,7 +55,7 @@ namespace SWLOR.Game.Server.Bioware
         /// <returns></returns>
         public static float GetChangeInY(float fDistance, float fAngle)
         {
-            return fDistance * _.sin(fAngle);
+            return fDistance * NWScript.sin(fAngle);
         }
 
         /// <summary>
@@ -75,7 +76,7 @@ namespace SWLOR.Game.Server.Bioware
             if (changedY < 0.0)
                 changedY = -changedY;
 
-            return _.Vector(changedX, changedY, changedZ);
+            return NWScript.Vector(changedX, changedY, changedZ);
         }
 
         /// <summary>
@@ -91,7 +92,7 @@ namespace SWLOR.Game.Server.Bioware
             float diffY = o2.Position.Y - o1.Position.Y;
             
             // X/Y so that we're taking angle relative to the Y axis (X is opposite, Y adjacent)
-            float angle = _.atan(diffX / diffY);
+            float angle = NWScript.atan(diffX / diffY);
 
             // atan returns -90 to +90.  We need to turn it into a 360 degree facing based on 
             // whether diffX and diffY are positive.  

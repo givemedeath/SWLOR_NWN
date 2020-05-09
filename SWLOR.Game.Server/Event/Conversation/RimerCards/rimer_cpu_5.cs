@@ -15,8 +15,8 @@ namespace NWN.Scripts
         {
             using (new Profiler(nameof(rimer_cpu_5)))
             {
-                RimerCPU.ConfigureGameSettings(_.OBJECT_SELF, RimerDeckType.Random, RimerAIDifficulty.Normal);
-                return _.FALSE;
+                RimerCPU.ConfigureGameSettings(SWLOR.Game.Server.NWN.NWScript.OBJECT_SELF, RimerDeckType.Random, RimerAIDifficulty.Normal);
+                return SWLOR.Game.Server.NWN.NWScript.FALSE;
             }
         }
     }

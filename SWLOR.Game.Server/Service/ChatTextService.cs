@@ -4,7 +4,7 @@ using System.Linq;
 using NWN;
 using SWLOR.Game.Server.Enumeration;
 using SWLOR.Game.Server.GameObject;
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
 using System.Text;
 using SWLOR.Game.Server.Data.Entity;
 using SWLOR.Game.Server.Event.Module;
@@ -12,6 +12,7 @@ using SWLOR.Game.Server.Event.SWLOR;
 using SWLOR.Game.Server.Messaging;
 using SWLOR.Game.Server.NWNX;
 using ChatChannel = SWLOR.Game.Server.NWNX.ChatChannel;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Service
 {
@@ -120,7 +121,7 @@ namespace SWLOR.Game.Server.Service
 
                 if (channel == ChatChannel.PlayerShout)
                 {
-                    _.SendMessageToPC(sender, "Out-of-character messages cannot be sent on the Holonet.");
+                    NWScript.SendMessageToPC(sender, "Out-of-character messages cannot be sent on the Holonet.");
                     return;
                 }
 
@@ -188,8 +189,8 @@ namespace SWLOR.Game.Server.Service
 
             if (needsAreaCheck)
             {
-                recipients.AddRange(sender.Area.Objects.Where(obj => obj.IsPC && _.GetDistanceBetween(sender, obj) <= distanceCheck));
-                recipients.AddRange(AppCache.ConnectedDMs.Where(dm => dm.Area == sender.Area && _.GetDistanceBetween(sender, dm) <= distanceCheck));
+                recipients.AddRange(sender.Area.Objects.Where(obj => obj.IsPC && NWScript.GetDistanceBetween(sender, obj) <= distanceCheck));
+                recipients.AddRange(AppCache.ConnectedDMs.Where(dm => dm.Area == sender.Area && NWScript.GetDistanceBetween(sender, dm) <= distanceCheck));
             }
 
             // Now we have a list of who is going to actually receive a message, we need to modify
@@ -251,7 +252,7 @@ namespace SWLOR.Game.Server.Service
                 
                 // Wookiees cannot speak any other language (but they can understand them).
                 // Swap their language if they attempt to speak in any other language.
-                CustomRaceType race = (CustomRaceType) _.GetRacialType(sender);                
+                CustomRaceType race = (CustomRaceType) NWScript.GetRacialType(sender);                
                 if (race == CustomRaceType.Wookiee && language != SkillType.Shyriiwook)
                 {
                     LanguageService.SetActiveLanguage(sender, SkillType.Shyriiwook);
@@ -330,11 +331,11 @@ namespace SWLOR.Game.Server.Service
 
         private static void OnModuleEnter()
         {
-            NWPlayer player = _.GetEnteringObject();
+            NWPlayer player = NWScript.GetEnteringObject();
             if (!player.IsPlayer) return;
 
             var dbPlayer = DataService.Player.GetByID(player.GlobalID);
-            player.SetLocalInt("DISPLAY_HOLONET", dbPlayer.DisplayHolonet ? TRUE : FALSE);
+            player.SetLocalInt("DISPLAY_HOLONET", dbPlayer.DisplayHolonet ? 1 : 0);
         }
         
         private enum WorkingOnEmoteStyle

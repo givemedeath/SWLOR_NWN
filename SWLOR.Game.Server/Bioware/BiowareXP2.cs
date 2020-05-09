@@ -3,6 +3,7 @@ using SWLOR.Game.Server.GameObject;
 
 using NWN;
 using SWLOR.Game.Server.NWN;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Bioware
 {
@@ -37,19 +38,19 @@ namespace SWLOR.Game.Server.Bioware
         /// <param name="bIgnoreSubType"></param>
         public static void IPSafeAddItemProperty(NWItem oItem, ItemProperty ip, float fDuration, AddItemPropertyPolicy nAddItemPropertyPolicy, bool bIgnoreDurationType, bool bIgnoreSubType)
         {
-            int nType = _.GetItemPropertyType(ip);
-            int nSubType = _.GetItemPropertySubType(ip);
+            int nType = NWScript.GetItemPropertyType(ip);
+            int nSubType = NWScript.GetItemPropertySubType(ip);
             int nDuration;
             // if duration is 0.0f, make the item property permanent
             if (fDuration == 0.0f)
             {
 
-                nDuration = _.DURATION_TYPE_PERMANENT;
+                nDuration = NWScript.DURATION_TYPE_PERMANENT;
             }
             else
             {
 
-                nDuration = _.DURATION_TYPE_TEMPORARY;
+                nDuration = DurationType.Temporary;
             }
 
             int nDurationCompare = nDuration;
@@ -81,13 +82,13 @@ namespace SWLOR.Game.Server.Bioware
 
             }
 
-            if (nDuration == _.DURATION_TYPE_PERMANENT)
+            if (nDuration == NWScript.DURATION_TYPE_PERMANENT)
             {
-                _.AddItemProperty(nDuration, ip, oItem.Object);
+                NWScript.AddItemProperty(nDuration, ip, oItem.Object);
             }
             else
             {
-                _.AddItemProperty(nDuration, ip, oItem.Object, fDuration);
+                NWScript.AddItemProperty(nDuration, ip, oItem.Object, fDuration);
             }
         }
 
@@ -110,13 +111,13 @@ namespace SWLOR.Game.Server.Bioware
             foreach (var prop in props)
             {
                 // same property type?
-                if (_.GetItemPropertyType(prop) == nItemPropertyType)
+                if (NWScript.GetItemPropertyType(prop) == nItemPropertyType)
                 {
                     // same duration or duration ignored?
-                    if (_.GetItemPropertyDurationType(prop) == nItemPropertyDuration || nItemPropertyDuration == -1)
+                    if (NWScript.GetItemPropertyDurationType(prop) == nItemPropertyDuration || nItemPropertyDuration == -1)
                     {
                         // same subtype or subtype ignored
-                        if (_.GetItemPropertySubType(prop) == nItemPropertySubType || nItemPropertySubType == -1)
+                        if (NWScript.GetItemPropertySubType(prop) == nItemPropertySubType || nItemPropertySubType == -1)
                         {
                             // Put a warning into the logfile if someone tries to remove a permanent ip with a temporary one!
                             /*if (nItemPropertyDuration == DURATION_TYPE_TEMPORARY &&  GetItemPropertyDurationType(ip) == DURATION_TYPE_PERMANENT)
@@ -124,7 +125,7 @@ namespace SWLOR.Game.Server.Bioware
                                WriteTimestampedLogEntry("x2_inc_itemprop:: IPRemoveMatchingItemProperties() - WARNING: Permanent item property removed by temporary on "+GetTag(oItem));
                             }
                             */
-                            _.RemoveItemProperty(oItem.Object, prop);
+                            NWScript.RemoveItemProperty(oItem.Object, prop);
                         }
                     }
                 }
@@ -146,11 +147,11 @@ namespace SWLOR.Game.Server.Bioware
 
             foreach (ItemProperty ip in props)
             {
-                if ((_.GetItemPropertyType(ip) == _.GetItemPropertyType(ipCompareTo)))
+                if ((NWScript.GetItemPropertyType(ip) == NWScript.GetItemPropertyType(ipCompareTo)))
                 {
-                    if (_.GetItemPropertySubType(ip) == _.GetItemPropertySubType(ipCompareTo) || bIgnoreSubType)
+                    if (NWScript.GetItemPropertySubType(ip) == NWScript.GetItemPropertySubType(ipCompareTo) || bIgnoreSubType)
                     {
-                        if (_.GetItemPropertyDurationType(ip) == nDurationCompare || nDurationCompare == -1)
+                        if (NWScript.GetItemPropertyDurationType(ip) == nDurationCompare || nDurationCompare == -1)
                         {
                             return true; // if duration is not ignored and durationtypes are equal, true
                         }
@@ -171,10 +172,10 @@ namespace SWLOR.Game.Server.Bioware
             var props = oItem.ItemProperties;
             foreach (var prop in props)
             {
-                _.GetItemPropertyDurationType(prop);
-                if (_.GetItemPropertyDurationType(prop) == nItemPropertyDuration)
+                NWScript.GetItemPropertyDurationType(prop);
+                if (NWScript.GetItemPropertyDurationType(prop) == nItemPropertyDuration)
                 {
-                    _.RemoveItemProperty(oItem.Object, prop);
+                    NWScript.RemoveItemProperty(oItem.Object, prop);
                 }
             }
         }

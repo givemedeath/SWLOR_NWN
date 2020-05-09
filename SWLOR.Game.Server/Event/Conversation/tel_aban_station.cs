@@ -5,7 +5,7 @@ using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.Messaging;
 using SWLOR.Game.Server.Service;
 using SWLOR.Game.Server.ValueObject;
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
 
 // ReSharper disable once CheckNamespace
 namespace NWN.Scripts
@@ -19,7 +19,7 @@ namespace NWN.Scripts
             using (new Profiler(nameof(tel_aban_station)))
             {
                 NWPlayer player = GetPCSpeaker();
-                NWObject talkingTo = _.OBJECT_SELF;
+                NWObject talkingTo = SWLOR.Game.Server.NWN.NWScript.OBJECT_SELF;
 
                 var mainLevel = GetOrCreateMainLevel(player);
                 NWObject landingWP = GetNearestObjectByTag("ABAN_STATION_LANDING", GetFirstObjectInArea(mainLevel));

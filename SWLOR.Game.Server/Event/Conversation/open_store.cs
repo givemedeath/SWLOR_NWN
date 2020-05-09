@@ -14,26 +14,26 @@ namespace NWN.Scripts
         {
             using (new Profiler(nameof(open_store)))
             {
-                NWPlayer player = _.GetPCSpeaker();
-                NWObject self = _.OBJECT_SELF;
+                NWPlayer player = SWLOR.Game.Server.NWN.NWScript.GetPCSpeaker();
+                NWObject self = SWLOR.Game.Server.NWN.NWScript.OBJECT_SELF;
                 string storeTag = self.GetLocalString("STORE_TAG");
                 NWObject store;
 
                 if (string.IsNullOrWhiteSpace(storeTag))
                 {
-                    store = _.GetNearestObject(_.OBJECT_TYPE_STORE, self);
+                    store = SWLOR.Game.Server.NWN.NWScript.GetNearestObject(SWLOR.Game.Server.NWN.NWScript.OBJECT_TYPE_STORE, self);
                 }
                 else
                 {
-                    store = _.GetObjectByTag(storeTag);
+                    store = SWLOR.Game.Server.NWN.NWScript.GetObjectByTag(storeTag);
                 }
 
                 if (!store.IsValid)
                 {
-                    _.SpeakString("ERROR: Unable to locate store.");
+                    SWLOR.Game.Server.NWN.NWScript.SpeakString("ERROR: Unable to locate store.");
                 }
 
-                _.OpenStore(store, player);
+                SWLOR.Game.Server.NWN.NWScript.OpenStore(store, player);
             }
         }
     }

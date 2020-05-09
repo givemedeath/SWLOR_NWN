@@ -16,7 +16,7 @@ namespace NWN.Scripts
         // ReSharper disable once UnusedMember.Local
         public static void Main()
         {
-            NWPlayer pc = (_.GetExitingObject());
+            NWPlayer pc = (SWLOR.Game.Server.NWN.NWScript.GetExitingObject());
 
             using (new Profiler(nameof(mod_on_leave) + ":RemoveDMFromCache"))
             {
@@ -30,7 +30,7 @@ namespace NWN.Scripts
             {
                 if (pc.IsPlayer)
                 {
-                    _.ExportSingleCharacter(pc.Object);
+                    SWLOR.Game.Server.NWN.NWScript.ExportSingleCharacter(pc.Object);
                 }
             }
 

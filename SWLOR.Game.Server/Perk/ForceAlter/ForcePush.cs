@@ -2,6 +2,7 @@
 using SWLOR.Game.Server.Enumeration;
 using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.Service;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Perk.ForceAlter
 {
@@ -10,21 +11,21 @@ namespace SWLOR.Game.Server.Perk.ForceAlter
         public PerkType PerkType => PerkType.ForcePush;
         public string CanCastSpell(NWCreature oPC, NWObject oTarget, int spellTier)
         {
-            int size = _.GetCreatureSize(oTarget);
-            int maxSize = _.CREATURE_SIZE_INVALID;
+            int size = NWScript.GetCreatureSize(oTarget);
+            int maxSize = NWScript.CREATURE_SIZE_INVALID;
             switch (spellTier)
             {
                 case 1:
-                    maxSize = _.CREATURE_SIZE_SMALL;
+                    maxSize = NWScript.CREATURE_SIZE_SMALL;
                     break;
                 case 2:
-                    maxSize = _.CREATURE_SIZE_MEDIUM;
+                    maxSize = NWScript.CREATURE_SIZE_MEDIUM;
                     break;
                 case 3:
-                    maxSize = _.CREATURE_SIZE_LARGE;
+                    maxSize = NWScript.CREATURE_SIZE_LARGE;
                     break;
                 case 4:
-                    maxSize = _.CREATURE_SIZE_HUGE;
+                    maxSize = NWScript.CREATURE_SIZE_HUGE;
                     break;
             }
 
@@ -88,7 +89,7 @@ namespace SWLOR.Game.Server.Perk.ForceAlter
             // Resisted - Only apply slow for six seconds
             if (result.IsResisted)
             {
-                _.ApplyEffectToObject(_.DURATION_TYPE_TEMPORARY, _.EffectSlow(), target, 6.0f);
+                NWScript.ApplyEffectToObject(DurationType.Temporary, NWScript.EffectSlow(), target, 6.0f);
             }
 
             // Not resisted - Apply knockdown for the specified duration
@@ -102,7 +103,7 @@ namespace SWLOR.Game.Server.Perk.ForceAlter
                     creature.SendMessage("Lucky Force Push!");
                 }
 
-                _.ApplyEffectToObject(_.DURATION_TYPE_TEMPORARY, _.EffectKnockdown(), target, duration);
+                NWScript.ApplyEffectToObject(DurationType.Temporary, NWScript.EffectKnockdown(), target, duration);
             }
 
             if (creature.IsPlayer)
@@ -110,7 +111,7 @@ namespace SWLOR.Game.Server.Perk.ForceAlter
                 SkillService.RegisterPCToAllCombatTargetsForSkill(creature.Object, SkillType.ForceAlter, target.Object);
             }
             
-            _.ApplyEffectToObject(_.DURATION_TYPE_INSTANT, _.EffectVisualEffect(_.VFX_COM_BLOOD_SPARK_SMALL), target);
+            NWScript.ApplyEffectToObject(DurationType.Instant, NWScript.EffectVisualEffect(NWScript.VFX_COM_BLOOD_SPARK_SMALL), target);
         }
 
         public void OnPurchased(NWCreature creature, int newLevel)

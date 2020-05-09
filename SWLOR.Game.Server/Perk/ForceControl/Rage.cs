@@ -4,6 +4,7 @@ using SWLOR.Game.Server.Enumeration;
 using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.NWN;
 using SWLOR.Game.Server.Service;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Perk.ForceControl
 {
@@ -129,29 +130,29 @@ namespace SWLOR.Game.Server.Perk.ForceControl
             }
 
             // Build a linked effect which handles applying these bonuses and penalties.
-            Effect visualEffect = _.EffectVisualEffect(_.VFX_DUR_AURA_RED);
-            Effect strEffect = _.EffectAbilityIncrease(_.ABILITY_STRENGTH, strBonus);
-            Effect conEffect = _.EffectAbilityIncrease(_.ABILITY_CONSTITUTION, conBonus);
-            Effect acEffect = _.EffectACDecrease(acPenalty);
-            Effect attackEffect = _.EffectModifyAttacks(attacks);
-            Effect finalEffect = _.EffectLinkEffects(strEffect, conEffect);
-            finalEffect = _.EffectLinkEffects(finalEffect, acEffect);
+            Effect visualEffect = NWScript.EffectVisualEffect(NWScript.VFX_DUR_AURA_RED);
+            Effect strEffect = NWScript.EffectAbilityIncrease(NWScript.ABILITY_STRENGTH, strBonus);
+            Effect conEffect = NWScript.EffectAbilityIncrease(NWScript.ABILITY_CONSTITUTION, conBonus);
+            Effect acEffect = NWScript.EffectACDecrease(acPenalty);
+            Effect attackEffect = NWScript.EffectModifyAttacks(attacks);
+            Effect finalEffect = NWScript.EffectLinkEffects(strEffect, conEffect);
+            finalEffect = NWScript.EffectLinkEffects(finalEffect, acEffect);
                        
             // Only apply the attack effect if this spell tier increases it.
             if (attacks > 0)
             {
-                finalEffect = _.EffectLinkEffects(finalEffect, attackEffect);
+                finalEffect = NWScript.EffectLinkEffects(finalEffect, attackEffect);
             }
-            finalEffect = _.TagEffect(finalEffect, "FORCE_ABILITY_RAGE");
+            finalEffect = NWScript.TagEffect(finalEffect, "FORCE_ABILITY_RAGE");
 
-            Effect damageEffect = _.EffectDamage(hpPenalty);
+            Effect damageEffect = NWScript.EffectDamage(hpPenalty);
 
             // Apply both effects.
             creature.AssignCommand(() =>
             {
-                _.ApplyEffectToObject(_.DURATION_TYPE_INSTANT, damageEffect, creature.Object);
-                _.ApplyEffectToObject(_.DURATION_TYPE_TEMPORARY, finalEffect, creature.Object, 6.1f);
-                _.ApplyEffectToObject(_.DURATION_TYPE_TEMPORARY, visualEffect, creature.Object, 6.1f);
+                NWScript.ApplyEffectToObject(DurationType.Instant, damageEffect, creature.Object);
+                NWScript.ApplyEffectToObject(DurationType.Temporary, finalEffect, creature.Object, 6.1f);
+                NWScript.ApplyEffectToObject(DurationType.Temporary, visualEffect, creature.Object, 6.1f);
             });
         }
     }

@@ -3,6 +3,7 @@
 using NWN;
 using SWLOR.Game.Server.NWN;
 using SWLOR.Game.Server.ValueObject.Dialog;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Conversation
 {
@@ -54,9 +55,9 @@ namespace SWLOR.Game.Server.Conversation
             {
                 case 1: // Plant a seed
                     Location location = GetPC().Location;
-                    NWPlaceable planter = (_.CreateObject(_.OBJECT_TYPE_PLACEABLE, "farm_plant_seed", location));
+                    NWPlaceable planter = (NWScript.CreateObject(ObjectType.Placeable, "farm_plant_seed", location));
                     planter.SetLocalObject("FARM_SMALL_HOLE", GetDialogTarget().Object);
-                    GetPC().AssignCommand(() => _.ActionInteractObject(planter.Object));
+                    GetPC().AssignCommand(() => NWScript.ActionInteractObject(planter.Object));
                     break;
                 case 2: // Cover up the hole
                     ChangePage("CoverUpConfirm");

@@ -5,7 +5,8 @@ using SWLOR.Game.Server.Enumeration;
 using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.Service;
 
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.CustomEffect
 {
@@ -21,7 +22,7 @@ namespace SWLOR.Game.Server.CustomEffect
 
             if (healAmount > 0)
             {
-                _.ApplyEffectToObject(DURATION_TYPE_INSTANT, _.EffectHeal(healAmount), oTarget);
+                NWScript.ApplyEffectToObject(DURATION_TYPE_INSTANT, NWScript.EffectHeal(healAmount), oTarget);
             }
 
             return null;
@@ -36,11 +37,11 @@ namespace SWLOR.Game.Server.CustomEffect
                 CustomEffectService.RemovePCCustomEffect(targetPlayer, CustomEffectType.ShieldBoost);
                 PlayerStatService.ApplyStatChanges(targetPlayer, null);
 
-                var vfx = targetPlayer.Effects.SingleOrDefault(x => _.GetEffectTag(x) == "SHIELD_BOOST_VFX");
+                var vfx = targetPlayer.Effects.SingleOrDefault(x => NWScript.GetEffectTag(x) == "SHIELD_BOOST_VFX");
 
                 if (vfx != null)
                 {
-                    _.RemoveEffect(targetPlayer, vfx);
+                    NWScript.RemoveEffect(targetPlayer, vfx);
                 }
             }
         }

@@ -7,6 +7,7 @@ using SWLOR.Game.Server.Event.SWLOR;
 using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.Messaging;
 using SWLOR.Game.Server.Service;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Scripts.Placeable.Bank
 {
@@ -22,22 +23,22 @@ namespace SWLOR.Game.Server.Scripts.Placeable.Bank
 
         public void Main()
         {
-            NWPlaceable terminal = _.OBJECT_SELF;
+            NWPlaceable terminal = NWScript.OBJECT_SELF;
             int bankID = terminal.GetLocalInt("BANK_ID");
             if (bankID <= 0) return;
 
-            NWPlayer player = _.GetLastDisturbed();
-            NWItem item = _.GetInventoryDisturbItem();
-            int disturbType = _.GetInventoryDisturbType();
+            NWPlayer player = NWScript.GetLastDisturbed();
+            NWItem item = NWScript.GetInventoryDisturbItem();
+            int disturbType = NWScript.GetInventoryDisturbType();
             int itemCount = terminal.InventoryItems.Count();
             int itemLimit = terminal.GetLocalInt("BANK_LIMIT");
             if (itemLimit <= 0) itemLimit = 20;
 
-            if (disturbType == _.INVENTORY_DISTURB_TYPE_ADDED)
+            if (disturbType == NWScript.INVENTORY_DISTURB_TYPE_ADDED)
             {
-                if (_.GetHasInventory(item) == _.TRUE)
+                if (NWScript.GetHasInventory(item) == NWScript.TRUE)
                 {
-                    item.SetLocalInt("RETURNING_ITEM", _.TRUE);
+                    item.SetLocalInt("RETURNING_ITEM", NWScript.TRUE);
                     ItemService.ReturnItem(player, item);
                     player.SendMessage(ColorTokenService.Red("Containers cannot currently be stored inside banks."));
                     return;
@@ -66,9 +67,9 @@ namespace SWLOR.Game.Server.Scripts.Placeable.Bank
                     MessageHub.Instance.Publish(new OnStoreBankItem(player, itemEntity));
                 }
             }
-            else if (disturbType == _.INVENTORY_DISTURB_TYPE_REMOVED)
+            else if (disturbType == NWScript.INVENTORY_DISTURB_TYPE_REMOVED)
             {
-                if (item.GetLocalInt("RETURNING_ITEM") == _.TRUE)
+                if (item.GetLocalInt("RETURNING_ITEM") == NWScript.TRUE)
                 {
                     item.DeleteLocalInt("RETURNING_ITEM");
                 }

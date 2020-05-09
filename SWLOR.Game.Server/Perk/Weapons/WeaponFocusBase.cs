@@ -7,7 +7,8 @@ using SWLOR.Game.Server.NWN.Enum.Item;
 using SWLOR.Game.Server.NWNX;
 using SWLOR.Game.Server.Service;
 
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Perk.Weapons
 {
@@ -78,11 +79,11 @@ namespace SWLOR.Game.Server.Perk.Weapons
             NWItem offHand = creature.LeftHand;
             if (oItem != null && Equals(oItem, mainHand))
             {
-                mainHand = _.OBJECT_INVALID;
+                mainHand = NWScript.OBJECT_INVALID;
             }
             else if (oItem != null && Equals(oItem, offHand))
             {
-                offHand = _.OBJECT_INVALID;
+                offHand = NWScript.OBJECT_INVALID;
             }
 
             if (!mainHand.IsValid && !offHand.IsValid) 

@@ -3,7 +3,8 @@ using SWLOR.Game.Server.Enumeration;
 using SWLOR.Game.Server.Event.Module;
 using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.Messaging;
-using static NWN._;
+using static SWLOR.Game.Server.NWN.NWScript;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Service
 {
@@ -16,14 +17,14 @@ namespace SWLOR.Game.Server.Service
 
         private static void OnModuleEnter()
         {
-            NWPlayer player = _.GetEnteringObject();
+            NWPlayer player = NWScript.GetEnteringObject();
             if (!player.IsPlayer) return;
 
             CustomRaceType race = (CustomRaceType) player.RacialType;
 
             if (race == CustomRaceType.Wookiee)
             {
-                _.SetObjectVisualTransform(player, OBJECT_VISUAL_TRANSFORM_SCALE, 1.2f);
+                NWScript.SetObjectVisualTransform(player, OBJECT_VISUAL_TRANSFORM_SCALE, 1.2f);
             }
         }
 
@@ -285,55 +286,55 @@ namespace SWLOR.Game.Server.Service
                     break;
                 default:
                     {
-                        _.BootPC(player, "You have selected an invalid race. This could be due to files in your override folder. Ensure these are removed from the folder and then try creating a new character. If you have any problems, visit our website at http://starwarsnwn.com");
+                        NWScript.BootPC(player, "You have selected an invalid race. This could be due to files in your override folder. Ensure these are removed from the folder and then try creating a new character. If you have any problems, visit our website at http://starwarsnwn.com");
                         return;
                     }
             }
-            _.SetCreatureAppearanceType(player, appearance);
-            _.SetColor(player, COLOR_CHANNEL_SKIN, skinColor);
-            _.SetColor(player, COLOR_CHANNEL_HAIR, hairColor);
+            NWScript.SetCreatureAppearanceType(player, appearance);
+            NWScript.SetColor(player, COLOR_CHANNEL_SKIN, skinColor);
+            NWScript.SetColor(player, COLOR_CHANNEL_HAIR, hairColor);
             
             if (gender == GENDER_MALE)
             {
-                _.SetCreatureBodyPart(CREATURE_PART_HEAD, maleHead, player);
+                NWScript.SetCreatureBodyPart(CREATURE_PART_HEAD, maleHead, player);
 
-                _.SetCreatureBodyPart(CREATURE_PART_NECK, maleNeck, player);
-                _.SetCreatureBodyPart(CREATURE_PART_TORSO, maleTorso, player);
-                _.SetCreatureBodyPart(CREATURE_PART_PELVIS, malePelvis, player);
+                NWScript.SetCreatureBodyPart(CREATURE_PART_NECK, maleNeck, player);
+                NWScript.SetCreatureBodyPart(CREATURE_PART_TORSO, maleTorso, player);
+                NWScript.SetCreatureBodyPart(CREATURE_PART_PELVIS, malePelvis, player);
 
-                _.SetCreatureBodyPart(CREATURE_PART_RIGHT_BICEP, maleRightBicep, player);
-                _.SetCreatureBodyPart(CREATURE_PART_RIGHT_FOREARM, maleRightForearm, player);
-                _.SetCreatureBodyPart(CREATURE_PART_RIGHT_HAND, maleRightHand, player);
-                _.SetCreatureBodyPart(CREATURE_PART_RIGHT_THIGH, maleRightThigh, player);
-                _.SetCreatureBodyPart(CREATURE_PART_RIGHT_SHIN, maleRightShin, player);
-                _.SetCreatureBodyPart(CREATURE_PART_RIGHT_FOOT, maleRightFoot, player);
-                _.SetCreatureBodyPart(CREATURE_PART_LEFT_BICEP, maleLeftBicep, player);
-                _.SetCreatureBodyPart(CREATURE_PART_LEFT_FOREARM, maleLeftForearm, player);
-                _.SetCreatureBodyPart(CREATURE_PART_LEFT_HAND, maleLeftHand, player);
-                _.SetCreatureBodyPart(CREATURE_PART_LEFT_THIGH, maleLeftThigh, player);
-                _.SetCreatureBodyPart(CREATURE_PART_LEFT_SHIN, maleLeftShin, player);
-                _.SetCreatureBodyPart(CREATURE_PART_LEFT_FOOT, maleLeftFoot, player);
+                NWScript.SetCreatureBodyPart(CREATURE_PART_RIGHT_BICEP, maleRightBicep, player);
+                NWScript.SetCreatureBodyPart(CREATURE_PART_RIGHT_FOREARM, maleRightForearm, player);
+                NWScript.SetCreatureBodyPart(CREATURE_PART_RIGHT_HAND, maleRightHand, player);
+                NWScript.SetCreatureBodyPart(CREATURE_PART_RIGHT_THIGH, maleRightThigh, player);
+                NWScript.SetCreatureBodyPart(CREATURE_PART_RIGHT_SHIN, maleRightShin, player);
+                NWScript.SetCreatureBodyPart(CREATURE_PART_RIGHT_FOOT, maleRightFoot, player);
+                NWScript.SetCreatureBodyPart(CREATURE_PART_LEFT_BICEP, maleLeftBicep, player);
+                NWScript.SetCreatureBodyPart(CREATURE_PART_LEFT_FOREARM, maleLeftForearm, player);
+                NWScript.SetCreatureBodyPart(CREATURE_PART_LEFT_HAND, maleLeftHand, player);
+                NWScript.SetCreatureBodyPart(CREATURE_PART_LEFT_THIGH, maleLeftThigh, player);
+                NWScript.SetCreatureBodyPart(CREATURE_PART_LEFT_SHIN, maleLeftShin, player);
+                NWScript.SetCreatureBodyPart(CREATURE_PART_LEFT_FOOT, maleLeftFoot, player);
             }
             else if (gender == GENDER_FEMALE)
             {
-                _.SetCreatureBodyPart(CREATURE_PART_HEAD, femaleHead, player);
+                NWScript.SetCreatureBodyPart(CREATURE_PART_HEAD, femaleHead, player);
 
-                _.SetCreatureBodyPart(CREATURE_PART_NECK, femaleNeck, player);
-                _.SetCreatureBodyPart(CREATURE_PART_TORSO, femaleTorso, player);
-                _.SetCreatureBodyPart(CREATURE_PART_PELVIS, femalePelvis, player);
+                NWScript.SetCreatureBodyPart(CREATURE_PART_NECK, femaleNeck, player);
+                NWScript.SetCreatureBodyPart(CREATURE_PART_TORSO, femaleTorso, player);
+                NWScript.SetCreatureBodyPart(CREATURE_PART_PELVIS, femalePelvis, player);
 
-                _.SetCreatureBodyPart(CREATURE_PART_RIGHT_BICEP, femaleRightBicep, player);
-                _.SetCreatureBodyPart(CREATURE_PART_RIGHT_FOREARM, femaleRightForearm, player);
-                _.SetCreatureBodyPart(CREATURE_PART_RIGHT_HAND, femaleRightHand, player);
-                _.SetCreatureBodyPart(CREATURE_PART_RIGHT_THIGH, femaleRightThigh, player);
-                _.SetCreatureBodyPart(CREATURE_PART_RIGHT_SHIN, femaleRightShin, player);
-                _.SetCreatureBodyPart(CREATURE_PART_RIGHT_FOOT, femaleRightFoot, player);
-                _.SetCreatureBodyPart(CREATURE_PART_LEFT_BICEP, femaleLeftBicep, player);
-                _.SetCreatureBodyPart(CREATURE_PART_LEFT_FOREARM, femaleLeftForearm, player);
-                _.SetCreatureBodyPart(CREATURE_PART_LEFT_HAND, femaleLeftHand, player);
-                _.SetCreatureBodyPart(CREATURE_PART_LEFT_THIGH, femaleLeftThigh, player);
-                _.SetCreatureBodyPart(CREATURE_PART_LEFT_SHIN, femaleLeftShin, player);
-                _.SetCreatureBodyPart(CREATURE_PART_LEFT_FOOT, femaleLeftFoot, player);
+                NWScript.SetCreatureBodyPart(CREATURE_PART_RIGHT_BICEP, femaleRightBicep, player);
+                NWScript.SetCreatureBodyPart(CREATURE_PART_RIGHT_FOREARM, femaleRightForearm, player);
+                NWScript.SetCreatureBodyPart(CREATURE_PART_RIGHT_HAND, femaleRightHand, player);
+                NWScript.SetCreatureBodyPart(CREATURE_PART_RIGHT_THIGH, femaleRightThigh, player);
+                NWScript.SetCreatureBodyPart(CREATURE_PART_RIGHT_SHIN, femaleRightShin, player);
+                NWScript.SetCreatureBodyPart(CREATURE_PART_RIGHT_FOOT, femaleRightFoot, player);
+                NWScript.SetCreatureBodyPart(CREATURE_PART_LEFT_BICEP, femaleLeftBicep, player);
+                NWScript.SetCreatureBodyPart(CREATURE_PART_LEFT_FOREARM, femaleLeftForearm, player);
+                NWScript.SetCreatureBodyPart(CREATURE_PART_LEFT_HAND, femaleLeftHand, player);
+                NWScript.SetCreatureBodyPart(CREATURE_PART_LEFT_THIGH, femaleLeftThigh, player);
+                NWScript.SetCreatureBodyPart(CREATURE_PART_LEFT_SHIN, femaleLeftShin, player);
+                NWScript.SetCreatureBodyPart(CREATURE_PART_LEFT_FOOT, femaleLeftFoot, player);
             }
         }
 

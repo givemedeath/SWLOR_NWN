@@ -1,5 +1,6 @@
 ﻿using NWN;
 using SWLOR.Game.Server.Service;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Scripts.Placeable.QuestSystem
 {
@@ -15,7 +16,7 @@ namespace SWLOR.Game.Server.Scripts.Placeable.QuestSystem
 
         public void Main()
         {
-            QuestService.OnQuestPlaceableUsed(_.OBJECT_SELF);
+            QuestService.OnQuestPlaceableUsed(NWScript.OBJECT_SELF);
         }
     }
 }

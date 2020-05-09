@@ -1,6 +1,7 @@
 ﻿using NWN;
 using SWLOR.Game.Server.GameObject;
 using SWLOR.Game.Server.Service;
+using NWScript = SWLOR.Game.Server.NWN.NWScript;
 
 namespace SWLOR.Game.Server.Scripts.Placeable.MarketTerminal
 {
@@ -18,16 +19,16 @@ namespace SWLOR.Game.Server.Scripts.Placeable.MarketTerminal
         {
             // Should only fire when a player walks away from the device.
             // Clean up temporary data.
-            NWPlayer player = _.GetLastClosedBy();
-            NWPlaceable device = _.OBJECT_SELF;
+            NWPlayer player = NWScript.GetLastClosedBy();
+            NWPlaceable device = NWScript.OBJECT_SELF;
             var model = MarketService.GetPlayerMarketData(player);
             device.DestroyAllInventoryItems();
             device.IsLocked = false;
             
-            _.SetEventScript(device.Object, _.EVENT_SCRIPT_PLACEABLE_ON_USED, "script_1");
-            _.SetEventScript(device.Object, _.EVENT_SCRIPT_PLACEABLE_ON_OPEN, string.Empty);
-            _.SetEventScript(device.Object, _.EVENT_SCRIPT_PLACEABLE_ON_CLOSED, string.Empty);
-            _.SetEventScript(device.Object, _.EVENT_SCRIPT_PLACEABLE_ON_INVENTORYDISTURBED, string.Empty);
+            NWScript.SetEventScript(device.Object, NWScript.EVENT_SCRIPT_PLACEABLE_ON_USED, "script_1");
+            NWScript.SetEventScript(device.Object, NWScript.EVENT_SCRIPT_PLACEABLE_ON_OPEN, string.Empty);
+            NWScript.SetEventScript(device.Object, NWScript.EVENT_SCRIPT_PLACEABLE_ON_CLOSED, string.Empty);
+            NWScript.SetEventScript(device.Object, NWScript.EVENT_SCRIPT_PLACEABLE_ON_INVENTORYDISTURBED, string.Empty);
             
             // Only wipe the data if we're not returning from an item preview for item picking.
             if(!model.IsReturningFromItemPreview &&
