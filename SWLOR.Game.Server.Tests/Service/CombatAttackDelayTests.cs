@@ -211,7 +211,7 @@ public class CombatAttackDelayTests
     }
 
     [Test]
-    public void NativeAttackDelayHook_SchedulesVisibleAdditionalAttackActions()
+    public void NativeAttackDelayHook_QueuesVisibleExternalAutoAttacksWithoutGlobalAttackCountHook()
     {
         var root = FindRepositoryRoot();
         var attackObjectHookSource = File.ReadAllText(Path.Combine(
@@ -219,31 +219,23 @@ public class CombatAttackDelayTests
             "SWLOR.Game.Server",
             "Native",
             "OnAIActionAttackObject.cs"));
-        var numberOfAttacksHookSource = File.ReadAllText(Path.Combine(
-            root.FullName,
-            "SWLOR.Game.Server",
-            "Native",
-            "InitializeNumberOfAttacks.cs"));
 
         attackObjectHookSource.Should().NotContain("_ZN15CNWSCombatRound25InitializeNumberOfAttacksEv");
-        attackObjectHookSource.Should().Contain("TryConsumeScheduledAttackBatch");
         attackObjectHookSource.Should().NotContain("m_nAdditionalAttacks +=");
-        attackObjectHookSource.Should().Contain("GetScheduledAttackBatchRoundLength");
+        attackObjectHookSource.Should().NotContain("TryConsumeScheduledAttackBatch");
+        attackObjectHookSource.Should().NotContain("AutoAttackDesiredDelayOverrideMilliseconds");
+        attackObjectHookSource.Should().NotContain("AddAttackActions");
+        attackObjectHookSource.Should().Contain("CalculateAutoAttackDelayWindow");
+        attackObjectHookSource.Should().Contain("ExternalResolveAttack");
+        attackObjectHookSource.Should().Contain("SetPauseTimer(animationTime)");
+        attackObjectHookSource.Should().Contain("var canQueueVisibleAutoAttacks = pCombatTargetCreature != null;");
+        attackObjectHookSource.Should().Contain("pendingAutoAttack.Target != oidAttackTarget");
+        attackObjectHookSource.Should().Contain("TryGetActiveCreatureTarget");
         attackObjectHookSource.Should().Contain("GetAttackActionPending");
         attackObjectHookSource.Should().Contain("var pTargetNwsObject = pGameObject?.AsNWSObject();");
         attackObjectHookSource.Should().Contain("var pTargetCreature = pGameObject?.AsNWSCreature();");
-        attackObjectHookSource.Should().Contain("var canScheduleAdditionalAttackActions = pCombatTargetCreature != null;");
-        attackObjectHookSource.Should().Contain("attackDelayWindow.AdditionalAttacks > 0 &&");
-        attackObjectHookSource.Should().Contain("canScheduleAdditionalAttackActions");
-        attackObjectHookSource.Should().Contain("pPendingAction.m_nNumAttacks");
-        attackObjectHookSource.Should().NotContain("var nAttacks = 1;");
-
-        numberOfAttacksHookSource.Should().Contain("_ZN15CNWSCombatRound25InitializeNumberOfAttacksEv");
-        numberOfAttacksHookSource.Should().Contain("if (pCombatRound == null)");
-        numberOfAttacksHookSource.Should().Contain("_callOriginal(pCombatRound);");
-        numberOfAttacksHookSource.Should().Contain("OnAIActionAttackObject.TryConsumeScheduledAttackBatch");
-        numberOfAttacksHookSource.Should().Contain("m_nAdditionalAttacks +=");
-        numberOfAttacksHookSource.Should().NotContain("ExecuteInScriptContext");
+        attackObjectHookSource.Should().Contain("var nAttacks = 1;");
+        attackObjectHookSource.Should().NotContain("pPendingAction.m_nNumAttacks");
     }
 
     [Test]

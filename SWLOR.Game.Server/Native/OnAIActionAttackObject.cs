@@ -41,11 +41,11 @@ namespace SWLOR.Game.Server.Native
 
         private const int WEAPON_ATTACK_TYPE_MAINHAND = 1;
         private const int WEAPON_ATTACK_TYPE_OFFHAND = 2;
-        private const int AutoAttackDesiredDelayOverrideMilliseconds = 500;
 
         private static readonly Dictionary<uint, DateTime> _creatureAttackDelays = new();
         private static readonly Dictionary<uint, double> _attackDelayOverflowCarry = new();
-        private static readonly Dictionary<uint, ScheduledAttackBatch> _scheduledAttackBatches = new();
+        private static readonly Dictionary<uint, int> _visibleAutoAttackCredits = new();
+        private static readonly Dictionary<uint, PendingVisibleAutoAttack> _pendingVisibleAutoAttacks = new();
 
         internal delegate int AIActionAttackObjectHook(void* pCreature, void* pNode);
         // ReSharper disable once NotAccessedField.Local
@@ -385,15 +385,16 @@ namespace SWLOR.Game.Server.Native
                     }
                 }
 
-                var canScheduleAdditionalAttackActions = pCombatTargetCreature != null;
                 var attackSkillType = Combat.GetEquippedWeaponSkillType(pCreature.m_idSelf);
                 var useDefaultMinimumDelay = Combat.HasNextAutoAttackNoDelay(pCreature.m_idSelf, attackSkillType);
                 var hasPendingAttackAction = pCreature.m_pcCombatRound.m_bRoundStarted == 1 &&
                                              pCreature.m_pcCombatRound.GetAttackActionPending() == 1;
+                var hasPendingVisibleAutoAttack = _pendingVisibleAutoAttacks.ContainsKey(pCreature.m_idSelf);
+                var canQueueVisibleAutoAttacks = pCombatTargetCreature != null;
 
                 if (bTargetDead)
                 {
-                    _scheduledAttackBatches.Remove(pCreature.m_idSelf);
+                    ClearAttackDelayState(pCreature.m_idSelf);
                 }
 
                 // Check attack delay before starting or processing combat
@@ -401,22 +402,29 @@ namespace SWLOR.Game.Server.Native
                 // Skip delay check if target is dead
                 if (_creatureAttackDelays.ContainsKey(pCreature.m_idSelf) &&
                     !bTargetDead &&
-                    !hasPendingAttackAction)
+                    !hasPendingAttackAction &&
+                    !hasPendingVisibleAutoAttack)
                 {
                     var calculatedDelay = Combat.CalculateAttackDelay(pCreature.m_idSelf);
-                    if (AutoAttackDesiredDelayOverrideMilliseconds > 0)
+                    var delay = Combat.CalculateEffectiveAttackDelay(calculatedDelay, useDefaultMinimumDelay);
+                    var visibleAutoAttackCredits = 0;
+                    var overflowCarry = 0d;
+
+                    if (canQueueVisibleAutoAttacks)
                     {
-                        calculatedDelay = Combat.BaseAttackDelayMilliseconds +
-                                          AutoAttackDesiredDelayOverrideMilliseconds;
+                        _attackDelayOverflowCarry.TryGetValue(pCreature.m_idSelf, out overflowCarry);
+                        var attackDelayWindow = Combat.CalculateAutoAttackDelayWindow(
+                            calculatedDelay,
+                            useDefaultMinimumDelay,
+                            overflowCarry);
+
+                        delay = attackDelayWindow.GateDelayMilliseconds;
+                        visibleAutoAttackCredits = attackDelayWindow.AdditionalAttacks;
+                        overflowCarry = attackDelayWindow.OverflowCarry;
                     }
 
-                    _attackDelayOverflowCarry.TryGetValue(pCreature.m_idSelf, out var overflowCarry);
-                    var attackDelayWindow = Combat.CalculateAutoAttackDelayWindow(
-                        calculatedDelay,
-                        useDefaultMinimumDelay,
-                        overflowCarry);
-                    var delay = attackDelayWindow.GateDelayMilliseconds;
-                    var timeSinceLastAttack = (DateTime.UtcNow - _creatureAttackDelays[pCreature.m_idSelf]).TotalMilliseconds;
+                    var now = DateTime.UtcNow;
+                    var timeSinceLastAttack = (now - _creatureAttackDelays[pCreature.m_idSelf]).TotalMilliseconds;
 
                     if (timeSinceLastAttack < delay)
                     {
@@ -424,36 +432,41 @@ namespace SWLOR.Game.Server.Native
                         return ACTION_IN_PROGRESS;
                     }
 
-                    _creatureAttackDelays[pCreature.m_idSelf] = DateTime.UtcNow;
-                    _attackDelayOverflowCarry[pCreature.m_idSelf] = attackDelayWindow.OverflowCarry;
+                    _creatureAttackDelays[pCreature.m_idSelf] = now;
 
-                    if (attackDelayWindow.AdditionalAttacks > 0 &&
-                        canScheduleAdditionalAttackActions)
+                    if (canQueueVisibleAutoAttacks)
                     {
-                        _scheduledAttackBatches[pCreature.m_idSelf] = new ScheduledAttackBatch(
-                            attackDelayWindow.AdditionalAttacks,
-                            attackDelayWindow.GateDelayMilliseconds);
+                        _attackDelayOverflowCarry[pCreature.m_idSelf] = overflowCarry;
+
+                        if (visibleAutoAttackCredits > 0)
+                        {
+                            _visibleAutoAttackCredits[pCreature.m_idSelf] = visibleAutoAttackCredits;
+                        }
+                        else
+                        {
+                            _visibleAutoAttackCredits.Remove(pCreature.m_idSelf);
+                        }
                     }
                     else
                     {
-                        _scheduledAttackBatches.Remove(pCreature.m_idSelf);
-                        if (!canScheduleAdditionalAttackActions)
-                        {
-                            _attackDelayOverflowCarry[pCreature.m_idSelf] = 0;
-                        }
+                        _attackDelayOverflowCarry.Remove(pCreature.m_idSelf);
+                        _visibleAutoAttackCredits.Remove(pCreature.m_idSelf);
                     }
                 }
 
                 if (pCreature.m_pcCombatRound.m_bRoundStarted == 0)
                 {
-                    var roundLength = GetScheduledAttackBatchRoundLength(pCreature.m_idSelf);
                     pCreature.m_pcCombatRound.StartCombatRound(oidAttackTarget);
-                    pCreature.m_pcCombatRound.m_nRoundLength = roundLength;
+                    pCreature.m_pcCombatRound.m_nRoundLength = 1000;
                 }
 
                 if (pCreature.m_pcCombatRound.m_bRoundPaused == 0)
                 {
-                    if (pCreature.m_pcCombatRound.GetActionPending() == 1)
+                    if (TryResolvePendingVisibleAutoAttack(pCreature, oidAttackTarget))
+                    {
+                        bTargetActive = true;
+                    }
+                    else if (pCreature.m_pcCombatRound.GetActionPending() == 1)
                     {
                         var pPendingAction = pCreature.m_pcCombatRound.GetAction();
 
@@ -474,7 +487,7 @@ namespace SWLOR.Game.Server.Native
                                 case CNWSCOMBATROUND_TYPE_ATTACK:
                                     {
                                         var nAnimation = pPendingAction.m_nAnimation;
-                                        var nAttacks = Math.Max(1, pPendingAction.m_nNumAttacks);
+                                        var nAttacks = 1;
                                         var bOverrideAction = false;
 
                                         // Our current target is dead or not active, meaning we should not process the action
@@ -545,6 +558,12 @@ namespace SWLOR.Game.Server.Native
                                                 {
                                                     _creatureAttackDelays[pCreature.m_idSelf] = DateTime.UtcNow;
                                                 }
+
+                                                QueuePendingVisibleAutoAttacks(
+                                                    pCreature.m_idSelf,
+                                                    oidTarget,
+                                                    nAnimation,
+                                                    nTimeAnimation);
                                             }
                                         }
                                     }
@@ -665,44 +684,127 @@ namespace SWLOR.Game.Server.Native
         {
             _creatureAttackDelays.Remove(creature);
             _attackDelayOverflowCarry.Remove(creature);
-            _scheduledAttackBatches.Remove(creature);
+            _visibleAutoAttackCredits.Remove(creature);
+            _pendingVisibleAutoAttacks.Remove(creature);
         }
 
-        private static int GetScheduledAttackBatchRoundLength(uint creature)
-        {
-            return _scheduledAttackBatches.TryGetValue(creature, out var scheduledAttackBatch)
-                ? Math.Max(1000, scheduledAttackBatch.GateDelayMilliseconds)
-                : 1000;
-        }
-
-        internal static bool TryConsumeScheduledAttackBatch(
+        private static void QueuePendingVisibleAutoAttacks(
             uint creature,
-            out int additionalAttacks,
-            out int gateDelayMilliseconds)
+            uint target,
+            int animation,
+            int animationTime)
         {
-            additionalAttacks = 0;
-            gateDelayMilliseconds = 0;
+            if (!_visibleAutoAttackCredits.TryGetValue(creature, out var attackCredits))
+            {
+                _pendingVisibleAutoAttacks.Remove(creature);
+                return;
+            }
 
-            if (!_scheduledAttackBatches.TryGetValue(creature, out var scheduledAttackBatch))
+            _visibleAutoAttackCredits.Remove(creature);
+
+            if (attackCredits <= 0 || !TryGetActiveCreatureTarget(target))
+            {
+                _pendingVisibleAutoAttacks.Remove(creature);
+                return;
+            }
+
+            _pendingVisibleAutoAttacks[creature] = new PendingVisibleAutoAttack(
+                target,
+                animation,
+                animationTime,
+                attackCredits);
+        }
+
+        private static bool TryResolvePendingVisibleAutoAttack(CNWSCreature pCreature, uint oidAttackTarget)
+        {
+            if (!_pendingVisibleAutoAttacks.TryGetValue(pCreature.m_idSelf, out var pendingAutoAttack))
             {
                 return false;
             }
 
-            additionalAttacks = scheduledAttackBatch.AdditionalAttacks;
-            gateDelayMilliseconds = scheduledAttackBatch.GateDelayMilliseconds;
-            _scheduledAttackBatches.Remove(creature);
+            if (pCreature.m_pcCombatRound == null)
+            {
+                _pendingVisibleAutoAttacks.Remove(pCreature.m_idSelf);
+                return false;
+            }
+
+            if (pendingAutoAttack.Target != oidAttackTarget)
+            {
+                _pendingVisibleAutoAttacks.Remove(pCreature.m_idSelf);
+                return false;
+            }
+
+            if (!TryGetActiveCreatureTarget(pendingAutoAttack.Target))
+            {
+                _pendingVisibleAutoAttacks.Remove(pCreature.m_idSelf);
+                return false;
+            }
+
+            var animationTime = Math.Max(1, pendingAutoAttack.AnimationTime);
+
+            pCreature.SetAnimation(pendingAutoAttack.Animation);
+            pCreature.m_pcCombatRound.SetRoundPaused(1, pCreature.m_idSelf);
+            pCreature.m_pcCombatRound.SetPauseTimer(animationTime);
+            pCreature.SetLockOrientationToObject(pendingAutoAttack.Target);
+
+            var isParalyzed = Combat.HandleParalyze(pCreature.m_idSelf);
+            if (isParalyzed)
+            {
+                Log.Write(LogGroup.Attack, $"Creature {pCreature.m_idSelf:X8} is paralyzed, recomputing round");
+                _pendingVisibleAutoAttacks.Remove(pCreature.m_idSelf);
+                pCreature.m_pcCombatRound.RecomputeRound();
+                return true;
+            }
+
+            pCreature.ExternalResolveAttack(pendingAutoAttack.Target, animationTime);
+
+            var remainingAttacks = pendingAutoAttack.RemainingAttacks - 1;
+            if (remainingAttacks > 0)
+            {
+                _pendingVisibleAutoAttacks[pCreature.m_idSelf] = new PendingVisibleAutoAttack(
+                    pendingAutoAttack.Target,
+                    pendingAutoAttack.Animation,
+                    pendingAutoAttack.AnimationTime,
+                    remainingAttacks);
+            }
+            else
+            {
+                _pendingVisibleAutoAttacks.Remove(pCreature.m_idSelf);
+            }
+
             return true;
         }
 
-        private readonly struct ScheduledAttackBatch
+        private static bool TryGetActiveCreatureTarget(uint target)
         {
-            public int AdditionalAttacks { get; }
-            public int GateDelayMilliseconds { get; }
+            var pGameObject = (CGameObject)NWNXLib.g_pAppManager.m_pServerExoApp.GetGameObject(target);
+            var pTargetCreature = pGameObject?.AsNWSCreature();
 
-            public ScheduledAttackBatch(int additionalAttacks, int gateDelayMilliseconds)
+            if (pTargetCreature == null || pTargetCreature.GetDead() == 1)
             {
-                AdditionalAttacks = additionalAttacks;
-                GateDelayMilliseconds = gateDelayMilliseconds;
+                return false;
+            }
+
+            return pTargetCreature.m_bPlayerCharacter != 1 || pTargetCreature.GetIsPCDying() != 1;
+        }
+
+        private readonly struct PendingVisibleAutoAttack
+        {
+            public uint Target { get; }
+            public int Animation { get; }
+            public int AnimationTime { get; }
+            public int RemainingAttacks { get; }
+
+            public PendingVisibleAutoAttack(
+                uint target,
+                int animation,
+                int animationTime,
+                int remainingAttacks)
+            {
+                Target = target;
+                Animation = animation;
+                AnimationTime = animationTime;
+                RemainingAttacks = remainingAttacks;
             }
         }
     }
