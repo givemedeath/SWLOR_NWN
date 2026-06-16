@@ -268,6 +268,29 @@ public class CombatDamageTests
     }
 
     [Test]
+    public void NativePlaceableBashDamageHooks_GuardMissingNativeAttackData()
+    {
+        var root = FindRepositoryRoot();
+        var damageRollSource = File.ReadAllText(Path.Combine(root.FullName, "SWLOR.Game.Server", "Native", "GetDamageRoll.cs"));
+        var attackRollSource = File.ReadAllText(Path.Combine(root.FullName, "SWLOR.Game.Server", "Native", "ResolveAttackRoll.cs"));
+
+        attackRollSource.Should().Contain("if (attacker == null)");
+        attackRollSource.Should().Contain("if (pCombatRound == null)");
+        attackRollSource.Should().Contain("if (pAttackData == null)");
+        attackRollSource.Should().Contain("area == null ? \"Unknown\" : area.m_sTag.ToString()");
+
+        damageRollSource.Should().Contain("if (attackerStats == null)");
+        damageRollSource.Should().Contain("if (attacker == null)");
+        damageRollSource.Should().Contain("if (pCombatRound == null)");
+        damageRollSource.Should().Contain("if (pAttackData == null)");
+        damageRollSource.Should().Contain("if (pAttackData == null) return;");
+        damageRollSource.Should().Contain("if (attackData == null) return;");
+        damageRollSource.Should().Contain("if (targetObject == null)");
+        damageRollSource.Should().Contain("if (plc == null)");
+        damageRollSource.Should().Contain("if (door == null)");
+    }
+
+    [Test]
     public void CombatAbilityRiders_AreStatDrivenInsteadOfPerkCategoryDispatch()
     {
         var root = FindRepositoryRoot();

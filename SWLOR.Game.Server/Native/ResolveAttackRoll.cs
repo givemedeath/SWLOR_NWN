@@ -95,11 +95,16 @@ namespace SWLOR.Game.Server.Native
                  */
 
                 var attacker = CNWSCreature.FromPointer(thisPtr);
+                if (attacker == null)
+                {
+                    return;
+                }
+
                 var area = attacker.GetArea();
 
                 ProfilerPlugin.PushPerfScope("RunScript",
                     "Script", $"NATIVE:{nameof(OnResolveAttackRoll)}",
-                    "Area", area.m_sTag.ToString(),
+                    "Area", area == null ? "Unknown" : area.m_sTag.ToString(),
                     "ObjectType", "Creature");
 
                 Log.Write(LogGroup.Attack, "Running OnResolveAttackRoll");
@@ -113,10 +118,20 @@ namespace SWLOR.Game.Server.Native
                 var attackerStats = attacker.m_pStats;
 
                 var pCombatRound = attacker.m_pcCombatRound;
+                if (pCombatRound == null)
+                {
+                    ProfilerPlugin.PopPerfScope();
+                    return;
+                }
 
                 Log.Write(LogGroup.Attack, "Attacker: " + attacker.GetFirstName().GetSimple(0) + ", defender " + targetObject.GetFirstName().GetSimple(0));
 
                 var pAttackData = pCombatRound.GetAttack(pCombatRound.m_nCurrentAttack);
+                if (pAttackData == null)
+                {
+                    ProfilerPlugin.PopPerfScope();
+                    return;
+                }
 
                 if (targetObject.m_nObjectType != (int)ObjectType.Creature)
                 {

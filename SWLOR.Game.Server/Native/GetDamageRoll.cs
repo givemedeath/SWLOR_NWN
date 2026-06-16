@@ -63,7 +63,16 @@ namespace SWLOR.Game.Server.Native
             return ServerManager.Executor.ExecuteInScriptContext(() =>
             {
                 var attackerStats = CNWSCreatureStats.FromPointer(thisPtr);
+                if (attackerStats == null)
+                {
+                    return 0;
+                }
+
                 var attacker = CNWSCreature.FromPointer(attackerStats.m_pBaseCreature);
+                if (attacker == null)
+                {
+                    return 0;
+                }
 
                 var area = attacker.GetArea();
                 ProfilerPlugin.PushPerfScope("RunScript",
@@ -82,7 +91,19 @@ namespace SWLOR.Game.Server.Native
 
                 var damageFlags = attackerStats.m_pBaseCreature.GetDamageFlags();
                 var pCombatRound = attacker.m_pcCombatRound;
+                if (pCombatRound == null)
+                {
+                    ProfilerPlugin.PopPerfScope();
+                    return 0;
+                }
+
                 var pAttackData = pCombatRound.GetAttack(pCombatRound.m_nCurrentAttack);
+                if (pAttackData == null)
+                {
+                    ProfilerPlugin.PopPerfScope();
+                    return 0;
+                }
+
                 var weapon = pCombatRound.GetCurrentAttackWeapon();
 
                 var attackType = attacker.GetRangeWeaponEquipped() == 1 ? (uint)AttackType.Ranged : (uint)AttackType.Melee;
@@ -226,8 +247,11 @@ namespace SWLOR.Game.Server.Native
         private static void AddDamageToAttackData(void* pAttackData, CombatDamageType damageType, int damage)
         {
             if (damage <= 0) return;
+            if (pAttackData == null) return;
 
             var attackData = CNWSCombatAttackData.FromPointer(pAttackData);
+            if (attackData == null) return;
+
             attackData.AddDamage((ushort)damageType.GetNativeDamageType(), damage);
         }
 
@@ -407,6 +431,10 @@ namespace SWLOR.Game.Server.Native
         {
             effectiveCritical = critical;
             var targetObject = CNWSObject.FromPointer(pTarget);
+            if (targetObject == null)
+            {
+                return damageProfile.Damage;
+            }
 
             switch (targetObject.m_nObjectType)
             {
@@ -416,11 +444,21 @@ namespace SWLOR.Game.Server.Native
 
                 case (int)ObjectType.Placeable:
                     var plc = CNWSPlaceable.FromPointer(pTarget);
+                    if (plc == null)
+                    {
+                        return damageProfile.Damage;
+                    }
+
                     return Combat.CalculateDamage(attackerAttack, damageProfile.Damage, attackerStat,
                         plc.m_nHardness, plc.m_nHardness, critical);
 
                 case (int)ObjectType.Door:
                     var door = CNWSDoor.FromPointer(pTarget);
+                    if (door == null)
+                    {
+                        return damageProfile.Damage;
+                    }
+
                     return Combat.CalculateDamage(attackerAttack, damageProfile.Damage, attackerStat,
                         door.m_nHardness, door.m_nHardness, critical);
 

@@ -41,6 +41,7 @@ namespace SWLOR.Game.Server.Native
 
         private const int WEAPON_ATTACK_TYPE_MAINHAND = 1;
         private const int WEAPON_ATTACK_TYPE_OFFHAND = 2;
+        private const int AutoAttackDesiredDelayOverrideMilliseconds = 500;
 
         private static readonly Dictionary<uint, DateTime> _creatureAttackDelays = new();
         private static readonly Dictionary<uint, double> _attackDelayOverflowCarry = new();
@@ -105,52 +106,58 @@ namespace SWLOR.Game.Server.Native
                 }
 
                 var pGameObject = (CGameObject)NWNXLib.g_pAppManager.m_pServerExoApp.GetGameObject(oidAttackTarget);
+                var pTargetNwsObject = pGameObject?.AsNWSObject();
+                var pTargetCreature = pGameObject?.AsNWSCreature();
+                var pTargetDoor = pGameObject?.AsNWSDoor();
 
                 var bTargetActive = false;
-                if (pGameObject != null)
+                if (pTargetNwsObject != null)
                 {
-                    if (pGameObject.AsNWSObject() != null)
+                    if (pTargetNwsObject.GetDead() == 0)
                     {
-                        if (pGameObject.AsNWSObject().GetDead() == 0)
-                        {
-                            bTargetActive = true;
-                        }
+                        bTargetActive = true;
+                    }
 
-                        if (pGameObject.AsNWSCreature() != null &&
-                            pGameObject.AsNWSCreature().GetDead() == 0 &&
-                            pGameObject.AsNWSCreature().m_bPlayerCharacter == 1 &&
-                            pGameObject.AsNWSCreature().GetIsPCDying() == 1)
-                        {
-                            bTargetActive = true;
-                        }
+                    if (pTargetCreature != null &&
+                        pTargetCreature.GetDead() == 0 &&
+                        pTargetCreature.m_bPlayerCharacter == 1 &&
+                        pTargetCreature.GetIsPCDying() == 1)
+                    {
+                        bTargetActive = true;
+                    }
 
-                        // If the target is invisible and we can't see or hear them,
-                        // then they aren't an acceptable target.
-                        var pVisNode = pCreature.GetVisibleListElement(oidAttackTarget);
-                        if (pVisNode != null)
+                    // If the target is invisible and we can't see or hear them,
+                    // then they aren't an acceptable target.
+                    var pVisNode = pCreature.GetVisibleListElement(oidAttackTarget);
+                    if (pVisNode != null)
+                    {
+                        if (pVisNode.m_nSanctuary == SANCTUARY_SAVE_FAILED ||
+                            (pVisNode.m_bInvisible == 1 &&
+                             pVisNode.m_bHeard == 0 &&
+                             pVisNode.m_bSeen == 0))
                         {
-                            if (pVisNode.m_nSanctuary == SANCTUARY_SAVE_FAILED ||
-                                (pVisNode.m_bInvisible == 1 &&
-                                 pVisNode.m_bHeard == 0 &&
-                                 pVisNode.m_bSeen == 0))
-                            {
-                                bTargetActive = false;
-                            }
+                            bTargetActive = false;
                         }
-                        else
+                    }
+                    else
+                    {
+                        if (pTargetCreature != null &&
+                            pCreature.m_bPlayerCharacter == 1)
                         {
-                            if (pGameObject.AsNWSCreature() != null &&
-                                pCreature.m_bPlayerCharacter == 1)
-                            {
-                                bTargetActive = false;
-                            }
+                            bTargetActive = false;
                         }
                     }
                 }
 
                 if (bTargetActive)
                 {
-                    var pTarget = pGameObject.AsNWSObject();
+                    var pTarget = pTargetNwsObject;
+                    if (pTarget == null)
+                    {
+                        pCreature.ChangeAttackTarget(pNode, OBJECT_INVALID);
+                        return ACTION_FAILED;
+                    }
+
                     var vTargetPosition = pTarget.m_vPosition;
                     var pTargetArea = pTarget.GetArea();
 
@@ -163,7 +170,7 @@ namespace SWLOR.Game.Server.Native
 
                     const float fUseRange = 0;
 
-                    if (pGameObject.AsNWSCreature() != null)
+                    if (pTargetCreature != null)
                     {
                         var pFUseRange = Marshal.AllocHGlobal(sizeof(float));
 
@@ -217,10 +224,10 @@ namespace SWLOR.Game.Server.Native
                         }
                         else
                         {
-                            if (pTarget.AsNWSCreature() != null && pCreature.m_oidEncounter == OBJECT_INVALID)
+                            if (pTargetCreature != null && pCreature.m_oidEncounter == OBJECT_INVALID)
                             {
-                                oidArea = pTarget.AsNWSCreature().m_oidDesiredArea;
-                                vTargetPosition = pTarget.AsNWSCreature().m_vDesiredAreaLocation;
+                                oidArea = pTargetCreature.m_oidDesiredArea;
+                                vTargetPosition = pTargetCreature.m_vDesiredAreaLocation;
                             }
                             else
                             {
@@ -284,10 +291,10 @@ namespace SWLOR.Game.Server.Native
                         {
                             if (!bOutsideAttackRange)
                             {
-                                if (pTarget.AsNWSCreature() != null)
+                                if (pTargetCreature != null)
                                 {
                                     fMoveToTargetRange = pCreature.m_pcPathfindInformation.m_fCreaturePersonalSpace;
-                                    fMoveToTargetRange += pTarget.AsNWSCreature().m_pcPathfindInformation.m_fCreaturePersonalSpace;
+                                    fMoveToTargetRange += pTargetCreature.m_pcPathfindInformation.m_fCreaturePersonalSpace;
                                 }
                                 else
                                 {
@@ -323,7 +330,7 @@ namespace SWLOR.Game.Server.Native
                             CNWSOBJECTACTION_PARAMETER_OBJECT, pOidAttackTarget);
 
 
-                        if (pGameObject.AsNWSDoor() != null)
+                        if (pTargetDoor != null)
                         {
                             pCreature.AddMoveToPointActionToFront(
                                 pNode.m_nGroupActionId,
@@ -361,21 +368,24 @@ namespace SWLOR.Game.Server.Native
 
                 // Check if target is dead - if so, skip delay and handle immediately
                 var pTargetObject = (CGameObject)NWNXLib.g_pAppManager.m_pServerExoApp.GetGameObject(oidAttackTarget);
+                var pCombatTargetNwsObject = pTargetObject?.AsNWSObject();
+                var pCombatTargetCreature = pTargetObject?.AsNWSCreature();
                 var bTargetDead = false;
-                if (pTargetObject != null)
+                if (pCombatTargetNwsObject != null)
                 {
-                    if (pTargetObject.AsNWSObject() != null && pTargetObject.AsNWSObject().GetDead() == 1)
+                    if (pCombatTargetNwsObject.GetDead() == 1)
                     {
                         bTargetDead = true;
                     }
-                    else if (pTargetObject.AsNWSCreature() != null &&
-                             pTargetObject.AsNWSCreature().m_bPlayerCharacter == 1 &&
-                             pTargetObject.AsNWSCreature().GetIsPCDying() == 1)
+                    else if (pCombatTargetCreature != null &&
+                             pCombatTargetCreature.m_bPlayerCharacter == 1 &&
+                             pCombatTargetCreature.GetIsPCDying() == 1)
                     {
                         bTargetDead = true;
                     }
                 }
 
+                var canScheduleAdditionalAttackActions = pCombatTargetCreature != null;
                 var attackSkillType = Combat.GetEquippedWeaponSkillType(pCreature.m_idSelf);
                 var useDefaultMinimumDelay = Combat.HasNextAutoAttackNoDelay(pCreature.m_idSelf, attackSkillType);
                 var hasPendingAttackAction = pCreature.m_pcCombatRound.m_bRoundStarted == 1 &&
@@ -394,6 +404,12 @@ namespace SWLOR.Game.Server.Native
                     !hasPendingAttackAction)
                 {
                     var calculatedDelay = Combat.CalculateAttackDelay(pCreature.m_idSelf);
+                    if (AutoAttackDesiredDelayOverrideMilliseconds > 0)
+                    {
+                        calculatedDelay = Combat.BaseAttackDelayMilliseconds +
+                                          AutoAttackDesiredDelayOverrideMilliseconds;
+                    }
+
                     _attackDelayOverflowCarry.TryGetValue(pCreature.m_idSelf, out var overflowCarry);
                     var attackDelayWindow = Combat.CalculateAutoAttackDelayWindow(
                         calculatedDelay,
@@ -411,7 +427,8 @@ namespace SWLOR.Game.Server.Native
                     _creatureAttackDelays[pCreature.m_idSelf] = DateTime.UtcNow;
                     _attackDelayOverflowCarry[pCreature.m_idSelf] = attackDelayWindow.OverflowCarry;
 
-                    if (attackDelayWindow.AdditionalAttacks > 0)
+                    if (attackDelayWindow.AdditionalAttacks > 0 &&
+                        canScheduleAdditionalAttackActions)
                     {
                         _scheduledAttackBatches[pCreature.m_idSelf] = new ScheduledAttackBatch(
                             attackDelayWindow.AdditionalAttacks,
@@ -420,6 +437,10 @@ namespace SWLOR.Game.Server.Native
                     else
                     {
                         _scheduledAttackBatches.Remove(pCreature.m_idSelf);
+                        if (!canScheduleAdditionalAttackActions)
+                        {
+                            _attackDelayOverflowCarry[pCreature.m_idSelf] = 0;
+                        }
                     }
                 }
 

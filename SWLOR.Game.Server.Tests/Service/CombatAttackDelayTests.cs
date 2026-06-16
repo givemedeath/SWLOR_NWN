@@ -230,10 +230,16 @@ public class CombatAttackDelayTests
         attackObjectHookSource.Should().NotContain("m_nAdditionalAttacks +=");
         attackObjectHookSource.Should().Contain("GetScheduledAttackBatchRoundLength");
         attackObjectHookSource.Should().Contain("GetAttackActionPending");
+        attackObjectHookSource.Should().Contain("var pTargetNwsObject = pGameObject?.AsNWSObject();");
+        attackObjectHookSource.Should().Contain("var pTargetCreature = pGameObject?.AsNWSCreature();");
+        attackObjectHookSource.Should().Contain("var canScheduleAdditionalAttackActions = pCombatTargetCreature != null;");
+        attackObjectHookSource.Should().Contain("attackDelayWindow.AdditionalAttacks > 0 &&");
+        attackObjectHookSource.Should().Contain("canScheduleAdditionalAttackActions");
         attackObjectHookSource.Should().Contain("pPendingAction.m_nNumAttacks");
         attackObjectHookSource.Should().NotContain("var nAttacks = 1;");
 
         numberOfAttacksHookSource.Should().Contain("_ZN15CNWSCombatRound25InitializeNumberOfAttacksEv");
+        numberOfAttacksHookSource.Should().Contain("if (pCombatRound == null)");
         numberOfAttacksHookSource.Should().Contain("_callOriginal(pCombatRound);");
         numberOfAttacksHookSource.Should().Contain("OnAIActionAttackObject.TryConsumeScheduledAttackBatch");
         numberOfAttacksHookSource.Should().Contain("m_nAdditionalAttacks +=");

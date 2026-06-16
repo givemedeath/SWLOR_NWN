@@ -28,6 +28,11 @@ namespace SWLOR.Game.Server.Native
         [UnmanagedCallersOnly]
         private static void OnInitializeNumberOfAttacks(void* pCombatRound)
         {
+            if (pCombatRound == null)
+            {
+                return;
+            }
+
             _callOriginal(pCombatRound);
 
             var pCombatRoundObject = CNWSCombatRound.FromPointer(pCombatRound);
