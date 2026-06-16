@@ -5570,11 +5570,47 @@ namespace SWLOR.Game.Server.Service
             if (useDefaultMinimumDelay)
                 return BaseAttackDelayMilliseconds;
 
+            var desiredDelay = CalculateDesiredAttackDelay(attackerDelayMilliseconds, useDefaultMinimumDelay);
+
+            return Math.Max(BaseAttackDelayMilliseconds, desiredDelay);
+        }
+
+        public static AutoAttackDelayWindow CalculateAutoAttackDelayWindow(
+            int attackerDelayMilliseconds,
+            bool useDefaultMinimumDelay,
+            double overflowCarry)
+        {
+            var desiredDelay = CalculateDesiredAttackDelay(attackerDelayMilliseconds, useDefaultMinimumDelay);
+            var gateDelay = Math.Max(BaseAttackDelayMilliseconds, desiredDelay);
+
+            if (desiredDelay >= BaseAttackDelayMilliseconds)
+            {
+                return new AutoAttackDelayWindow(desiredDelay, gateDelay, 0, 0);
+            }
+
+            overflowCarry = Math.Max(0, overflowCarry);
+            var attackCredit = gateDelay / (double)desiredDelay + overflowCarry;
+            var desiredAttacks = Math.Max(1, (int)Math.Floor(attackCredit));
+            var additionalAttacks = Math.Min(1, Math.Max(0, desiredAttacks - 1));
+            var scheduledAttacks = 1 + additionalAttacks;
+            var newOverflowCarry = Math.Min(1, Math.Max(0, attackCredit - scheduledAttacks));
+
+            return new AutoAttackDelayWindow(
+                desiredDelay,
+                gateDelay,
+                additionalAttacks,
+                newOverflowCarry);
+        }
+
+        private static int CalculateDesiredAttackDelay(int attackerDelayMilliseconds, bool useDefaultMinimumDelay)
+        {
+            if (useDefaultMinimumDelay)
+                return BaseAttackDelayMilliseconds;
+
             if (attackerDelayMilliseconds <= BaseAttackDelayMilliseconds)
                 return BaseAttackDelayMilliseconds;
 
-            var effectiveDelay = attackerDelayMilliseconds - BaseAttackDelayMilliseconds;
-            return Math.Max(BaseAttackDelayMilliseconds, effectiveDelay);
+            return Math.Max(1, attackerDelayMilliseconds - BaseAttackDelayMilliseconds);
         }
 
         private static int ApplyOffhandAttackDelayReduction(uint attacker, int offhandDelay)

@@ -140,6 +140,107 @@ public class CombatAttackDelayTests
     }
 
     [Test]
+    public void CalculateAutoAttackDelayWindow_UsesDesiredDelayWhenAboveEngineMinimum()
+    {
+        var window = Combat.CalculateAutoAttackDelayWindow(
+            Combat.BaseAttackDelayMilliseconds + 2500,
+            false,
+            0);
+
+        window.DesiredDelayMilliseconds.Should().Be(2500);
+        window.GateDelayMilliseconds.Should().Be(2500);
+        window.AdditionalAttacks.Should().Be(0);
+        window.OverflowCarry.Should().Be(0);
+    }
+
+    [Test]
+    public void CalculateAutoAttackDelayWindow_AccumulatesSubMinimumAttackCredit()
+    {
+        var carry = 0d;
+        AutoAttackDelayWindow window = default;
+
+        for (var attempt = 0; attempt < 5; attempt++)
+        {
+            window = Combat.CalculateAutoAttackDelayWindow(
+                Combat.BaseAttackDelayMilliseconds + 1500,
+                false,
+                carry);
+
+            window.DesiredDelayMilliseconds.Should().Be(1500);
+            window.GateDelayMilliseconds.Should().Be(Combat.BaseAttackDelayMilliseconds);
+            window.AdditionalAttacks.Should().Be(0);
+
+            carry = window.OverflowCarry;
+        }
+
+        window = Combat.CalculateAutoAttackDelayWindow(
+            Combat.BaseAttackDelayMilliseconds + 1500,
+            false,
+            carry);
+
+        window.AdditionalAttacks.Should().Be(1);
+        window.OverflowCarry.Should().BeApproximately(0, 0.001);
+    }
+
+    [Test]
+    public void CalculateAutoAttackDelayWindow_CapsAdditionalAttacksPerVisibleBatch()
+    {
+        var window = Combat.CalculateAutoAttackDelayWindow(
+            Combat.BaseAttackDelayMilliseconds + 500,
+            false,
+            0);
+
+        window.DesiredDelayMilliseconds.Should().Be(500);
+        window.GateDelayMilliseconds.Should().Be(Combat.BaseAttackDelayMilliseconds);
+        window.AdditionalAttacks.Should().Be(1);
+        window.OverflowCarry.Should().BeGreaterThan(0);
+    }
+
+    [Test]
+    public void CalculateAutoAttackDelayWindow_NoDelayAttackUsesEngineMinimumWithoutOverflow()
+    {
+        var window = Combat.CalculateAutoAttackDelayWindow(
+            Combat.BaseAttackDelayMilliseconds + 500,
+            true,
+            0.75f);
+
+        window.DesiredDelayMilliseconds.Should().Be(Combat.BaseAttackDelayMilliseconds);
+        window.GateDelayMilliseconds.Should().Be(Combat.BaseAttackDelayMilliseconds);
+        window.AdditionalAttacks.Should().Be(0);
+        window.OverflowCarry.Should().Be(0);
+    }
+
+    [Test]
+    public void NativeAttackDelayHook_SchedulesVisibleAdditionalAttackActions()
+    {
+        var root = FindRepositoryRoot();
+        var attackObjectHookSource = File.ReadAllText(Path.Combine(
+            root.FullName,
+            "SWLOR.Game.Server",
+            "Native",
+            "OnAIActionAttackObject.cs"));
+        var numberOfAttacksHookSource = File.ReadAllText(Path.Combine(
+            root.FullName,
+            "SWLOR.Game.Server",
+            "Native",
+            "InitializeNumberOfAttacks.cs"));
+
+        attackObjectHookSource.Should().NotContain("_ZN15CNWSCombatRound25InitializeNumberOfAttacksEv");
+        attackObjectHookSource.Should().Contain("TryConsumeScheduledAttackBatch");
+        attackObjectHookSource.Should().NotContain("m_nAdditionalAttacks +=");
+        attackObjectHookSource.Should().Contain("GetScheduledAttackBatchRoundLength");
+        attackObjectHookSource.Should().Contain("GetAttackActionPending");
+        attackObjectHookSource.Should().Contain("pPendingAction.m_nNumAttacks");
+        attackObjectHookSource.Should().NotContain("var nAttacks = 1;");
+
+        numberOfAttacksHookSource.Should().Contain("_ZN15CNWSCombatRound25InitializeNumberOfAttacksEv");
+        numberOfAttacksHookSource.Should().Contain("_callOriginal(pCombatRound);");
+        numberOfAttacksHookSource.Should().Contain("OnAIActionAttackObject.TryConsumeScheduledAttackBatch");
+        numberOfAttacksHookSource.Should().Contain("m_nAdditionalAttacks +=");
+        numberOfAttacksHookSource.Should().NotContain("ExecuteInScriptContext");
+    }
+
+    [Test]
     public void CanConsumeNextAbilityNoDelay_RequiresHostileAbility()
     {
         Combat.CanConsumeNextAbilityNoDelay(new AbilityDetail

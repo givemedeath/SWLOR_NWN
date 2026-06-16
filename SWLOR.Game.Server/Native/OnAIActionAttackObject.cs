@@ -43,9 +43,10 @@ namespace SWLOR.Game.Server.Native
         private const int WEAPON_ATTACK_TYPE_OFFHAND = 2;
 
         private static readonly Dictionary<uint, DateTime> _creatureAttackDelays = new();
+        private static readonly Dictionary<uint, double> _attackDelayOverflowCarry = new();
+        private static readonly Dictionary<uint, ScheduledAttackBatch> _scheduledAttackBatches = new();
 
         internal delegate int AIActionAttackObjectHook(void* pCreature, void* pNode);
-
         // ReSharper disable once NotAccessedField.Local
         private static AIActionAttackObjectHook _callOriginal;
 
@@ -74,7 +75,7 @@ namespace SWLOR.Game.Server.Native
                 // Clean up attack delay entry if creature no longer exists
                 if (_creatureAttackDelays.ContainsKey(pCreature.m_idSelf) && !GetIsObjectValid(pCreature.m_idSelf))
                 {
-                    _creatureAttackDelays.Remove(pCreature.m_idSelf);
+                    ClearAttackDelayState(pCreature.m_idSelf);
                 }
 
                 // This action was just run... reset
@@ -88,10 +89,7 @@ namespace SWLOR.Game.Server.Native
                     !IsAIState(AISTATE_CREATURE_USE_HANDS, pCreature))
                 {
                     // Clean up attack delay entry when creature can no longer attack
-                    if (_creatureAttackDelays.ContainsKey(pCreature.m_idSelf))
-                    {
-                        _creatureAttackDelays.Remove(pCreature.m_idSelf);
-                    }
+                    ClearAttackDelayState(pCreature.m_idSelf);
 
                     pCreature.ChangeAttackTarget(pNode, OBJECT_INVALID);
                     return ACTION_FAILED;
@@ -380,15 +378,28 @@ namespace SWLOR.Game.Server.Native
 
                 var attackSkillType = Combat.GetEquippedWeaponSkillType(pCreature.m_idSelf);
                 var useDefaultMinimumDelay = Combat.HasNextAutoAttackNoDelay(pCreature.m_idSelf, attackSkillType);
+                var hasPendingAttackAction = pCreature.m_pcCombatRound.m_bRoundStarted == 1 &&
+                                             pCreature.m_pcCombatRound.GetAttackActionPending() == 1;
+
+                if (bTargetDead)
+                {
+                    _scheduledAttackBatches.Remove(pCreature.m_idSelf);
+                }
 
                 // Check attack delay before starting or processing combat
                 // First attack is always instant, subsequent attacks respect delay
                 // Skip delay check if target is dead
                 if (_creatureAttackDelays.ContainsKey(pCreature.m_idSelf) &&
-                    !bTargetDead)
+                    !bTargetDead &&
+                    !hasPendingAttackAction)
                 {
                     var calculatedDelay = Combat.CalculateAttackDelay(pCreature.m_idSelf);
-                    var delay = Combat.CalculateEffectiveAttackDelay(calculatedDelay, useDefaultMinimumDelay);
+                    _attackDelayOverflowCarry.TryGetValue(pCreature.m_idSelf, out var overflowCarry);
+                    var attackDelayWindow = Combat.CalculateAutoAttackDelayWindow(
+                        calculatedDelay,
+                        useDefaultMinimumDelay,
+                        overflowCarry);
+                    var delay = attackDelayWindow.GateDelayMilliseconds;
                     var timeSinceLastAttack = (DateTime.UtcNow - _creatureAttackDelays[pCreature.m_idSelf]).TotalMilliseconds;
 
                     if (timeSinceLastAttack < delay)
@@ -396,12 +407,27 @@ namespace SWLOR.Game.Server.Native
                         // Still in delay period, return in progress
                         return ACTION_IN_PROGRESS;
                     }
+
+                    _creatureAttackDelays[pCreature.m_idSelf] = DateTime.UtcNow;
+                    _attackDelayOverflowCarry[pCreature.m_idSelf] = attackDelayWindow.OverflowCarry;
+
+                    if (attackDelayWindow.AdditionalAttacks > 0)
+                    {
+                        _scheduledAttackBatches[pCreature.m_idSelf] = new ScheduledAttackBatch(
+                            attackDelayWindow.AdditionalAttacks,
+                            attackDelayWindow.GateDelayMilliseconds);
+                    }
+                    else
+                    {
+                        _scheduledAttackBatches.Remove(pCreature.m_idSelf);
+                    }
                 }
 
                 if (pCreature.m_pcCombatRound.m_bRoundStarted == 0)
                 {
+                    var roundLength = GetScheduledAttackBatchRoundLength(pCreature.m_idSelf);
                     pCreature.m_pcCombatRound.StartCombatRound(oidAttackTarget);
-                    pCreature.m_pcCombatRound.m_nRoundLength = 1000;
+                    pCreature.m_pcCombatRound.m_nRoundLength = roundLength;
                 }
 
                 if (pCreature.m_pcCombatRound.m_bRoundPaused == 0)
@@ -427,7 +453,7 @@ namespace SWLOR.Game.Server.Native
                                 case CNWSCOMBATROUND_TYPE_ATTACK:
                                     {
                                         var nAnimation = pPendingAction.m_nAnimation;
-                                        var nAttacks = 1; // Always perform exactly one attack with delay-based system
+                                        var nAttacks = Math.Max(1, pPendingAction.m_nNumAttacks);
                                         var bOverrideAction = false;
 
                                         // Our current target is dead or not active, meaning we should not process the action
@@ -457,7 +483,7 @@ namespace SWLOR.Game.Server.Native
 
                                             pCreature.m_pcCombatRound.SetRoundPaused(1, pCreature.m_idSelf);
 
-                                            // Set pause timer for single attack
+                                            // Set pause timer for this combat action.
                                             pCreature.m_pcCombatRound.SetPauseTimer(nTimeAnimation);
 
                                             // If the attack was switched somewhere in the combat code ie: Cleave
@@ -494,9 +520,10 @@ namespace SWLOR.Game.Server.Native
                                                 pCreature.ResolveAttack(oidTarget, nAttacks, nTimeAnimation);
                                                 bTargetActive = true;
 
-                                                // Set the delay timestamp after the attack resolves
-                                                // This ensures the first attack is instant, subsequent attacks respect delay
-                                                _creatureAttackDelays[pCreature.m_idSelf] = DateTime.UtcNow;
+                                                if (!_creatureAttackDelays.ContainsKey(pCreature.m_idSelf))
+                                                {
+                                                    _creatureAttackDelays[pCreature.m_idSelf] = DateTime.UtcNow;
+                                                }
                                             }
                                         }
                                     }
@@ -611,6 +638,51 @@ namespace SWLOR.Game.Server.Native
         private static bool IsAIState(ushort nAIState, CNWSCreature pCreature)
         {
             return ((pCreature.m_nAIState & nAIState) == nAIState);
+        }
+
+        private static void ClearAttackDelayState(uint creature)
+        {
+            _creatureAttackDelays.Remove(creature);
+            _attackDelayOverflowCarry.Remove(creature);
+            _scheduledAttackBatches.Remove(creature);
+        }
+
+        private static int GetScheduledAttackBatchRoundLength(uint creature)
+        {
+            return _scheduledAttackBatches.TryGetValue(creature, out var scheduledAttackBatch)
+                ? Math.Max(1000, scheduledAttackBatch.GateDelayMilliseconds)
+                : 1000;
+        }
+
+        internal static bool TryConsumeScheduledAttackBatch(
+            uint creature,
+            out int additionalAttacks,
+            out int gateDelayMilliseconds)
+        {
+            additionalAttacks = 0;
+            gateDelayMilliseconds = 0;
+
+            if (!_scheduledAttackBatches.TryGetValue(creature, out var scheduledAttackBatch))
+            {
+                return false;
+            }
+
+            additionalAttacks = scheduledAttackBatch.AdditionalAttacks;
+            gateDelayMilliseconds = scheduledAttackBatch.GateDelayMilliseconds;
+            _scheduledAttackBatches.Remove(creature);
+            return true;
+        }
+
+        private readonly struct ScheduledAttackBatch
+        {
+            public int AdditionalAttacks { get; }
+            public int GateDelayMilliseconds { get; }
+
+            public ScheduledAttackBatch(int additionalAttacks, int gateDelayMilliseconds)
+            {
+                AdditionalAttacks = additionalAttacks;
+                GateDelayMilliseconds = gateDelayMilliseconds;
+            }
         }
     }
 }
