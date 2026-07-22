@@ -467,3 +467,46 @@ The work becomes worth doing only once the perk trees themselves are Shadowrun-n
 point the descriptions get written fresh alongside them rather than translated.
 
 **Revisit when:** perk trees are rebuilt around cyberware, magic traditions, and Sixth World skills.
+
+---
+
+## D14 — Three content tiers, and authored Runs are the floor
+
+**2026-07-22 · plan v2 · accepted**
+
+**Decision:** Ship three distinct content tiers rather than treating "quests" as one thing. Build 8–12
+authored Runs handed out by NPC Johnsons for launch, alongside the procedural contract board and the
+GM event kit.
+
+| Tier | Source | Provides | Available |
+|---|---|---|---|
+| Authored Runs | NPC Johnsons | The content floor — real missions with structure and stakes | Always |
+| Contract board | Procedural | Repeatable grind between runs | Always |
+| GM events | Live staff | The living world — consequence, surprise, story | When staffed |
+
+**Why:** GMs are what make the world feel alive, and they cannot be online every night. A world with
+only GM content is dead six evenings out of seven. A world with only procedural contracts is an MMO
+wearing a Shadowrun skin. The authored Runs are what a player finds on a Tuesday when nobody is
+running anything, and they are much harder to retrofit than either of the other two tiers — the
+district layout has to be designed around where the Johnsons stand.
+
+This makes Phase 2 and Phase 3 partially concurrent by necessity: each Johnson is a delivery point for
+a specific Run, so the district map and the run roster are one design problem, not two.
+
+**Why a small number:** 8–12 is enough to survive several evenings when mixed with repeatable entries
+via `IsRepeatable()`, and few enough to author at solo pace with real quality. Quantity is what the
+contract board is for.
+
+**Verified rather than assumed:** the quest engine already carries 259 quests across 33 definition
+files, and the dialog **snippet system** (`condition-on-quest-state`, `action-advance-quest`, and
+friends) means legwork stages are authored in conversation rather than in code. Most of a run is
+buildable today.
+
+The gap is that only **two** objective types are declarative — `AddKillObjective` and
+`AddCollectItemObjective`. Runs built on those alone are "kill N" or "fetch N", which is the exact MMO
+texture authored Runs exist to escape. `Quest.AdvanceQuest` is callable from any script, so
+reach-location and use-object stages are possible but hand-scripted. Making them first-class builder
+methods is its own package, and it blocks the Runs from feeling varied.
+
+**Revisit when:** the launch roster is played through and it becomes clear whether 8–12 lasts long
+enough, or whether the objective vocabulary needs escort/stealth stages to carry the fiction.

@@ -69,9 +69,10 @@ indirection layer built in v1 should be *extended* rather than dissolved into co
 | Keep as-is | Build new | Replace eventually |
 |---|---|---|
 | Combat kernel (retuned, validated) | Metatypes as playable species | FP/Stamina → Magic + Drain ([P9](#phase-4--depth)) |
-| 82 services: crafting, market, property, factions, quests, achievements | Cyberware + Essence | Star Wars areas → sprawl districts |
-| NUI framework, DB persistence, AI | Run board (from contract board) | Star Wars creatures → Sixth World critters and gangs |
-| NWN DM Client for live GM work | GM event kit | Item/recipe data, as it becomes visible |
+| 82 services: crafting, market, property, factions, achievements | Cyberware + Essence | Star Wars areas → sprawl districts |
+| Quest engine + dialog snippet system (259 quests, 33 files) | 8–12 authored Runs | Star Wars creatures → Sixth World critters and gangs |
+| NUI framework, DB persistence, AI | Run objective vocabulary | Item/recipe data, as it becomes visible |
+| NWN DM Client for live GM work | GM event kit | Existing Star Wars quest content |
 | 269-row custom appearance pipeline | Sprawl district content | |
 
 ---
@@ -109,24 +110,71 @@ area-building, which does not parallelize to agents well.
 | `2a` | **District design** — one sprawl district, ~30–50 areas | Downtown core, barrens, corp enclave, docks, a few interiors. Name it, map it, then build |
 | `2b` | **Area build-out** | Uses `srt04`, `dgt04`, `fcx01` which already ship. Lighting and fog do more for mood here than geometry |
 | `2c` | **Creature set** | Gangers, corp sec, drones, critters, spirits. Reuse SWLOR stat skins; new appearances where needed |
-| `2d` | **NPCs, shops, fixers** | The Johnson who hands out work, the fixer who sells gear, the doc who installs chrome |
+| `2d` | **NPCs, shops, fixers** | The Johnson who hands out work, the fixer who sells gear, the doc who installs chrome. **Place these deliberately — each Johnson is a delivery point for Phase 3's authored Runs**, so the district layout and the run roster should be designed together rather than in sequence |
 
 **Gate:** walk the district end to end and have it read as the Sixth World without explanation.
 
 **Sequencing note:** build **one** area to full finish quality before building thirty. A finished
 street answers "does this look right" definitively, and the answer changes everything downstream.
 
-### Phase 3 — The loop · *there is something to do* · ~6–10 weeks
+### Phase 3 — The loop · *there is something to do* · ~8–12 weeks
+
+**Three tiers of content, and they are not interchangeable.** This is the core structural insight of
+the whole project:
+
+| Tier | Source | Provides | Available |
+|---|---|---|---|
+| **Authored Runs** | NPC Johnsons | The content **floor** — real missions with structure and stakes | Always |
+| **Contract board** | Procedural | Repeatable grind between runs | Always |
+| **GM events** | Live staff | The living, breathing world — consequence, surprise, story | When staffed |
+
+GMs make the world feel alive. **Authored Runs make it survive the nights they are offline.** A world
+with only GM content is dead six evenings out of seven; a world with only procedural contracts is an
+MMO with a Shadowrun skin. Both tiers are required, and the authored Runs are the harder of the two to
+retrofit later.
 
 | # | Package | Notes |
 |---|---|---|
-| `3a` | **Run board** | Reskin the contract board into runs — legwork, payout, heat. Existing `QuestContractBoard` service |
-| `3b` | **GM event kit** | Spawn kits, faction levers, staged encounters a GM can trigger live. The DM Client provides possession, spawning, and invisible observation already — this is the content layer on top |
-| `3c` | **Downtime conversion** | Convert market, property, crafting surfaces as they become visible, per the hybrid decision |
-| `3d` | **Heat / reputation** | Existing faction standing, reskinned. Runs raise heat; heat changes what the world does |
+| `3a` | **Authored Runs** — 8–12 for launch | The floor. Johnson dialog → meet → legwork → objective → payout. Target a mix of one-shots and `IsRepeatable()` runs so the district does not exhaust in a weekend |
+| `3b` | **Run objective vocabulary** | Extend the quest builder — see below. Blocks `3a` from feeling varied |
+| `3c` | **Contract board** | Reskin `QuestContractBoard` into procedural runs. Existing service, mostly a vocabulary pass |
+| `3d` | **GM event kit** | Spawn kits, faction levers, staged encounters a GM triggers live. The DM Client already provides possession, spawning, and invisible observation — this is the content layer on top |
+| `3e` | **Heat / street cred** | Existing faction standing, reskinned. `AddFactionStandingReward` already exists on the quest builder |
+| `3f` | **Downtime conversion** | Market, property, crafting surfaces as they become visible, per the hybrid decision |
 
-**Gate:** a GM runs a live session for two or three players, and those players find something worth
-doing the next evening when no GM is online. **This is the whole value proposition, tested directly.**
+#### What the quest system already supports
+
+Verified rather than assumed. **259 quests already ship across 33 definition files**, and the builder
+covers most of a run:
+
+| Run stage | Support today |
+|---|---|
+| Meet the Johnson | ✅ dialog + `action-accept-quest` snippet |
+| Legwork — talk to contacts | ✅ dialog + `action-advance-quest` snippet |
+| Eliminate / steal | ✅ `AddKillObjective`, `AddCollectItemObjective` |
+| Multi-stage structure | ✅ `AddState` + `SetStateJournalText` |
+| Gated follow-ups | ✅ `PrerequisiteQuest`, `PrerequisiteKeyItem`, `PrerequisiteSkill` |
+| Payout in nuyen | ✅ `AddGoldReward` |
+| Heat / cred | ✅ `AddFactionStandingReward`, `AddFactionPointsReward` |
+| Repeatability | ✅ `IsRepeatable()` |
+| **Reach a location** | ⚠️ script-only — `ExplorationTrigger` calling `Quest.AdvanceQuest` |
+| **Hack a terminal / use an object** | ⚠️ script-only — `PlaceableScripts` calling `Quest.AdvanceQuest` |
+| **Extract a person** | ❌ no escort support |
+
+The dialog **snippet system** (`condition-has-quest`, `condition-on-quest-state`,
+`action-advance-quest`, `action-request-quest-items`) is the reason most of this already works: any
+conversation node can gate on or advance quest state, so legwork is authored in dialog rather than in
+code.
+
+**`3b` exists because only two objective types are declarative** — kill and collect. Every run built
+on those alone is "kill N" or "fetch N", which is precisely the MMO texture authored Runs are meant to
+escape. `Quest.AdvanceQuest(player, source, questId)` is callable from any script, so the escape hatch
+exists; the package is about making *reach-location*, *use-object*, and *extract* first-class builder
+methods instead of hand-scripted every time.
+
+**Gate:** a GM runs a live session for two or three players — **and those same players log in the
+next evening with no GM online and find a Johnson with work worth doing.** Both halves must pass.
+This is the whole value proposition, tested directly.
 
 ### Phase 4 — Depth · *ongoing, after the slice is real*
 

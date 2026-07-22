@@ -716,3 +716,28 @@ v1 archived to `PLAN-ARCHIVE-presentation-layer.md` — it remains the accurate 
 and replaced with a four-phase build plan whose every phase ends in a measurement or a play session
 rather than a declaration. That structure is a direct response to the audit: three separate
 assumptions in v1 survived only until someone measured them.
+
+---
+
+**2026-07-22 · content tiers added to plan v2 · Lead**
+
+Phase 3 restructured around a distinction the plan had collapsed: **GM events and authored Runs are
+different tiers serving different nights.** GMs give the world its living feel; authored Runs are what
+survives the evenings no GM is online. Recorded as [D14](DECISIONS.md), with a third procedural tier
+(the contract board) for repeatable grind.
+
+Checked the quest infrastructure rather than assuming it. It is in better shape than expected — 259
+quests across 33 definition files, and a dialog **snippet system** that lets any conversation node gate
+on or advance quest state, which means legwork stages are authored in dialog rather than code. Rewards
+already cover nuyen (`AddGoldReward`), heat and street cred (`AddFactionStandingReward`), and
+repeatability (`IsRepeatable`).
+
+The real gap is narrower than it first looked: only two objective types are declarative, kill and
+collect. Every run built on those alone is "kill N" or "fetch N" — the exact MMO texture authored Runs
+are meant to escape. `Quest.AdvanceQuest` is callable from any script so reach-location and use-object
+stages work today, but hand-scripted each time. Promoted to its own package (`3b`) because it gates
+whether the Runs feel varied.
+
+One structural consequence: Phase 2 and Phase 3 can no longer be fully sequential. Each Johnson is the
+delivery point for a specific Run, so the district map and the run roster are one design problem.
+Noted in `2d`.
