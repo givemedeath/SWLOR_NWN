@@ -683,3 +683,36 @@ for an unanswerable question should not outlive the question.
 This is the second time an assumption in the assessment survived only until it was measured. The first
 was combat feel. Worth treating the remaining unmeasured claims in that document as similarly
 provisional.
+
+---
+
+**2026-07-22 · claim audit + plan v2 · Lead**
+
+Cross-checked every remaining claim in [PLATFORM-ASSESSMENT.md](PLATFORM-ASSESSMENT.md). Results were
+mixed enough to justify the exercise:
+
+- **"Metatypes are free"** — half wrong. The models exist, but SWLOR sets `PlayerRace=0` on every
+  fantasy race; only Human plus 18 custom species are selectable. Re-enabling is a 2DA edit. No troll
+  model exists; Ogre/Giant/Minotaur are the candidate bases.
+- **"No cyberware, no Essence"** — held. A broader search found only NWN's `BiowareXP2` library and an
+  unrelated vibroblade ability.
+- **"The Matrix is a multi-year subsystem"** — overstated. `Space.cs`, the entire parallel-game
+  precedent, is 2,214 LOC plus 41 definition files.
+- **"Custom species are a big lift"** — wrong. 269 custom appearance rows already exist at 10000+.
+- **"$20 client toll"** — held, $19.99.
+- **"Low hundreds concurrent"** — mildly pessimistic. ~464–985 concurrent on Steam, 24h peak 1,080,
+  with over half reportedly in persistent worlds, and GOG uncounted.
+- **"GM tooling best-in-class"** — true but imprecisely attributed. `DMToolsViewModel` is a
+  placeable/layout editor; the live-GM capability is NWN's native DM Client, which is Bioware's work
+  rather than SWLOR's.
+- **IP** — corrected. Topps owns Shadowrun and licenses tabletop to Catalyst, but **Microsoft holds
+  the video game rights**, a more direct exposure than v1 stated.
+
+Four project-shaping questions settled as [D12](DECISIONS.md): hybrid content, Shadowrun-flavored
+systems, original city in the canonical world, solo pace with agent assistance. P8 cut outright as
+[D13](DECISIONS.md).
+
+v1 archived to `PLAN-ARCHIVE-presentation-layer.md` — it remains the accurate record of Waves 0–2 —
+and replaced with a four-phase build plan whose every phase ends in a measurement or a play session
+rather than a declaration. That structure is a direct response to the audit: three separate
+assumptions in v1 survived only until someone measured them.

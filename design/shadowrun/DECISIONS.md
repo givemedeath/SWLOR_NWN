@@ -413,3 +413,57 @@ meaningless. This is the constant most likely to move.
 > The stun-track exclusion above is a workaround, not an answer. Under a Drain model the stun monitor
 > is *filled* by damage rather than spent on abilities, at which point stun wound penalties become
 > correct and this exclusion should be deleted. See **Deferred — `P9`** in [PLAN.md](PLAN.md).
+
+---
+
+## D12 — Shadowrun-flavored systems, hybrid content, original city, solo pace
+
+**2026-07-22 · plan v2 · accepted**
+
+**Decision:** Four project-shaping answers, settled together because each changes what the others cost.
+
+| Question | Answer |
+|---|---|
+| Content | **Hybrid** — new district and creatures; keep item/recipe/quest data, convert as player-visible |
+| Fidelity | **Shadowrun-flavored** — percentage kernel stays; cyberware, Essence, metatypes, Drain get built for real |
+| Setting | **Original city, canonical world** — Sixth World rules and metatypes, invented sprawl |
+| Team | **Solo + agent assistance** |
+
+**Why fidelity is the load-bearing one:** it closes the resolution-kernel question permanently. No
+dice-pool rewrite, no re-opening balance. What "flavored" buys is that the identity systems are real
+builds rather than reskins — cyberware is not a renamed perk tree, and Essence is a genuine resource
+with a genuine tradeoff. The v1 display layer stays as the vocabulary boundary.
+
+**Why hybrid content:** stripping to an empty module gives the cleanest identity and nothing to play;
+reskinning in place keeps Star Wars residue on every surface for years. Hybrid takes the systems —
+the decade of work that is genuinely setting-neutral — and replaces only what a player looks at.
+
+**Why an original city:** removes lore-policing entirely, and reduces trademark surface at no cost to
+the setting, since metatypes, megacorps, and the Sixth World premise carry the identity rather than
+Seattle specifically.
+
+**Why this matters for IP:** Topps owns Shadowrun and licenses tabletop to Catalyst, but **Microsoft
+holds the video game rights**, which is a more direct exposure for a video game than for a tabletop
+fan project. No decision is forced today, but one must not be foreclosed: setting-specific vocabulary
+stays behind `ShadowrunDisplay` rather than hardcoded across content files, so a forced rename is a
+one-file change rather than a project-ending one.
+
+**Revisit when:** Phase 3's gate is reached and the game loop is proven, or if a rules-literate
+audience proves that flavored systems grate badly enough to justify the kernel rewrite.
+
+---
+
+## D13 — P8 (910 perk descriptions) is cut, not deferred
+
+**2026-07-22 · plan v2 · accepted** *(supersedes the P8 package in the archived v1 plan)*
+
+**Decision:** Do not rewrite the 910 `.Description(...)` literals into Shadowrun vocabulary.
+
+**Why:** It is polish on text attached to perk trees that are Star Wars-shaped and slated for
+replacement. Rewriting "reduces the target's Attack by 10%" into Shadowrun phrasing produces
+Shadowrun-flavored Star Wars, at the cost of the single largest text package in the plan.
+
+The work becomes worth doing only once the perk trees themselves are Shadowrun-native — at which
+point the descriptions get written fresh alongside them rather than translated.
+
+**Revisit when:** perk trees are rebuilt around cyberware, magic traditions, and Sixth World skills.
