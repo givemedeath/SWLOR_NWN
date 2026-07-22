@@ -210,11 +210,11 @@ namespace SWLOR.Game.Server.Feature.GuiDefinition
                             AddBoundValueRow(combatCol, "Off Hand", model => model.OffHandDMG, "Estimated off-hand weapon damage.", model => model.OffHandTooltip, 94f);
                             AddBoundValueRow(combatCol, "Atk Delay", model => model.AttackDelay, "Estimated time between auto attacks.", model => model.AttackDelayTooltip, 94f);
                             AddBoundValueRow(combatCol, "Attack", model => model.Attack, "Physical damage bonus.", null, 94f);
-                    AddBoundValueRow(combatCol, "Force Attack", model => model.ForceAttack, "Force damage bonus.", null, 94f);
-                            AddBoundValueRow(combatCol, "Accuracy", model => model.Accuracy, "Chance to hit.", null, 94f);
-                            AddBoundValueRow(combatCol, "Evasion", model => model.Evasion, "Chance to dodge.", null, 94f);
-                            AddBoundValueRow(combatCol, "Physical DEF", model => model.PhysicalDefense, "Defense against physical attacks.", null, 94f);
-                            AddBoundValueRow(combatCol, "Force DEF", model => model.ForceDefense, "Defense against Force attacks.", null, 94f);
+                            AddBoundValueRow(combatCol, "Spellcasting", model => model.ForceAttack, "Spell damage bonus.", null, 94f);
+                            AddBoundValueRow(combatCol, "Attack Pool", model => model.Accuracy, "Dice pool rolled to land an attack.", null, 94f);
+                            AddBoundValueRow(combatCol, "Defense Pool", model => model.Evasion, "Dice pool rolled to avoid an attack.", null, 94f);
+                            AddBoundValueRow(combatCol, "Armor", model => model.PhysicalDefense, "Defense against physical attacks.", null, 94f);
+                            AddBoundValueRow(combatCol, "Spell Defense", model => model.ForceDefense, "Defense against spells.", null, 94f);
                         });
                     })
                         .SetWidth(CombatPanelWidth);

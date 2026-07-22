@@ -12,10 +12,10 @@ public class CharacterSheetStatCoverageTests
 
         // Attack and Force Attack already surfaced their percent adjustments. Accuracy, Evasion and
         // Defense fold theirs into the Attributes tab the same way, so they belong on the Stats tab too.
-        viewModel.Should().Contain("AddStat(\"Accuracy %\", FormatPercent(Stat.GetStatAdjustment(_target, StatType.AccuracyPercentAdjustment))");
-        viewModel.Should().Contain("AddStat(\"Evasion %\", FormatPercent(Stat.GetStatAdjustment(_target, StatType.EvasionPercentAdjustment))");
-        viewModel.Should().Contain("AddStat(\"Physical DEF %\", FormatPercent(Stat.GetDefensePercentAdjustment(_target, CombatDamageType.Physical))");
-        viewModel.Should().Contain("AddStat(\"Force DEF %\", FormatPercent(Stat.GetDefensePercentAdjustment(_target, CombatDamageType.Force))");
+        viewModel.Should().Contain("AddStat(\"Attack Pool %\", FormatPercent(Stat.GetStatAdjustment(_target, StatType.AccuracyPercentAdjustment))");
+        viewModel.Should().Contain("AddStat(\"Defense Pool %\", FormatPercent(Stat.GetStatAdjustment(_target, StatType.EvasionPercentAdjustment))");
+        viewModel.Should().Contain("AddStat(\"Armor %\", FormatPercent(Stat.GetDefensePercentAdjustment(_target, CombatDamageType.Physical))");
+        viewModel.Should().Contain("AddStat(\"Spell Defense %\", FormatPercent(Stat.GetDefensePercentAdjustment(_target, CombatDamageType.Force))");
     }
 
     [Test]
@@ -26,8 +26,8 @@ public class CharacterSheetStatCoverageTests
         viewModel.Should().Contain("AddStat(\"Damage Dealt\", FormatPercent(Stat.GetStatAdjustment(_target, StatType.DamageDealtPercentAdjustment))");
         viewModel.Should().Contain("AddStat(\"Weapon/Force Damage\", FormatPercent(Stat.GetStatAdjustment(_target, StatType.WeaponAndForceDamageDealtPercentAdjustment))");
         viewModel.Should().Contain("AddStat(\"Healing Received\", FormatPercent(Stat.GetStatAdjustment(_target, StatType.HealingReceivedPercentAdjustment))");
-        viewModel.Should().Contain("AddStat(\"FP Cost\", FormatPercent(Stat.GetStatAdjustment(_target, StatType.FPCostPercentAdjustment))");
-        viewModel.Should().Contain("AddStat(\"STM Cost\", FormatPercent(Stat.GetStatAdjustment(_target, StatType.AbilityStaminaCostPercentAdjustment))");
+        viewModel.Should().Contain("AddStat(\"Magic Cost\", FormatPercent(Stat.GetStatAdjustment(_target, StatType.FPCostPercentAdjustment))");
+        viewModel.Should().Contain("AddStat(\"Stun Cost\", FormatPercent(Stat.GetStatAdjustment(_target, StatType.AbilityStaminaCostPercentAdjustment))");
         viewModel.Should().Contain("AddStat(\"Experience\", FormatPercent(Stat.GetStatAdjustment(_target, StatType.ExperiencePercentAdjustment))");
     }
 

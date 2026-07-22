@@ -242,15 +242,15 @@ namespace SWLOR.Game.Server.Feature.GuiDefinition.ViewModel
             set => Set(value);
         }
 
-        public int Accuracy
+        public string Accuracy
         {
-            get => Get<int>();
+            get => Get<string>();
             set => Set(value);
         }
 
-        public int Evasion
+        public string Evasion
         {
-            get => Get<int>();
+            get => Get<string>();
             set => Set(value);
         }
 
@@ -732,6 +732,12 @@ namespace SWLOR.Game.Server.Feature.GuiDefinition.ViewModel
 
             STM = $"{currentSTM} / {maxSTM}";
             Name = PlayerName.GetDisplayName(Player, _target);
+            // Displayed as Shadowrun attribute ratings (1-6 for most player-range scores); the raw
+            // score still drives upgrade eligibility below, so this is display-only.
+            // Attributes are shown as raw scores, not Shadowrun ratings, because these rows carry
+            // the AP upgrade buttons. The rating scale compresses roughly five raw points into one
+            // displayed point, so 82% of upgrades would leave the number unchanged and the button
+            // would read as broken. An allocation surface has to show the units being allocated.
             Might = GetAbilityScore(_target, AbilityType.Might);
             Perception = GetAbilityScore(_target, AbilityType.Perception);
             Vitality = GetAbilityScore(_target, AbilityType.Vitality);
@@ -780,11 +786,12 @@ namespace SWLOR.Game.Server.Feature.GuiDefinition.ViewModel
                 var damageAbility = Combat.GetWeaponDamageAbilityType(_target, itemType);
                 var damageStat = GetAbilityScore(_target, damageAbility);
                 var dmg = Item.GetDMG(item) + Combat.GetMiscDMGBonus(_target, itemType);
-                var dmgText = $"{dmg} DMG";
+                // DMG -> DV (Damage Value): the concept is identical between systems, only the name differs.
+                var dmgText = $"{ShadowrunDisplay.GetDamageValue(dmg)} DV";
                 var attack = Stat.GetAttack(_target, damageAbility, skill);
                 var defense = Stat.CalculateDefense(damageStat, skillRank, 0);
                 var (min, max) = Combat.CalculateDamageRange(attack, dmg, damageStat, defense, damageStat, 0);
-                var tooltip = $"Est. Damage: {min} - {max}";
+                var tooltip = $"Est. DV: {ShadowrunDisplay.GetDamageValue(min)} - {ShadowrunDisplay.GetDamageValue(max)}";
 
                 return (dmgText, tooltip);
             }
@@ -805,7 +812,7 @@ namespace SWLOR.Game.Server.Feature.GuiDefinition.ViewModel
             else
             {
                 MainHandDMG = "-";
-                MainHandTooltip = "Est. Damage: N/A";
+                MainHandTooltip = "Est. DV: N/A";
             }
 
             if (GetIsObjectValid(offHand))
@@ -817,7 +824,7 @@ namespace SWLOR.Game.Server.Feature.GuiDefinition.ViewModel
             else
             {
                 OffHandDMG = "-";
-                OffHandTooltip = "Est. Damage: N/A";
+                OffHandTooltip = "Est. DV: N/A";
             }
 
             AbilityType damageStat;
@@ -844,8 +851,12 @@ namespace SWLOR.Game.Server.Feature.GuiDefinition.ViewModel
             PhysicalDefense = Stat.GetDefense(_target, CombatDamageType.Physical, AbilityType.Vitality);
             ForceDefense = Stat.GetDefense(_target, CombatDamageType.Force, AbilityType.Willpower);
 
-            Accuracy = Stat.GetAccuracy(_target, mainHand, accuracyStatOverride, SkillType.Invalid);
-            Evasion = Stat.GetEvasion(_target, SkillType.Invalid);
+            // Accuracy -> Attack Pool, Evasion -> Defense Pool. Convert the raw rating once via
+            // ShadowrunDisplay, then format; do not call ShadowrunDisplay a second time on the result.
+            var rawAccuracy = Stat.GetAccuracy(_target, mainHand, accuracyStatOverride, SkillType.Invalid);
+            var rawEvasion = Stat.GetEvasion(_target, SkillType.Invalid);
+            Accuracy = FormatPool(ShadowrunDisplay.GetAttackPool(rawAccuracy));
+            Evasion = FormatPool(ShadowrunDisplay.GetDefensePool(rawEvasion));
 
             RefreshResistances();
             RefreshCraftingStats();
@@ -894,9 +905,9 @@ namespace SWLOR.Game.Server.Feature.GuiDefinition.ViewModel
 
             var combatProfile = GetPrimaryCombatProfile();
 
-            AddStat("HP Regen", GetHPRegenValue().ToString(), "Amount of HP restored automatically by natural regeneration.");
-            AddStat("FP Regen", GetFPRegenValue().ToString(), "Amount of FP restored automatically by natural regeneration.");
-            AddStat("STM Regen", GetStaminaRegenValue().ToString(), "Amount of STM restored automatically by natural regeneration.");
+            AddStat("Physical Regen", GetHPRegenValue().ToString(), "Physical condition restored automatically by natural regeneration.");
+            AddStat("Magic Regen", GetFPRegenValue().ToString(), "Magic restored automatically by natural regeneration.");
+            AddStat("Stun Regen", GetStaminaRegenValue().ToString(), "Stun condition restored automatically by natural regeneration.");
             AddStat("Combat Readiness", FormatPercent(Stat.GetCombatReadinessPercent(_target)), "Increases activated ability damage and healing. Does not reduce cooldowns.");
             AddStat("Shield Deflection", FormatPercent(Stat.GetShieldDeflectionChance(_target)), "Ability to deflect attacks with a shield.");
             AddStat("Attack Deflection", FormatPercent(Stat.GetAttackDeflectionChance(_target)), "Chance to deflect attacks while wielding a weapon without a shield.");
@@ -904,13 +915,13 @@ namespace SWLOR.Game.Server.Feature.GuiDefinition.ViewModel
             AddStat("Guard Reduction", FormatPercent(Combat.GetGuardDamageReductionPercent(_target)), "Amount of damage removed from a hit when Guard succeeds.");
             AddStat("Phys. Taken", FormatPercent(GetDamageTakenPercent(CombatDamageType.Physical)), "Incoming physical damage modifier after damage-taken effects. Lower is better.");
             AddStat("Force Taken", FormatPercent(GetDamageTakenPercent(CombatDamageType.Force)), "Incoming Force damage modifier after damage-taken effects. Lower is better.");
-            AddStat("Physical DEF %", FormatPercent(Stat.GetDefensePercentAdjustment(_target, CombatDamageType.Physical)), "Bonus or penalty applied to Physical DEF. Already included in the Physical DEF shown on the Attributes tab.");
-            AddStat("Force DEF %", FormatPercent(Stat.GetDefensePercentAdjustment(_target, CombatDamageType.Force)), "Bonus or penalty applied to Force DEF. Already included in the Force DEF shown on the Attributes tab.");
+            AddStat("Armor %", FormatPercent(Stat.GetDefensePercentAdjustment(_target, CombatDamageType.Physical)), "Bonus or penalty applied to Armor. Already included in the Armor shown on the Attributes tab.");
+            AddStat("Spell Defense %", FormatPercent(Stat.GetDefensePercentAdjustment(_target, CombatDamageType.Force)), "Bonus or penalty applied to Spell Defense. Already included in the Spell Defense shown on the Attributes tab.");
             AddStat("Ability Accuracy", FormatPercent(Stat.GetStatAdjustment(_target, StatType.PhysicalAndForceAbilityHitChancePercentAdjustment)), "Hit chance adjustment for physical weapon and Force abilities.");
-            AddStat("Accuracy %", FormatPercent(Stat.GetStatAdjustment(_target, StatType.AccuracyPercentAdjustment)), "Bonus or penalty applied to Accuracy. Already included in the Accuracy shown on the Attributes tab.");
-            AddStat("Evasion %", FormatPercent(Stat.GetStatAdjustment(_target, StatType.EvasionPercentAdjustment)), "Bonus or penalty applied to Evasion. Already included in the Evasion shown on the Attributes tab.");
+            AddStat("Attack Pool %", FormatPercent(Stat.GetStatAdjustment(_target, StatType.AccuracyPercentAdjustment)), "Bonus or penalty applied to your Attack Pool. Already included in the Attack Pool shown on the Attributes tab.");
+            AddStat("Defense Pool %", FormatPercent(Stat.GetStatAdjustment(_target, StatType.EvasionPercentAdjustment)), "Bonus or penalty applied to your Defense Pool. Already included in the Defense Pool shown on the Attributes tab.");
             AddStat("Attack %", FormatPercent(Stat.GetStatAdjustment(_target, StatType.AttackPercentAdjustment)), "Bonus or penalty applied to Attack when using physical attacks and abilities.");
-            AddStat("Force Attack %", FormatPercent(Stat.GetStatAdjustment(_target, StatType.ForceAttackPercentAdjustment)), "Bonus or penalty applied to Attack when using Force-typed attacks and abilities.");
+            AddStat("Spellcasting %", FormatPercent(Stat.GetStatAdjustment(_target, StatType.ForceAttackPercentAdjustment)), "Bonus or penalty applied to Attack when casting spells.");
             AddStat("Critical Rate", FormatPercent(GetCriticalRate(combatProfile.Skill)), "Increases the chance to score a critical hit. Actual chance varies by target Vitality.");
             AddStat("Assault Gadget Crit", FormatPercent(GetAssaultGadgetCriticalRate()), "Current Assault Gadget ability critical chance before target-specific bonuses. Includes the 5% baseline, Gadget Harness, Tactical Uplink, and other Devices ability bonuses; capped at 50%.");
             AddStat("Critical Damage", FormatPercent(Stat.GetStatAdjustment(_target, StatType.CriticalDamagePercentAdjustment)), "Increases the amount of damage a critical hit deals.");
@@ -918,11 +929,11 @@ namespace SWLOR.Game.Server.Feature.GuiDefinition.ViewModel
             AddStat("Weapon/Force Damage", FormatPercent(Stat.GetStatAdjustment(_target, StatType.WeaponAndForceDamageDealtPercentAdjustment)), "Adjusts outgoing weapon and Force damage. Stacks with Damage Dealt.");
             AddStat("Healing Received", FormatPercent(Stat.GetStatAdjustment(_target, StatType.HealingReceivedPercentAdjustment)), "Adjusts the amount of healing you receive from all sources.");
             AddStat("Enmity", FormatPercent(Stat.GetStatAdjustment(_target, StatType.EnmityPercentAdjustment)), "Increases or decreases the rate at which enmity is acquired.");
-            AddStat("FP Cost", FormatPercent(Stat.GetStatAdjustment(_target, StatType.FPCostPercentAdjustment)), "Adjusts the FP cost of abilities. Lower is better.");
-            AddStat("STM Cost", FormatPercent(Stat.GetStatAdjustment(_target, StatType.AbilityStaminaCostPercentAdjustment)), "Adjusts the Stamina cost of abilities. Lower is better.");
+            AddStat("Magic Cost", FormatPercent(Stat.GetStatAdjustment(_target, StatType.FPCostPercentAdjustment)), "Adjusts the Magic cost of abilities. Lower is better.");
+            AddStat("Stun Cost", FormatPercent(Stat.GetStatAdjustment(_target, StatType.AbilityStaminaCostPercentAdjustment)), "Adjusts the Stun cost of abilities. Lower is better.");
             AddStat("Haste", FormatPercent(Combat.CalculateAttackDelayReduction(_target)), "Increases attack speed. Negative values slow attacks.");
             AddStat("Off-Hand Haste", FormatPercent(Combat.CalculateOffhandAttackDelayReduction(_target)), "Increases off-hand attack speed. Only applies while dual wielding.");
-            AddStat("Ranged Evasion", FormatPercent(Stat.GetStatAdjustment(_target, StatType.RangedEvasionPercentAdjustment)), "Evasion adjustment against ranged attacks.");
+            AddStat("Ranged Defense Pool", FormatPercent(Stat.GetStatAdjustment(_target, StatType.RangedEvasionPercentAdjustment)), "Defense Pool adjustment against ranged attacks.");
             AddStat("Slow", GetEffectStateLabel(EffectTypeScript.Slow), "Reduces attack speed.");
             AddStat("Paralysis", GetEffectStateLabel(EffectTypeScript.Paralyze), "Prevents auto attacks and other actions.");
             AddStat("Movement Speed", FormatMultiplier(Stat.GetMovementSpeedMultiplier(_target)), "Increases or decreases your movement speed.");
@@ -1081,6 +1092,17 @@ namespace SWLOR.Game.Server.Feature.GuiDefinition.ViewModel
         private static string FormatPercent(int value)
         {
             return $"{value}%";
+        }
+
+        /// <summary>
+        /// Formats a Shadowrun dice pool. The caller converts via <see cref="ShadowrunDisplay"/>
+        /// first (e.g. <see cref="ShadowrunDisplay.GetAttackPool"/>); this only turns that result into
+        /// display text, so it is never called more than once per displayed value. Percentage stats
+        /// with no pool equivalent should keep using <see cref="FormatPercent"/> instead.
+        /// </summary>
+        private static string FormatPool(int pool)
+        {
+            return pool.ToString();
         }
 
         private static string FormatMultiplier(float value)

@@ -30,8 +30,8 @@ public class CharacterSheetCombatUpgradeTests
         viewModel.Should().NotContain("StatusResistances");
         viewModel.Should().NotContain("DefenseElemental");
 
-        definition.Should().Contain("\"Physical DEF\", model => model.PhysicalDefense");
-        definition.Should().Contain("\"Force DEF\", model => model.ForceDefense");
+        definition.Should().Contain("\"Armor\", model => model.PhysicalDefense");
+        definition.Should().Contain("\"Spell Defense\", model => model.ForceDefense");
         definition.Should().Contain("\"TYPE\", 90f, \"Resistance family.\"");
         definition.Should().Contain("model => model.ResistanceNames");
         definition.Should().Contain("model => model.ResistanceScores");
@@ -51,7 +51,7 @@ public class CharacterSheetCombatUpgradeTests
             "ViewModel",
             "CharacterSheetViewModel.cs"));
 
-        viewModel.Should().Contain("AddStat(\"Ranged Evasion\", FormatPercent(Stat.GetStatAdjustment(_target, StatType.RangedEvasionPercentAdjustment))");
+        viewModel.Should().Contain("AddStat(\"Ranged Defense Pool\", FormatPercent(Stat.GetStatAdjustment(_target, StatType.RangedEvasionPercentAdjustment))");
         viewModel.Should().Contain("Negative values slow attacks.");
     }
 

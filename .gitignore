@@ -283,3 +283,14 @@ Module/Star Wars LOR v2.mod
 
 # Git worktrees created under the repo
 /.claude/worktrees/
+
+# Shadowrun orchestration: transient hook state. The durable record is LEDGER.md
+# and DECISIONS.md, which are committed; these two are per-session scratch that
+# would otherwise churn on every edit and conflict on every merge.
+/design/shadowrun/events.jsonl
+/design/shadowrun/.current-package
+
+# Work-package briefs are durable dispatch artifacts, not NuGet output. The
+# blanket "**/packages/*" rule above is a NuGet Package Restore leftover and
+# would otherwise swallow them silently.
+!/design/shadowrun/packages/*

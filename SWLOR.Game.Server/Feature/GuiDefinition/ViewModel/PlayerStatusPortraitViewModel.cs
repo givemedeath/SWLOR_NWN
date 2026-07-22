@@ -10,9 +10,16 @@ using SWLOR.NWN.API.NWScript.Enum;
 namespace SWLOR.Game.Server.Feature.GuiDefinition.ViewModel
 {
     /// <summary>
-    /// Renders thin Stamina and FP bars overlaid on the lower portion of the character portrait.
-    /// HP is intentionally omitted because the engine already draws the native red HP bar on the
-    /// portrait's edge. This is the alternative to the docked HP/STM/FP window (see PlayerStatusViewModel).
+    /// Renders thin Stamina and FP bars overlaid on the lower portion of the character portrait --
+    /// shown to players as the Stun and Edge bars, per PlayerStatusViewModel's PHYS:/STUN:/EDGE:
+    /// vocabulary. HP is intentionally omitted because the engine already draws the native red HP
+    /// bar on the portrait's edge. This is the alternative to the docked window (see
+    /// PlayerStatusViewModel).
+    ///
+    /// This overlay carries no on-screen label text of its own: Stamina (top, green) and FP
+    /// (bottom, blue) are identified by bar position and color only, matching the docked window's
+    /// row order. There is no text here for Shadowrun vocabulary to replace, so internal names stay
+    /// tied to the underlying SWLOR stat, same as PlayerStatusViewModel's Update* methods.
     /// </summary>
     internal class PlayerStatusPortraitViewModel : GuiViewModelBase<PlayerStatusPortraitViewModel, GuiPayloadBase>,
         IGuiRefreshable<PlayerStatusRefreshEvent>

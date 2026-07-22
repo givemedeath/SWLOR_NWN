@@ -110,9 +110,9 @@ namespace SWLOR.Game.Server.Feature.GuiDefinition.ViewModel
         {
             if (isCharacter)
             {
-                Bar1Label = "HP:";
-                Bar2Label = "STM:";
-                Bar3Label = "FP:";
+                Bar1Label = "PHYS:";
+                Bar2Label = "STUN:";
+                Bar3Label = "EDGE:";
             }
             else
             {
