@@ -296,3 +296,68 @@ dealing zero **is the point** — flooring it at 1 would mean armor can never ac
 ---
 
 <!-- New entries appended below. Record boxCount and the wound threshold as they are decided. -->
+
+---
+
+## D9 — An even contest is a coin flip; one displayed pool is worth 8%
+
+**2026-07-22 · combat feel prototype · accepted**
+
+**Decision:** Lower `Combat.BaseHitRate` from 75 to 50 and introduce
+`Combat.HitRatePercentPerPool = 8`, which the hit-rate formula converts back to rating points through
+`ShadowrunDisplay.PoolDivisor`. Starship combat keeps the original curve via a separate
+`CalculateShipHitRate`.
+
+**Why:** The pool display was decorative. Simulating the shipped auto-attack loop across the real
+creature curve showed *every* evenly matched fight resolving at 74–76% — a two-point spread across
+displayed pools running from 1 to 14. The numbers on screen moved and the outcome did not, which is
+exactly the vocabulary-versus-math gap [D1](#d1--convert-the-presentation-layer-not-the-ruleset) set
+out to narrow, and it was worse than the plan's risk section estimated.
+
+At 75% base with a shallow slope, one displayed pool was worth 4 percentage points against a floor
+that already sat near the maximum. At 50% base with 8 points per pool, an even contest reads as a
+coin flip and a three-pool advantage swings the fight by 48 points.
+
+Expressing the slope *per displayed pool* rather than per rating point is deliberate: it locks the
+shown number to the felt outcome, so retuning `PoolDivisor` moves the slope with it instead of
+letting the two drift apart silently.
+
+`MinimumHitRate` stays at 20 rather than dropping with the base, so an overtuned boss remains
+beatable with effort instead of becoming a wall. That floor is now reached at roughly a four-pool
+deficit.
+
+Rejected: leaving the base at 75 and accepting that pools are flavour. It makes every other piece of
+the conversion dishonest — a player who reads "Pool 12 vs 9" and loses anyway learns the display
+means nothing.
+
+**Revisit when:** characters exist at level cap, or if the 8-point step proves too swingy in group
+fights where several attackers stack against one defender.
+
+---
+
+## D10 — NPC health is divided by six as a stopgap for the pacing target
+
+**2026-07-22 · combat feel prototype · accepted**
+
+**Decision:** Apply `Combat.NPCHealthCurveDivisor = 6` to NPC maximum hit points only, scaling the
+value handed to the engine and never the stored property. Players are untouched.
+
+**Why:** Shadowrun firefights resolve in a handful of attacks. Simulation put evenly matched SWLOR
+fights at 14 exchanges low-tier and 42 at prime, against a target of 3–12, because the creature curve
+grows hit points far faster than damage — 58 → 12,900 HP while weapon damage goes 8 → 178.
+
+The hit-rate change makes this *worse*, not better: halving the base rate lengthens every fight. A
+sweep across base rate, slope, and health curve found no configuration reaching the pacing target on
+either knob alone, which is why the two were searched together rather than tuned in sequence. Base
+50 with health ÷6 lands every evenly matched tier between 3.4 and 10.4 exchanges.
+
+Scaling only the value passed to `SetMaxHitPoints` — never the `NPCHP` property — matters because
+that property is a running total re-read on every equip and unequip. Scaling it in place would
+compound and shrink the creature a little more each time.
+
+**This is a stopgap and should be deleted, not retuned.** The correct fix is authoring the health
+curve into creature blueprints for a purpose-built module, per
+[PLATFORM-ASSESSMENT.md](PLATFORM-ASSESSMENT.md): dividing an inherited Star Wars curve at runtime is
+hiding a content problem in code.
+
+**Revisit when:** the first purpose-built creature blueprints exist. Remove the constant then.

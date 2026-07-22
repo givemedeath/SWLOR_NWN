@@ -555,3 +555,54 @@ and cap tiers.
 
 This is precisely the gap flagged when Wave 1 closed: nothing in `dotnet build` or `dotnet test` sees
 what a player sees. A green suite of 992 tests coexisted with combat being entirely non-functional.
+
+**2026-07-22 · idle · subagent completed · subagent**
+
+9 edits across 5 files:
+
+- `.gitignore`
+- `SWLOR.Game.Server.Tests/Service/CombatDamageTests.cs`
+- `SWLOR.Game.Server/Service/Combat.cs`
+- `design/shadowrun/DECISIONS.md`
+- `design/shadowrun/HAKS.md`
+
+*Auto-captured. Replace with a summary of what changed before closing the wave.*
+
+---
+
+**2026-07-22 · platform assessment + combat feel prototype · Lead**
+
+Answered the standing question of whether SWLOR/NWN:EE is the right base at all, recorded in
+[PLATFORM-ASSESSMENT.md](PLATFORM-ASSESSMENT.md). Verdict: the engine is very likely correct — it is
+one of the only platforms satisfying live GM orchestration *and* persistent solo content — but the
+plan understated the project by about an order of magnitude. Measured from the repo: 539,315 LOC of
+genre-agnostic systems worth keeping, against 443 areas, 938 creatures, 7,526 items and 609 dialogs
+that are entirely Star Wars and do not convert. **This is a new game on SWLOR's engine, not a
+conversion of SWLOR.** Kill criteria set: if six months pass without one convincing sprawl street,
+the answer was Evennia.
+
+Then built `CombatFeelHarnessTests` — a simulator over real module stat curves that reports hit rate,
+damage per exchange, and time-to-kill, and renders the pools a player would see. Built first,
+deliberately, because the parity-soak bug shipped precisely from tuning combat without an instrument.
+
+It found two things immediately, one of which nobody had flagged:
+
+1. **The dice pools were decorative.** Every evenly matched fight resolved at 74–76% regardless of
+   the ratings — a two-point spread across pools from 1 to 14. The display moved; the outcome did
+   not.
+2. **Fights ran 2–4x too long.** 14 exchanges low-tier, 42 at prime, against a Shadowrun target of
+   3–12. The high tier was worse than the mid tier, because hit points outgrow damage.
+
+A sweep proved no single knob reaches the target — lowering the hit rate to make pools meaningful
+*lengthens* fights — so base rate, slope, and health curve were searched together. Applied as
+[D9](DECISIONS.md) and [D10](DECISIONS.md): base 50, 8 points per displayed pool, NPC health ÷6.
+Every evenly matched tier now lands between 3.4 and 10.4 exchanges. Starship combat keeps the old
+curve through a separate `CalculateShipHitRate`, matching the split already made for damage.
+
+1001/1001 tests pass. The harness stays as a permanent guard: a spot assertion on a formula cannot
+catch a fight that is individually correct and collectively wrong, which is the failure mode that has
+now bitten this project twice.
+
+Caveat carried forward: the harness models the auto-attack loop only, so its exchange counts are an
+upper bound. Abilities will make real fights shorter. The pool-flatness finding is unaffected by
+that, since abilities resolve through the same hit rate.

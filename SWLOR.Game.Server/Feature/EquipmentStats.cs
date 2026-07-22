@@ -189,7 +189,11 @@ namespace SWLOR.Game.Server.Feature
 
                 if (maxHP > 0)
                 {
-                    ObjectPlugin.SetMaxHitPoints(creature, maxHP);
+                    // Scale only the value handed to the engine, never the stored property. The
+                    // property is a running total that this method reads back on every equip and
+                    // unequip, so scaling it in place would compound and shrink the creature a
+                    // little more each time.
+                    ObjectPlugin.SetMaxHitPoints(creature, Combat.ScaleNPCMaxHP(maxHP));
                 }
 
                 if (GetCurrentHitPoints(creature) > GetMaxHitPoints(creature))

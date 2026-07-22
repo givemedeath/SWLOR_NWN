@@ -1505,7 +1505,7 @@ namespace SWLOR.Game.Server.Service
             var attackerAccuracy = GetShipAccuracy(attacker);
             var defenderEvasion = GetShipEvasion(defender);
 
-            return Combat.CalculateHitRate(attackerAccuracy, defenderEvasion, 0);
+            return Combat.CalculateShipHitRate(attackerAccuracy, defenderEvasion, 0);
         }
 
         /// <summary>

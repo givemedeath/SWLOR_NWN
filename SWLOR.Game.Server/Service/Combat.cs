@@ -32,13 +32,67 @@ namespace SWLOR.Game.Server.Service
         public const int MaximumDamageBonusPercent = 100;
         public const int MaximumCombinedDamageReductionPercent = 85;
         public const int MaximumAttackDelayAdjustmentPercent = 50;
-        public const int BaseHitRate = 75;
+        /// <summary>
+        /// Hit rate when attacker and defender are evenly matched.
+        ///
+        /// An even contest is a coin flip, which is what makes the displayed dice pools mean
+        /// something. At the previous value of 75 every evenly matched fight in the game resolved at
+        /// 74-76% regardless of the ratings involved, so the pools shown to players moved while the
+        /// outcome did not - measured across the whole level range in
+        /// <c>CombatFeelHarnessTests</c>. Starship combat keeps the old curve; see
+        /// <see cref="CalculateShipHitRate"/>.
+        /// </summary>
+        public const int BaseHitRate = 50;
+
+        /// <summary>
+        /// Percentage points that one displayed dice pool of advantage is worth.
+        ///
+        /// Expressed per displayed pool rather than per rating point so the knob is stated in the
+        /// unit players actually read. The conversion back to rating points goes through
+        /// <see cref="ShadowrunDisplay.PoolDivisor"/>, which keeps the shown number and the felt
+        /// outcome locked together: change the display divisor and the slope follows it
+        /// automatically instead of silently drifting apart.
+        /// </summary>
+        public const int HitRatePercentPerPool = 8;
+
+        /// <summary>
+        /// Floor on hit rate. Deliberately generous so that an overtuned boss stays beatable with
+        /// effort rather than becoming a wall: at the base rate and slope above, this floor is
+        /// reached at roughly a four-pool deficit.
+        /// </summary>
         public const int MinimumHitRate = 20;
         public const int MaximumHitRate = 95;
         public const int MinimumCriticalRate = 5;
         public const int MaximumCriticalRate = 50;
         public const int MaximumDamageDerivedHealingPercentPerHit = 50;
         public const int MaximumCriticalDamagePercentAdjustment = 200;
+
+        /// <summary>
+        /// Divisor applied to NPC maximum hit points, expressing the module's health curve.
+        ///
+        /// SWLOR's creature hit points grow far faster than weapon damage across the level range -
+        /// roughly 58 to 12,900 while damage goes 8 to 178 - which is what stretches a high-tier
+        /// fight past forty exchanges. Shadowrun firefights resolve in a handful of attacks, and no
+        /// change to the hit rate alone reaches that: lowering the base rate to make dice pools
+        /// meaningful makes fights <em>longer</em>, so the pacing has to be paid for here.
+        ///
+        /// This is a stopgap. The correct fix is authoring the health curve into creature blueprints
+        /// for a purpose-built module rather than dividing the existing Star Wars curve at runtime,
+        /// and this constant should be removed when that happens. Applies to NPCs only; players are
+        /// untouched.
+        /// </summary>
+        public const int NPCHealthCurveDivisor = 6;
+
+        /// <summary>
+        /// Applies <see cref="NPCHealthCurveDivisor"/>, never returning less than one hit point.
+        /// </summary>
+        public static int ScaleNPCMaxHP(int maxHP)
+        {
+            if (maxHP <= 0)
+                return maxHP;
+
+            return Math.Max(1, maxHP / NPCHealthCurveDivisor);
+        }
 
         public const int StandardCriticalRating = 2;
         public const int BaseAttackDelayMilliseconds = 1750;
@@ -413,7 +467,10 @@ namespace SWLOR.Game.Server.Service
             int defenderEvasion,
             int percentageModifier)
         {
-            var hitRate = BaseHitRate + (int)Math.Floor((attackerAccuracy - defenderEvasion) / 2.0f) + percentageModifier;
+            var percentPerRating = HitRatePercentPerPool / (float)ShadowrunDisplay.PoolDivisor;
+            var hitRate = BaseHitRate
+                          + (int)Math.Floor((attackerAccuracy - defenderEvasion) * percentPerRating)
+                          + percentageModifier;
 
             if (hitRate < MinimumHitRate)
                 hitRate = MinimumHitRate;
@@ -421,6 +478,28 @@ namespace SWLOR.Game.Server.Service
                 hitRate = MaximumHitRate;
 
             return hitRate;
+        }
+
+        /// <summary>
+        /// Hit rate for starship combat, which keeps the original shallow curve around a 75% base.
+        ///
+        /// Ship ratings are balanced against that curve and starship combat is outside the scope of
+        /// the Shadowrun conversion, so it must not inherit the personal-combat retune. Same split,
+        /// and same reason, as <see cref="CalculateDamageRange"/> versus
+        /// <see cref="CalculateSoakDamageRange"/>.
+        /// </summary>
+        public static int CalculateShipHitRate(
+            int attackerAccuracy,
+            int defenderEvasion,
+            int percentageModifier)
+        {
+            const int ShipBaseHitRate = 75;
+
+            var hitRate = ShipBaseHitRate
+                          + (int)Math.Floor((attackerAccuracy - defenderEvasion) / 2.0f)
+                          + percentageModifier;
+
+            return Math.Clamp(hitRate, MinimumHitRate, MaximumHitRate);
         }
 
         /// <summary>
