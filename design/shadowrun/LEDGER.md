@@ -656,3 +656,30 @@ Also fixed a real defect in `syncplan.js` found while recording this: it documen
 canonical but offered only `--to-repo`, which overwrites the repo from the session snapshot. Running
 the one available reconcile command would have silently destroyed the plan change it was reporting.
 Added `--to-session` for the direction deliberate plan edits actually take.
+
+---
+
+**2026-07-22 · art risk re-assessed · Lead**
+
+Inventoried `SWLOR_Haks` while deciding the next feasibility step, and found the original art
+assessment was wrong on the facts. It was written from general knowledge of NWN's asset library rather
+than from the haks actually in this repository.
+
+70 tilesets ship here. Among them **D20 Shadowrun Exterior** (315 tiles, with `arcology_torii`
+textures) and **D20 VirtuNet** (72 tiles, interior) — a purpose-built Shadowrun set and a ready-made
+Matrix visual language, both already packed into the module. Plus D20 Modern Exterior (508 tiles) and
+D20 Futuristic City (267).
+
+38 areas already use them, so they are proven in-engine rather than merely downloadable, and several
+read as Sixth World in all but name: *Smuggler's Moon - The Slums*, *[Prefab] City, Industrial Slum*,
+*[Prefab] Cityscape, Vertical*, *Smuggler's Moon - Shipping District*.
+
+[PLATFORM-ASSESSMENT.md](PLATFORM-ASSESSMENT.md) revised accordingly, with the original claim struck
+through rather than deleted so the correction stays visible. The risk moves from "can a sprawl tileset
+exist" to "are these assets good enough" — a judgement requiring eyes, not a multi-year build. The
+kill-criteria deadline was pulled in from six months to this week on the same grounds: a leash sized
+for an unanswerable question should not outlive the question.
+
+This is the second time an assumption in the assessment survived only until it was measured. The first
+was combat feel. Worth treating the remaining unmeasured claims in that document as similarly
+provisional.

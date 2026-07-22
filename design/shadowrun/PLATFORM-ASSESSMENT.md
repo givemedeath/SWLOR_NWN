@@ -93,9 +93,15 @@ most alternatives.
 
 ## Where it genuinely doesn't fit
 
-**Art is the critical path, and it is not close.** Not code. NWN's asset library is medieval; SWLOR
-built custom haks for sci-fi, but a 2080s sprawl — neon, arcologies, street level — is a serious
-tileset project with weak community coverage. If this project dies, it dies here.
+**Art is the critical path.** Not code. ~~NWN's asset library is medieval; SWLOR built custom haks for
+sci-fi, but a 2080s sprawl — neon, arcologies, street level — is a serious tileset project with weak
+community coverage. If this project dies, it dies here.~~
+
+> **Substantially revised 2026-07-22 — see [Art risk, revised](#art-risk-revised-2026-07-22) below.**
+> The original claim was written without inventorying the haks and was wrong on the facts. The
+> tilesets already ship, including one literally named *D20 Shadowrun Exterior*. The risk is not
+> whether the assets exist; it is whether they look good enough, which is now an afternoon's judgement
+> rather than a multi-year project.
 
 **No cyberware, no Essence.** Searched: nothing. Zero implant or augmentation system exists. Essence
 loss and the chrome-versus-magic tradeoff is arguably *the* Shadowrun identity mechanic. The
@@ -151,6 +157,46 @@ the failure mode this project is trying to avoid.
 
 ---
 
+## Art risk, revised (2026-07-22)
+
+The original art assessment was written from general knowledge of NWN's asset library rather than from
+the haks in this repository. Inventorying them changes the picture materially.
+
+**70 tilesets ship in `SWLOR_Haks`.** Among them:
+
+| Hak | Tileset | Tiles | Areas using it today |
+|---|---|---|---|
+| `sw_t_shadowrun` | **D20 Shadowrun Exterior** | 315 | 1 |
+| `sw_t_modernex` | D20 Modern Exterior | 508 | 11 |
+| `sw_t_futcity` | D20 Futuristic City | 267 | 24 |
+| `sw_t_virtunet` | **D20 VirtuNet** (interior) | 72 | 2 |
+
+There is a purpose-built Shadowrun tileset, complete with `arcology_torii` textures, already packed
+into the module. There is also a "VirtuNet" interior set — a ready-made Matrix visual language, which
+the original assessment assumed would have to be invented.
+
+**38 areas already use these tilesets**, so they are proven in-engine here rather than merely
+downloadable. Several read as Sixth World in everything but name:
+
+- `pw_ar_narslum` — *Smuggler's Moon - The Slums*
+- `ar_pw_indusvel` — *[Prefab] City, Industrial Slum*
+- `pw_ar_prfbcitysc` — *[Prefab] Cityscape, Vertical*
+- `pw_ar_nardocks` — *Smuggler's Moon - Shipping District*
+- `foszestateext` — the lone `srt04` area, on the Shadowrun set itself
+- `moncaladaccityex`, `moncalacifacilit` — the two VirtuNet areas
+
+**What this does and does not settle.** It settles availability: nobody has to build a sprawl tileset
+from nothing, and the "district not a world" recommendation gets much cheaper. It does not settle
+*quality* — these are D20 Modern-era community assets and may read as dated. That is a judgement call
+requiring eyes on a screen, and it is now the single cheapest high-value feasibility test remaining:
+walk the six areas above and decide whether they look like the Sixth World.
+
+The revised risk is therefore **not "can the assets exist"** but **"are these assets good enough, and
+if not, how far does reskinning and lighting carry them."** That is a materially smaller and much
+faster question.
+
+---
+
 ## Kill criteria
 
 Set now, while it is cheap to set:
@@ -159,6 +205,11 @@ Set now, while it is cheap to set:
 > Evennia.**
 
 Not from-scratch — Evennia. Deciding this in advance is what stops sunk cost from deciding it later.
+
+*Revised 2026-07-22:* given that the tilesets already ship and 38 areas already use them, six months
+is far too generous a leash. **The judgement can be made this week** by walking the areas listed
+above. Bring the deadline in rather than letting a now-answerable question stay open on the original
+schedule.
 
 ---
 
