@@ -285,6 +285,30 @@ namespace SWLOR.Game.Server.Service
                 LeftFootId = 208
             };
 
+            // Shadowrun metatypes. These reuse the base-game player-phenotype humanoid models, which
+            // wear armor natively, so only the appearance type and scale differ from a human; the
+            // struct defaults cover heads and body parts. Troll is a scaled-up ork for launch - a
+            // dedicated troll model is deferred (see design/shadowrun/PLAN.md). Skin tone is left at
+            // the default and is a later cosmetic tune.
+            _defaultRaceAppearancesMale[RacialType.Elf] = new RacialAppearance
+            {
+                AppearanceType = AppearanceType.Elf
+            };
+            _defaultRaceAppearancesMale[RacialType.Dwarf] = new RacialAppearance
+            {
+                AppearanceType = AppearanceType.Dwarf,
+                Scale = 0.9f
+            };
+            _defaultRaceAppearancesMale[RacialType.Halforc] = new RacialAppearance
+            {
+                AppearanceType = AppearanceType.HalfOrc
+            };
+            _defaultRaceAppearancesMale[RacialType.Troll] = new RacialAppearance
+            {
+                AppearanceType = AppearanceType.HalfOrc,
+                Scale = 1.2f
+            };
+
             // Female appearances
             _defaultRaceAppearancesFemale[RacialType.Human] = new RacialAppearance();
             _defaultRaceAppearancesFemale[RacialType.Bothan] = new RacialAppearance
@@ -518,6 +542,26 @@ namespace SWLOR.Game.Server.Service
                 LeftThighId = 208,
                 LeftShinId = 208,
                 LeftFootId = 208
+            };
+
+            // Shadowrun metatypes - see the male section above.
+            _defaultRaceAppearancesFemale[RacialType.Elf] = new RacialAppearance
+            {
+                AppearanceType = AppearanceType.Elf
+            };
+            _defaultRaceAppearancesFemale[RacialType.Dwarf] = new RacialAppearance
+            {
+                AppearanceType = AppearanceType.Dwarf,
+                Scale = 0.9f
+            };
+            _defaultRaceAppearancesFemale[RacialType.Halforc] = new RacialAppearance
+            {
+                AppearanceType = AppearanceType.HalfOrc
+            };
+            _defaultRaceAppearancesFemale[RacialType.Troll] = new RacialAppearance
+            {
+                AppearanceType = AppearanceType.HalfOrc,
+                Scale = 1.2f
             };
 
         }

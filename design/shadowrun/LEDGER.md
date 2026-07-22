@@ -741,3 +741,33 @@ whether the Runs feel varied.
 One structural consequence: Phase 2 and Phase 3 can no longer be fully sequential. Each Johnson is the
 delivery point for a specific Run, so the district map and the run roster are one design problem.
 Noted in `2d`.
+
+---
+
+**2026-07-22 · P1a metatypes shipped · Lead**
+
+Added the five Shadowrun metatypes as playable species — the first Phase 1 (Identity) package.
+Recorded as [D15](DECISIONS.md).
+
+The research paid off twice over. What looked like the main risk — attribute deltas fighting the AP
+economy — resolved cleanly once the code was traced: SWLOR already applies ability modifiers as
+engine effects (`EffectAbilityIncrease`), which layer on top of the base score, so the rebuild's
+`<= 10` validation never sees them and native combat does. Metatype attributes ride that exact
+mechanism. Traits (troll dermal armor, dwarf toxin resistance) ride the stat-adjustment layer that
+perks already use, so the soak and defense systems read them with no special-casing.
+
+Two failures surfaced and both were informative rather than incidental:
+- The `Metatype.GetStatBonus` addition to the shared stat read threw in the unit harness because it
+  called NWScript. Fixed by copying `Mimicry`'s guard: short-circuit before any engine call for stats
+  no metatype touches. Correct behaviour and test-safe in one move.
+- A test had *documented* the dangling biography strref 80831 as an intentional blank. But a missing
+  entry renders as "Bad Strref", not blank — so the documented intent was served by adding a real
+  empty entry. Fixed the strref and updated the test to assert the resolved state. `checkhaks` now
+  passes the dangling-strref check that had failed since the project began.
+
+1013/1013 tests pass. Haks rebuilt and module repacked so the race wheel and TLK names are live.
+
+Still to verify in live play (the gate): roll a troll street samurai and a dwarf mage, confirm all
+five appear on the race wheel with correct names, the troll is visibly larger and wears armor, and the
+sheet reads coherently. Two specific wrinkles to watch: whether the login-applied attribute effect
+feeds HP/FP/STM (derived at init from the base score), and troll skin tone.

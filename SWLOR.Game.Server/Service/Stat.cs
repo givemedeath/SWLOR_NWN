@@ -1978,8 +1978,9 @@ namespace SWLOR.Game.Server.Service
             var statusAdjustment = StatusEffect.GetCreatureStatusEffects(creature).StatGroup.Stats[stat];
             var perkAdjustment = Perk.GetStatBonus(creature, stat);
             var mimicryTraitAdjustment = Mimicry.GetStatBonus(creature, stat);
+            var metatypeAdjustment = Metatype.GetStatBonus(creature, stat);
 
-            return statusAdjustment + perkAdjustment + mimicryTraitAdjustment;
+            return statusAdjustment + perkAdjustment + mimicryTraitAdjustment + metatypeAdjustment;
         }
 
         public static int ApplyOutgoingAbilityHealingAdjustment(uint source, int amount)

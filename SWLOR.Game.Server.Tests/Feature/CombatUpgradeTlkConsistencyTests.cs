@@ -115,7 +115,7 @@ public class CombatUpgradeTlkConsistencyTests
     }
 
     [Test]
-    public void Production2das_CustomTlkReferencesResolveOrUseTheDocumentedBlankBiography()
+    public void Production2das_CustomTlkReferencesResolve_IncludingTheBlankBiography()
     {
         const int customTlkOffset = 16777216;
         const int intentionallyBlankBiographyId = 80831;
@@ -149,10 +149,14 @@ public class CombatUpgradeTlkConsistencyTests
             }
         }
 
-        missingReferences.Keys.Should().Equal(intentionallyBlankBiographyId);
-        missingReferences[intentionallyBlankBiographyId].Should().Equal("racialtypes.2da");
-        entries[80830].Should().Contain("should be left empty");
-        entries[80832].Should().Contain("should be left empty");
+        // The shared default biography (id 80831) used to be left missing, which renders in game as
+        // "Bad Strref" rather than as a blank bio. It is now a real empty entry, so every custom TLK
+        // reference in production 2DAs resolves. See P1a and decision D15.
+        missingReferences.Should().BeEmpty(
+            "every custom TLK strref referenced by a production 2DA must resolve to a real entry");
+        entries.Should().ContainKey(intentionallyBlankBiographyId);
+        entries[intentionallyBlankBiographyId].Should().BeEmpty(
+            "the shared default biography is intentionally blank, but present rather than missing");
     }
 
     private static IReadOnlyDictionary<int, string> ReadCustomTlkEntries()

@@ -510,3 +510,58 @@ methods is its own package, and it blocks the Runs from feeling varied.
 
 **Revisit when:** the launch roster is played through and it becomes clear whether 8–12 lasts long
 enough, or whether the objective vocabulary needs escort/stealth stages to carry the fiction.
+
+---
+
+## D15 — Metatypes: base rows re-enabled, identity via effects and stat bonuses
+
+**2026-07-22 · P1a · accepted**
+
+**Decision:** Add the five Shadowrun metatypes as playable species. Human, and Elf/Dwarf/Ork built on
+the base-game `racialtypes.2da` rows 0/1/5 re-enabled and normalised (adjusts zeroed,
+`FeatsTable=RACE_FEAT_HUMAN`, `PlayerRace=1`); Troll as a new row 170. Mechanical identity lives in a
+new `Metatype` service, not in the 2DA.
+
+**Why the base rows rather than new custom rows:** the enum values `Dwarf=0`, `Elf=1`, `Halforc=5`
+already exist and are semantically correct, and their base appearances are player phenotypes that wear
+armor. The base rows carried D&D baggage — stat adjusts and racial feat tables — so they were
+normalised to match SWLOR's 18 custom rows (all-zero adjusts, human feat table). Only Troll needed a
+new row.
+
+**Why identity is not in the 2DA:** every `*Adjust` column across all rows is `0` — SWLOR is
+stat-driven, so racial modifiers never went through the 2DA. Three mechanisms, each chosen to avoid
+the raw-ability-score plumbing that would fight the AP economy and the rebuild:
+
+- **Attribute modifiers** apply as permanent `EffectAbilityIncrease`/`Decrease`, reapplied each login
+  and guarded against stacking by tag. This is how SWLOR already applies ability modifiers
+  (`StatusEffect`), it layers on top of the base score rather than mutating it — so the rebuild's
+  `score <= 10` validation, which reads the base, is untouched — and native combat reads it (proven by
+  the `>128 → -256` sign handling in `GetStatValueNative`).
+- **Signature traits** (troll dermal armor → `Defense`, dwarf toxin resistance → `PoisonDefense`) apply
+  as `StatType` bonuses through `Metatype.GetStatBonus`, folded into
+  `Stat.GetStatAdjustmentExcludingTemporaryModifiers` alongside perk and status bonuses. Troll dermal
+  armor flows straight into the subtractive soak (D3/D8): a troll shrugs off light hits for free.
+- **Low-light vision** (elf, ork, troll) applies as permanent `EffectUltravision` on the same login
+  pass.
+
+`GetStatBonus` short-circuits before any engine call for stats no metatype touches — the same guard
+`Mimicry.GetStatBonus` uses — which keeps the shared stat read unit-testable and does no work in the
+common case.
+
+**Baggage fixed along the way:** the pre-existing dangling biography strref `16858047` (TLK id 80831),
+referenced by Human and all custom races, rendered as "Bad Strref" in game. It was documented as an
+"intentional blank", but a *missing* entry renders as Bad Strref rather than blank, so the documented
+intent is served by a real empty entry. Added id 80831 = "". "Ork" added at id 192752; Troll reuses the
+existing "Troll" string at id 39242.
+
+**The numbers are a starting proposal**, tuned in playtest per the working method: elf +Agility/+Social;
+dwarf +Vitality/+Willpower, PoisonDefense +5; ork +Vitality/+Might; troll +2 Vitality/+2 Might,
+−1 Agility/−1 Social, Defense +3. Model: base humanoid models, troll a Half-Orc scaled to 1.2, dwarf
+0.9 — a dedicated troll model is deferred to Phase 4.
+
+**Known wrinkles to confirm in live test:** whether an attribute effect applied on login feeds HP/FP/STM
+derivation, which is computed at init from the base score; and troll skin tone, left at default for
+launch.
+
+**Revisit when:** playtest shows the deltas are too swingy or too flat, or when the custom troll model
+lands.

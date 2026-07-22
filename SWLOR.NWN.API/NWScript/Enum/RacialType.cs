@@ -50,7 +50,11 @@ namespace SWLOR.NWN.API.NWScript.Enum
         KelDor = 166,
         Droid = 167,
         Nautolan = 168,
-        Ewok = 169
+        Ewok = 169,
+
+        // Shadowrun metatypes. Dwarf (0), Elf (1) and Halforc (5) reuse the base-game rows,
+        // re-enabled and normalised in racialtypes.2da; Troll is a new custom row.
+        Troll = 170
 
     }
 }
