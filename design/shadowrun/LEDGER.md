@@ -628,3 +628,31 @@ finishes 5–7 points healthier than without penalties and fights run marginally
 rout. That figure is now a permanent assertion with a 15-point ceiling.
 
 1005/1005 tests pass.
+
+---
+
+**2026-07-22 · P9 deferral recorded · Lead**
+
+Flagged FP and Stamina for rework rather than further translation, as **Deferred — `P9`** in
+[PLAN.md](PLAN.md).
+
+The trigger is that two packages have now conceded the same point from opposite directions.
+[D6](DECISIONS.md) found FP could not be Edge and settled for an honest bar. [D11](DECISIONS.md) had
+to exclude the stun track from wound penalties because stamina is an ability cost pool. Both are
+symptoms of one root cause: **SWLOR's resource model is MMO-shaped and Shadowrun's is damage-shaped.**
+Shadowrun has no mana bar — Magic is an attribute rating, and casting costs Drain, which lands on the
+stun monitor as damage. The wound penalties from that damage are the real limiter.
+
+The three problems share one solution, which is why they should move together rather than piecemeal:
+a stun monitor filled by damage rather than spent on abilities gives Drain somewhere to land, makes
+stun wound penalties correct, and deletes the FP bar. `Stat.CalculateWoundPenalty` already takes the
+right shape — it reads a condition monitor and does not care what filled it.
+
+D6 and D11 annotated as provisional, and both `ShadowrunDisplay.GetMagicPool` and
+`GetStunConditionBoxes` carry the same warning in their XML docs so the next person to touch them
+sees it before investing.
+
+Also fixed a real defect in `syncplan.js` found while recording this: it documented the repo copy as
+canonical but offered only `--to-repo`, which overwrites the repo from the session snapshot. Running
+the one available reconcile command would have silently destroyed the plan change it was reporting.
+Added `--to-session` for the direction deliberate plan edits actually take.

@@ -192,6 +192,13 @@ reads muddy on a single sheet.
 **Revisit when:** a real Edge mechanic lands in Wave 3 and needs a home, or if playtest shows "Magic"
 reads poorly for a resource that non-casters also see at zero.
 
+> **Provisional as of 2026-07-22.** This decision makes FP an honest *bar*, which is the best available
+> answer while FP remains a bar. It does not make it Shadowrun magic — Magic is an attribute rating and
+> the real cost of casting is Drain, not depletion. Together with [D11](#d11--the-wound-penalty-reads-the-physical-track-only-with-three-free-boxes),
+> which had to exclude the stun track from wound penalties for the mirror-image reason, this is the
+> evidence that the resource *model* rather than its labelling is what disagrees with the setting. See
+> **Deferred — `P9`** in [PLAN.md](PLAN.md). Do not invest further in polishing this presentation.
+
 ---
 
 ## D7 — Hak work lives on a fork, verified by guard rails at each wave gate
@@ -402,3 +409,7 @@ shooting.
 
 **Revisit when:** playtest shows whether three free boxes reads as forgiving or as making injury
 meaningless. This is the constant most likely to move.
+
+> The stun-track exclusion above is a workaround, not an answer. Under a Drain model the stun monitor
+> is *filled* by damage rather than spent on abilities, at which point stun wound penalties become
+> correct and this exclusion should be deleted. See **Deferred — `P9`** in [PLAN.md](PLAN.md).

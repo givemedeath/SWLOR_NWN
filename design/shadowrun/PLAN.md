@@ -234,6 +234,57 @@ brief must carry that prohibition; it is the single most likely way this package
 
 ---
 
+## Deferred — `P9` Magic, Drain, and the resource model
+
+**Status: not scheduled. Revisit before any further work on FP or Stamina presentation.**
+
+Two packages have now each had to concede the same point from opposite directions, which is the
+signal that the underlying model — not the labelling — is what disagrees with Shadowrun:
+
+- **[D6](DECISIONS.md)** found FP could not be Edge. Edge is a 1–7 luck attribute spent on rerolls;
+  FP is a bar drained two to nine points at a time. Compressing it hid 44% of casts at a 60 pool and
+  79% at 150. It was mapped 1:1 to a "Magic pool" instead — honest as a bar, but not Shadowrun.
+- **[D11](DECISIONS.md)** had to exclude the stun track from wound penalties, because SWLOR's stamina
+  is an ability cost pool. Charging wound penalties against it would have punished players for using
+  abilities rather than for being hurt.
+
+**The root cause is that SWLOR's resource model is MMO-shaped and Shadowrun's is damage-shaped.**
+SWLOR spends from a bar that refills. Shadowrun has no mana bar at all: Magic is an *attribute*, a
+rating rather than a pool, and casting costs nothing up front. What it costs is **Drain** — damage,
+resisted by an attribute test, landing on the Stun condition monitor. Overcast and it lands on the
+Physical monitor instead. The cost of magic is that it hurts you, and the wound penalties from that
+damage are the actual limiter.
+
+No relabelling reaches this. It is a system to build, not a translation to apply.
+
+### Why the pieces converge
+
+The three problems have one solution, which is the argument for doing them together rather than
+piecemeal:
+
+| Today | Under a Drain model |
+|---|---|
+| Stamina is spent on abilities, shown as the Stun monitor | Stun monitor is *filled* by damage and Drain |
+| FP is a bar shown as "Magic pool" | Magic is an attribute rating; the bar is deleted |
+| Stun track excluded from wound penalties (D11) | Stun wound penalties become correct and expected |
+
+`StatType.WoundPenaltyFreeBoxes` and `Stat.CalculateWoundPenalty` already take the shape this needs —
+the wound system reads a condition monitor and does not care what filled it.
+
+### Cost and dependencies
+
+This is a real build touching the ability cost model across every definition file, the HUD and
+character sheet gauges, the regeneration systems, and the 332 status effect definitions. It is
+substantially larger than any package shipped so far, and it should not start until the questions in
+[PLATFORM-ASSESSMENT.md](PLATFORM-ASSESSMENT.md) are settled — a Drain system built against Star Wars
+Force trees would be rebuilt anyway once purpose-built content exists.
+
+**Until then, treat `ShadowrunDisplay.GetMagicPool` and `GetStunConditionBoxes` as provisional.** Do
+not invest further in polishing their presentation; the values behind both are expected to change
+shape entirely. Removal is as likely an outcome as translation.
+
+---
+
 ## Critical files
 
 | File | Package | Change |
@@ -302,7 +353,17 @@ deliberate.
 two packages. The wave structure exists to serialize exactly those; the disjointness check before each
 wave is not optional.
 
-**The vocabulary still outruns the math in places.** Pools shown as `12 vs 9` imply ~41% to someone who
-knows Shadowrun; the game hits ~75%. Edge won't do Edge things. This plan narrows the gap at the three
-points that matter most; it does not close it. If the audience proves rules-literate enough that this
-grates, real dice pools are the escalation — and every choke point touched here is scaffolding for it.
+**The vocabulary still outruns the math in places.** This plan narrows the gap at the three points
+that matter most; it does not close it. If the audience proves rules-literate enough that the
+remainder grates, real dice pools are the escalation — and every choke point touched here is
+scaffolding for it.
+
+*Updated after [D9](DECISIONS.md):* the specific version of this risk — pools reading as `12 vs 9`
+while the game resolved at ~75% regardless — turned out to be measurably worse than estimated, and
+has been fixed. Every evenly matched fight resolved within a two-point spread no matter what the
+pools said, making the display decorative. Base rate and slope are now tuned so one displayed pool is
+worth eight percentage points.
+
+*The largest remaining instance is the resource model* — see **Deferred — `P9`** above. FP and
+Stamina are labelled in Shadowrun terms while behaving nothing like Magic and Drain, and two separate
+decisions have already had to work around it.

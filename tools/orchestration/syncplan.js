@@ -2,9 +2,10 @@
 /**
  * Keeps the plan of record in sync between the repo and the approving session.
  *
- *   node tools/orchestration/syncplan.js            # check for drift (default)
- *   node tools/orchestration/syncplan.js --to-repo  # session copy wins
- *   node tools/orchestration/syncplan.js --diff     # show which sections differ
+ *   node tools/orchestration/syncplan.js               # check for drift (default)
+ *   node tools/orchestration/syncplan.js --to-session # repo copy wins (the usual direction)
+ *   node tools/orchestration/syncplan.js --to-repo    # session copy wins
+ *   node tools/orchestration/syncplan.js --diff        # show which sections differ
  *
  * design/shadowrun/PLAN.md is canonical and ships with the repo. Claude Code also
  * keeps a working copy under ~/.claude/plans/, which is machine-local and vanishes
@@ -117,6 +118,20 @@ if (session === null) {
 
 const inSync = normalize(repo) === normalize(session);
 
+// The usual direction. Deliberate plan changes are made in the repo copy, because that
+// is the one that survives the session, so pushing repo -> session is what reconciling
+// normally means. Without this the only available sync overwrites the canonical copy
+// from a stale snapshot, which silently destroys the change being recorded.
+if (mode === '--to-session') {
+  if (inSync) {
+    console.log('already in sync; nothing to do');
+    process.exit(0);
+  }
+  fs.writeFileSync(SESSION_PLAN, repo, 'utf8');
+  console.log(`synced ${path.relative(REPO_ROOT, REPO_PLAN)} -> session copy`);
+  process.exit(0);
+}
+
 if (mode === '--to-repo') {
   if (inSync) {
     console.log('already in sync; nothing to do');
@@ -138,6 +153,7 @@ if (inSync) {
 
 console.error('PLAN DRIFT: design/shadowrun/PLAN.md and the session copy differ\n');
 for (const line of diffSections(session, repo)) console.error('  ' + line);
-console.error('\nreconcile with:  node tools/orchestration/syncplan.js --to-repo');
+console.error('\nreconcile with:  node tools/orchestration/syncplan.js --to-session   (repo wins - usual)');
+console.error('             or:  node tools/orchestration/syncplan.js --to-repo      (session wins)');
 console.error('then record the change in LEDGER.md and DECISIONS.md');
 process.exit(1);

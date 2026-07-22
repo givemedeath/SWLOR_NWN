@@ -134,9 +134,15 @@ namespace SWLOR.Game.Server.Service
         /// <summary>
         /// Stun condition monitor, displayed in place of stamina.
         ///
-        /// Stamina doubling as both an ability cost and the stun track is setting-correct rather than
-        /// a compromise: in Shadowrun, spellcasting Drain is stun damage, and physical exertion
-        /// filling the same track reads correctly for non-casters.
+        /// Stamina doubling as both an ability cost and the stun track reads plausibly at a glance:
+        /// in Shadowrun, spellcasting Drain is stun damage, and physical exertion filling the same
+        /// track suits non-casters.
+        ///
+        /// <para><b>Provisional, and the resemblance does not survive contact.</b> A real stun track
+        /// is <em>filled</em> by damage; SWLOR's stamina is <em>spent</em> on abilities. D11 had to
+        /// exclude this track from wound penalties for exactly that reason — charging them would
+        /// punish players for using abilities rather than for being hurt. Expect this mapping to be
+        /// replaced or removed. See "Deferred — P9" in <c>design/shadowrun/PLAN.md</c>.</para>
         /// </summary>
         public static int GetStunConditionBoxes(int currentStamina, int maxStamina)
         {
@@ -154,6 +160,11 @@ namespace SWLOR.Game.Server.Service
         ///
         /// Leaving the Edge name unused also keeps it available for a real Edge mechanic, which pairs
         /// naturally with spending Edge to reroll a glitch. See decision D6.
+        ///
+        /// <para><b>Provisional.</b> This is the honest way to display a resource bar, but Shadowrun
+        /// magic is not a bar: Magic is an attribute rating, and casting costs Drain — damage landing
+        /// on the stun monitor — rather than depletion. Expect this mapping to be replaced or removed
+        /// rather than refined. See "Deferred — P9" in <c>design/shadowrun/PLAN.md</c>.</para>
         /// </summary>
         public static int GetMagicPool(int forcePoints)
         {
