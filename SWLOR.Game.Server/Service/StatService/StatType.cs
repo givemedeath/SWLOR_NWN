@@ -5590,6 +5590,18 @@ namespace SWLOR.Game.Server.Service.StatService
         [StatType(StatTypeCategory.BeneficialWhenPositive)]
         NextAttackGuardedHitEnmityBonus = 971,
 
+        /// <summary>
+        /// Condition monitor boxes ignored when computing the wound penalty, on top of the baseline
+        /// free threshold.
+        ///
+        /// This is the offsetting stat for anything that keeps a character fighting while hurt -
+        /// pain editors, damage compensators, sheer bloody-mindedness. Modelled as a stat rather
+        /// than as a perk check so shared systems read the value instead of special-casing whatever
+        /// granted it.
+        /// </summary>
+        [StatType(StatTypeCategory.BeneficialWhenPositive)]
+        WoundPenaltyFreeBoxes = 972,
+
     }
 
     public class StatTypeAttribute : Attribute

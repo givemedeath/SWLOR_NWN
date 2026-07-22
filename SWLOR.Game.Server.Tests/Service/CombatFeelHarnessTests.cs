@@ -340,6 +340,169 @@ namespace SWLOR.Game.Server.Tests.Service
         }
 
         /// <summary>
+        /// Runs an actual back-and-forth duel to exhaustion, recomputing both sides' ratings as they
+        /// take damage. This is the only way to see a death spiral: wound penalties are invisible in
+        /// a single exchange and compound only over a whole fight.
+        /// </summary>
+        /// <returns>Exchanges fought, and the winner's remaining health as a percentage.</returns>
+        private static (double Exchanges, double WinnerHealthPercent) Duel(
+            Combatant a,
+            Combatant b,
+            Tuning tuning,
+            bool woundsEnabled,
+            int seed)
+        {
+            var rng = new System.Random(seed);
+
+            var maxA = Math.Max(1, (int)Math.Round(a.HP * tuning.HealthScale));
+            var maxB = Math.Max(1, (int)Math.Round(b.HP * tuning.HealthScale));
+            var hpA = maxA;
+            var hpB = maxB;
+            var exchanges = 0;
+
+            int Penalty(int hp, int max) =>
+                woundsEnabled ? Stat.CalculateWoundPenalty(hp, max, 0) : 0;
+
+            // Bounded so a mutual stalemate cannot hang the suite.
+            while (hpA > 0 && hpB > 0 && exchanges < 5000)
+            {
+                exchanges++;
+
+                Strike(a, b, hpA, maxA, hpB, maxB, ref hpB);
+                if (hpB <= 0) break;
+
+                Strike(b, a, hpB, maxB, hpA, maxA, ref hpA);
+            }
+
+            var winnerHealth = hpA > 0
+                ? hpA / (double)maxA * 100d
+                : hpB / (double)maxB * 100d;
+
+            return (exchanges, winnerHealth);
+
+            void Strike(
+                Combatant atk,
+                Combatant def,
+                int atkHP,
+                int atkMax,
+                int defHP,
+                int defMax,
+                ref int defHPRef)
+            {
+                var accuracy = atk.Accuracy - Penalty(atkHP, atkMax);
+                var evasion = def.Evasion - Penalty(defHP, defMax);
+
+                if (rng.Next(1, 101) > tuning.HitRate(accuracy, evasion))
+                    return;
+
+                var (min, max) = Combat.CalculateSoakDamageRange(
+                    atk.Attack, atk.DMG, atk.Stat, def.Defense, def.DefStat, 0);
+
+                defHPRef -= max <= min ? min : rng.Next(min, max + 1);
+            }
+        }
+
+        [Test]
+        public void WoundPenalty_Report()
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine();
+            sb.AppendLine("WOUND PENALTY - duels to exhaustion, averaged over 400 seeds");
+            sb.AppendLine(new string('-', 92));
+            sb.AppendLine($"{"matchup",-38}{"exch off",10}{"exch on",10}{"win HP off",12}{"win HP on",11}");
+            sb.AppendLine(new string('-', 92));
+
+            foreach (var (attacker, defender, label) in Matchups().Where(m => m.Label.StartsWith("Boss") == false))
+            {
+                var off = Enumerable.Range(0, 400)
+                    .Select(s => Duel(attacker, defender, Tuning.Shipped, false, s))
+                    .ToList();
+                var on = Enumerable.Range(0, 400)
+                    .Select(s => Duel(attacker, defender, Tuning.Shipped, true, s))
+                    .ToList();
+
+                sb.AppendLine(
+                    $"{label,-38}{off.Average(x => x.Exchanges),10:F1}{on.Average(x => x.Exchanges),10:F1}" +
+                    $"{off.Average(x => x.WinnerHealthPercent),12:F1}{on.Average(x => x.WinnerHealthPercent),11:F1}");
+            }
+
+            sb.AppendLine(new string('-', 92));
+            sb.AppendLine("  A large jump in winner health means injuries snowball - the death spiral.");
+
+            TestContext.Out.WriteLine(sb.ToString());
+        }
+
+        /// <summary>
+        /// The one real feel risk in the whole conversion. Wound penalties make a losing fight worse,
+        /// which is the point; the failure mode is when they make it <em>hopeless</em>, turning every
+        /// close fight into a rout decided by the first few rolls.
+        ///
+        /// Measured as how much healthier the winner walks away. A spiral shows up as the winner
+        /// finishing far fresher than they would without penalties, because the loser stopped being
+        /// able to fight back.
+        /// </summary>
+        [Test]
+        public void WoundPenalty_DoesNotCauseADeathSpiral()
+        {
+            foreach (var (attacker, defender, label) in Matchups().Where(m => !m.Label.StartsWith("Boss")))
+            {
+                var off = Enumerable.Range(0, 400)
+                    .Select(s => Duel(attacker, defender, Tuning.Shipped, false, s))
+                    .Average(x => x.WinnerHealthPercent);
+                var on = Enumerable.Range(0, 400)
+                    .Select(s => Duel(attacker, defender, Tuning.Shipped, true, s))
+                    .Average(x => x.WinnerHealthPercent);
+
+                (on - off).Should().BeLessThan(
+                    15d,
+                    "'{0}': wound penalties should tilt a losing fight, not decide it - winner " +
+                    "finishes at {1:F1}% health with them versus {2:F1}% without",
+                    label,
+                    on,
+                    off);
+            }
+        }
+
+        /// <summary>
+        /// The free threshold has to actually be free, or "you are lightly wounded" silently becomes
+        /// a combat penalty and players cannot tell why they started missing.
+        /// </summary>
+        [Test]
+        public void WoundPenalty_IsFreeUntilTheThresholdIsCrossed()
+        {
+            Stat.CalculateWoundPenalty(100, 100, 0).Should().Be(0, "an undamaged creature is unpenalised");
+            Stat.CalculateWoundPenalty(71, 100, 0).Should().Be(0, "light damage is inside the free threshold");
+
+            Stat.CalculateWoundPenalty(1, 100, 0).Should().BeGreaterThan(
+                0,
+                "a nearly dead creature must be penalised");
+
+            Stat.CalculateWoundPenalty(1, 100, 99).Should().Be(
+                0,
+                "a large WoundPenaltyFreeBoxes bonus must be able to cancel the penalty outright, " +
+                "which is the hook cyberware like a damage compensator hangs on");
+        }
+
+        /// <summary>
+        /// One die of penalty must equal exactly one displayed pool, or the character sheet and the
+        /// felt outcome disagree about how hurt the player is.
+        /// </summary>
+        [Test]
+        public void WoundPenalty_IsWholeDisplayedPools()
+        {
+            for (var hp = 1; hp <= 100; hp++)
+            {
+                var penalty = Stat.CalculateWoundPenalty(hp, 100, 0);
+
+                (penalty % ShadowrunDisplay.PoolDivisor).Should().Be(
+                    0,
+                    "penalty at {0}% health was {1}, which is not a whole number of pools",
+                    hp,
+                    penalty);
+            }
+        }
+
+        /// <summary>
         /// Guards the texture that subtractive mitigation exists to produce, phrased as a fight
         /// rather than as a formula: a hold-out weapon against heavy armor has to be able to fail
         /// outright, or armor is decorative.

@@ -606,3 +606,25 @@ now bitten this project twice.
 Caveat carried forward: the harness models the auto-attack loop only, so its exchange counts are an
 upper bound. Abilities will make real fights shorter. The pool-flatness finding is unaffected by
 that, since abilities resolve through the same hit rate.
+
+---
+
+**2026-07-22 · P6 wound modifier · Lead**
+
+Live test of the pacing retune came back positive on all three checks — combat log reads honestly,
+fights resolve in roughly the predicted number of hits, armor behaves as a threshold. First live
+validation this project has had, and the harness numbers matched what a player actually experienced.
+
+Shipped the wound modifier as [D11](DECISIONS.md). Two things worth carrying forward:
+
+The plan specified deriving the penalty from HP *and* Stamina, matching the tabletop, and that turned
+out to be wrong for this codebase — SWLOR's stamina is an ability cost pool, so a stun-track penalty
+would have charged players for using abilities rather than for being injured. Physical track only.
+
+The death-spiral risk was measured rather than argued about. The harness gained a duel simulation
+that fights to exhaustion with ratings recomputed as health drops, because wound penalties are
+invisible in a single exchange and compound only across a whole fight. At three free boxes the winner
+finishes 5–7 points healthier than without penalties and fights run marginally shorter: a tilt, not a
+rout. That figure is now a permanent assertion with a 15-point ceiling.
+
+1005/1005 tests pass.

@@ -361,3 +361,44 @@ curve into creature blueprints for a purpose-built module, per
 hiding a content problem in code.
 
 **Revisit when:** the first purpose-built creature blueprints exist. Remove the constant then.
+
+---
+
+## D11 — The wound penalty reads the physical track only, with three free boxes
+
+**2026-07-22 · P6 · accepted**
+
+**Decision:** Derive an Accuracy and Evasion penalty from the physical condition monitor at one die
+per three filled boxes, with the first three boxes free. Scale it by
+`ShadowrunDisplay.PoolDivisor` so one die of penalty is exactly one displayed pool. Add
+`StatType.WoundPenaltyFreeBoxes` as the offsetting stat.
+
+**Why — the stun track is excluded deliberately.** [PLAN.md](PLAN.md) specified deriving the penalty
+from HP *and* Stamina, matching Shadowrun, which sums the physical and stun tracks. That is wrong for
+SWLOR: stamina here is an ability resource that players spend down as a matter of normal rotation, so
+a stun-track penalty would charge players for *using abilities* rather than for being hurt. A caster
+mid-rotation would read as critically wounded. The stun track earns a penalty only if it ever stops
+doubling as a cost pool.
+
+**Why three free boxes.** Shadowrun charges from the first box, which is dramatic across one tabletop
+fight and punishing across an evening of respawn-and-retry. This was flagged in the plan as the only
+real feel risk in the conversion, so it was measured rather than guessed: duelling every tier to
+exhaustion over 400 seeds, with and without penalties, and comparing how much healthier the winner
+finishes. A death spiral shows up as the winner walking away far fresher, because the loser stopped
+being able to fight back.
+
+At three free boxes the winner finishes 5–7 points healthier and fights run marginally *shorter*.
+That is a tilt, not a rout. Penalties from the first box put the same figure far higher.
+
+Scaling by the pool divisor keeps the character sheet honest: a player penalised one die watches
+their displayed pool drop by exactly one.
+
+`WoundPenaltyFreeBoxes` exists so pain editors and damage compensators are a stat adjustment rather
+than a perk check, per the stat-driven rule in AGENTS.md. It can cancel the penalty outright.
+
+Rejected: applying the penalty to Accuracy only. Shadowrun applies wound modifiers to every test
+including defence, and one-sided application would make a hurt character better at dodging than at
+shooting.
+
+**Revisit when:** playtest shows whether three free boxes reads as forgiving or as making injury
+meaningless. This is the constant most likely to move.

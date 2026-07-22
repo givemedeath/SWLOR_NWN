@@ -1836,10 +1836,66 @@ namespace SWLOR.Game.Server.Service
             return value;
         }
 
+        /// <summary>
+        /// Condition monitor boxes that never carry a wound penalty.
+        ///
+        /// Shadowrun charges -1 die per three boxes from the first box onward, which is dramatic
+        /// across a single tabletop fight and punishing across an evening of respawn-and-retry.
+        /// A baseline free threshold buys back the difference: light damage is free, and the
+        /// penalty only starts once a fight is genuinely going badly.
+        /// </summary>
+        public const int WoundPenaltyFreeBoxes = 3;
+
+        /// <summary>Condition monitor boxes per die of wound penalty, matching the tabletop ratio.</summary>
+        public const int WoundPenaltyBoxesPerDie = 3;
+
+        /// <summary>
+        /// Accuracy and Evasion penalty for a creature's current injuries, in rating points.
+        ///
+        /// Derived from the physical condition monitor only, deliberately <em>not</em> from stamina.
+        /// Shadowrun sums the physical and stun tracks, but SWLOR's stamina is an ability resource
+        /// that a player spends down as a matter of normal rotation, so charging a wound penalty
+        /// against it would punish using abilities rather than being hurt. The stun track earns a
+        /// penalty here only once it stops doubling as a cost pool.
+        ///
+        /// Scaled by <see cref="ShadowrunDisplay.PoolDivisor"/> so one die of penalty is exactly one
+        /// displayed pool - the player sees their pool drop by the amount they were penalised.
+        /// </summary>
+        public static int GetWoundPenalty(uint creature)
+        {
+            return CalculateWoundPenalty(
+                GetCurrentHitPoints(creature),
+                GetMaxHitPoints(creature),
+                GetStatAdjustment(creature, StatType.WoundPenaltyFreeBoxes));
+        }
+
+        /// <summary>
+        /// The wound penalty arithmetic, separated from the creature lookup so it can be simulated
+        /// over a whole fight without a running server. The death-spiral risk this carries is only
+        /// visible across an entire duel, never in a single exchange.
+        /// </summary>
+        public static int CalculateWoundPenalty(int currentHP, int maxHP, int freeBoxesBonus)
+        {
+            if (maxHP <= 0)
+                return 0;
+
+            var filledBoxes = ShadowrunDisplay.ConditionMonitorBoxes -
+                              ShadowrunDisplay.GetPhysicalConditionBoxes(currentHP, maxHP);
+
+            var penalisedBoxes = filledBoxes - (WoundPenaltyFreeBoxes + freeBoxesBonus);
+
+            if (penalisedBoxes <= 0)
+                return 0;
+
+            return penalisedBoxes / WoundPenaltyBoxesPerDie * ShadowrunDisplay.PoolDivisor;
+        }
+
         private static int ApplyPostAccuracyStatusModifiers(uint creature, int accuracy)
         {
             var adjustment = GetStatAdjustment(creature, StatType.AccuracyPercentAdjustment);
-            return Math.Max(1, ApplyPercentAdjustment(accuracy, adjustment));
+            var adjusted = ApplyPercentAdjustment(accuracy, adjustment) - GetWoundPenalty(creature);
+
+            return Math.Max(1, adjusted);
         }
 
         private static int ApplyPostEvasionStatusModifiers(uint creature, int evasion, SkillType incomingSkillType)
@@ -1850,7 +1906,9 @@ namespace SWLOR.Game.Server.Service
                 adjustment += GetStatAdjustment(creature, StatType.RangedEvasionPercentAdjustment);
             }
 
-            return Math.Max(1, ApplyPercentAdjustment(evasion, adjustment));
+            var adjusted = ApplyPercentAdjustment(evasion, adjustment) - GetWoundPenalty(creature);
+
+            return Math.Max(1, adjusted);
         }
 
         /// <summary>
