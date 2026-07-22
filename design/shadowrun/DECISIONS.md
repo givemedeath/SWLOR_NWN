@@ -232,4 +232,67 @@ enough to move earlier.
 
 ---
 
+## D8 — Subtractive soak applies to personal combat only; starships keep the proportional curve
+
+**2026-07-22 · P5 · accepted** *(implements D3)*
+
+**Decision:** `Combat.CalculateSoakDamageRange` is a new function implementing
+`finalDV = max(0, DV − soak)`, used by personal combat. `Combat.CalculateDamageRange` keeps the
+original `DV × (Attack/Defense)` curve and is used by starship combat.
+
+Soak derives from the same display mapping as everything else:
+
+```
+soak = max(0, GetDefensePool(defenderDefense) − GetAttackPool(attackerAttack) + SoakAtParity)
+```
+
+`SoakAtParity = 6`, a named constant.
+
+**Why split rather than change it globally:** the two systems shared one function, and 10 starship
+module definitions route through it. Starships are explicitly out of scope for this conversion and
+their module ratings are balanced against the proportional curve, so a global change would have
+silently rebalanced a system nobody asked to touch — with no test coverage to catch it.
+
+The caller split turned out to be perfectly clean, which made the separation nearly free:
+`CalculateDamage` is used *only* by the ship modules, while `CalculateDamageWithCriticalMitigation`
+is used *only* by personal combat (the native attack roll and two ability paths). Routing the latter
+to the new function changes exactly the intended surface.
+
+**Why the attacker's rating reduces soak:** subtraction alone would mitigate nothing at parity, and a
+flat soak independent of the attacker would make penetration meaningless. Treating Attack as armor
+penetration preserves the opposed character of the original while keeping the subtractive form — a
+stronger attacker punches through more armor, which is the stat Shadowrun players build around.
+
+**Parity soak must be proportional, not flat — corrected after live testing.** The first version used
+a flat `SoakAtParity = 6`, calibrated against median weapon DV (30) and p95 (111). That is mid-game
+gear. Starting weapons and low-level enemies carry DV 2–8, entirely below a flat soak of 6, so **a new
+character and the weakest enemy in the module could not damage each other at all** — in either
+direction.
+
+Now `soak = max(0, DefensePool − AttackPool) + DefensePool × SoakParityPercent / 100`, with
+`SoakParityPercent = 50`. The parity component scales with the defender instead of being fixed:
+
+| Scenario | DV | soak | damage |
+|---|---|---|---|
+| Mynock → new character (real values) | 7 | 1 | 6 |
+| New character → Mynock | 5 | 1 | 4 |
+| Mid-tier parity | 30 | 3 | 27 |
+| Cap-tier parity | 111 | 8 | 103 |
+| Hold-out pistol vs heavy armor | 8 | 24 | **0** |
+| Assault cannon vs same armor | 120 | 24 | 96 |
+
+Note that parity mitigation is light at high tiers (7–10%) and heavy at low ones. That is inherent to
+subtractive mitigation rather than a defect: armor matters most against weak attacks and least against
+strong ones, which is the texture this change exists to create. What playtest still has to answer is
+whether armor feels *worth building* at cap.
+
+One behavioural difference worth stating: the proportional model floors any positive-DMG hit at 1
+damage, so nothing ever fully bounces. The soak path deliberately does not, because a fully soaked hit
+dealing zero **is the point** — flooring it at 1 would mean armor can never actually stop anything.
+
+**Revisit when:** playtest shows armor is decisive or irrelevant at level cap, or when wound modifiers
+(P6) change how much incoming damage matters.
+
+---
+
 <!-- New entries appended below. Record boxCount and the wound threshold as they are decided. -->

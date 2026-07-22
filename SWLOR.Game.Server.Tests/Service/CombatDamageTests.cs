@@ -49,6 +49,137 @@ public class CombatDamageTests
         maxDamage.Should().Be(1);
     }
 
+    /// <summary>
+    /// The defining property of subtractive mitigation, and the one the proportional model
+    /// could not express at any tuning: a weak attack against heavy armor deals nothing at all.
+    /// </summary>
+    [Test]
+    public void SoakDamageRange_LowValueAttackBouncesOffHeavyArmor()
+    {
+        var (minDamage, maxDamage) = Combat.CalculateSoakDamageRange(
+            attackerAttack: 40,
+            attackerDMG: 8,
+            attackerStat: 10,
+            defenderDefense: 160,
+            defenderStat: 10,
+            critical: 0);
+
+        minDamage.Should().Be(0);
+        maxDamage.Should().Be(0);
+    }
+
+    /// <summary>
+    /// Regression: an evenly-matched low-level fight must still deal damage.
+    ///
+    /// A flat parity soak tuned against mid-game weapons exceeded the entire damage value of
+    /// starting gear, so a new character and the weakest enemy in the module could not hurt
+    /// each other at all. These are the real Ashwing Echo values - Attack 3, weapon DV 7, NPC
+    /// level 2 - against a new character's ratings.
+    /// </summary>
+    [Test]
+    public void SoakDamageRange_StartingGearStillDamagesAnEvenlyMatchedEnemy()
+    {
+        // Mynock swinging at a new character.
+        var (_, mynockOnPlayer) = Combat.CalculateSoakDamageRange(
+            attackerAttack: 25,
+            attackerDMG: 7,
+            attackerStat: 10,
+            defenderDefense: 20,
+            defenderStat: 10,
+            critical: 0);
+
+        // New character swinging back with starting gear.
+        var (_, playerOnMynock) = Combat.CalculateSoakDamageRange(
+            attackerAttack: 26,
+            attackerDMG: 5,
+            attackerStat: 11,
+            defenderDefense: 21,
+            defenderStat: 10,
+            critical: 0);
+
+        mynockOnPlayer.Should().BeGreaterThan(0, "the weakest enemy must be able to hurt a new character");
+        playerOnMynock.Should().BeGreaterThan(0, "a new character must be able to hurt the weakest enemy");
+    }
+
+    /// <summary>
+    /// Soak must scale with the fight. Doubling both sides' ratings should not collapse damage
+    /// to zero, which is what a fixed parity soak did at the low end.
+    /// </summary>
+    [Test]
+    public void SoakDamageRange_ScalesAcrossTheProgressionCurve()
+    {
+        // (attack, DV, defense) at low, mid and high points of the real distributions.
+        var tiers = new[] { (26, 7, 20), (70, 30, 65), (140, 111, 135) };
+
+        foreach (var (attack, dv, defense) in tiers)
+        {
+            var (_, max) = Combat.CalculateSoakDamageRange(attack, dv, 10, defense, 10, 0);
+            max.Should().BeGreaterThan(0, "an evenly-matched fight at every tier must deal damage");
+            max.Should().BeLessThan(dv, "armor must still mitigate something at every tier");
+        }
+    }
+
+    /// <summary>
+    /// The other half of the same property: a heavy attack is largely indifferent to the armor
+    /// that stopped the weak one, which is why penetration is worth building around.
+    /// </summary>
+    [Test]
+    public void SoakDamageRange_HighValueAttackPunchesThroughTheSameArmor()
+    {
+        var (_, maxDamage) = Combat.CalculateSoakDamageRange(
+            attackerAttack: 40,
+            attackerDMG: 120,
+            attackerStat: 10,
+            defenderDefense: 160,
+            defenderStat: 10,
+            critical: 0);
+
+        maxDamage.Should().BeGreaterThan(80);
+    }
+
+    [Test]
+    public void SoakDamageRange_MitigationIsFlat_NotProportionalToDamage()
+    {
+        var (_, lowMax) = Combat.CalculateSoakDamageRange(40, 40, 10, 120, 10, 0);
+        var (_, lowUnarmoured) = Combat.CalculateSoakDamageRange(40, 40, 10, 0, 10, 0);
+        var (_, highMax) = Combat.CalculateSoakDamageRange(40, 100, 10, 120, 10, 0);
+        var (_, highUnarmoured) = Combat.CalculateSoakDamageRange(40, 100, 10, 0, 10, 0);
+
+        // The same armor removes the same absolute amount from both, rather than the same
+        // fraction. That is what makes armor decisive against small hits and marginal
+        // against large ones.
+        (lowUnarmoured - lowMax).Should().Be(highUnarmoured - highMax);
+    }
+
+    [Test]
+    public void SoakDamageRange_HigherAttackPenetratesMoreArmor()
+    {
+        var (_, weakAttacker) = Combat.CalculateSoakDamageRange(20, 60, 10, 160, 10, 0);
+        var (_, strongAttacker) = Combat.CalculateSoakDamageRange(140, 60, 10, 160, 10, 0);
+
+        strongAttacker.Should().BeGreaterThan(weakAttacker);
+    }
+
+    /// <summary>
+    /// Starship combat is outside the scope of the Shadowrun conversion and its module ratings
+    /// are balanced against the proportional curve. This asserts the two models stay separate.
+    /// </summary>
+    [Test]
+    public void ProportionalDamageRange_IsUnchanged_ForStarshipCombat()
+    {
+        var (_, proportional) = Combat.CalculateDamageRange(
+            attackerAttack: 40,
+            attackerDMG: 8,
+            attackerStat: 10,
+            defenderDefense: 160,
+            defenderStat: 10,
+            critical: 0);
+
+        // The weak attack that fully bounces under soak still lands under the proportional
+        // model, which is precisely the behaviour ships must keep.
+        proportional.Should().BeGreaterThan(0);
+    }
+
     [Test]
     public void CalculateDamageRange_PreservesZeroDmgImpacts()
     {

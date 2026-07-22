@@ -342,13 +342,17 @@ namespace SWLOR.Game.Server.Native
                     attacker,
                     defender,
                     pAttackData.m_nAttackResult,
-                    hitRate);
+                    hitRate,
+                    attackerAccuracy,
+                    defenderEvasion);
                 var defenderMessage = BuildAttackFeedbackMessage(
                     defender.m_idSelf,
                     attacker,
                     defender,
                     pAttackData.m_nAttackResult,
-                    hitRate);
+                    hitRate,
+                    attackerAccuracy,
+                    defenderEvasion);
                 attacker.SendFeedbackString(new CExoString(attackerMessage));
                 defender.SendFeedbackString(new CExoString(defenderMessage));
 
@@ -367,7 +371,9 @@ namespace SWLOR.Game.Server.Native
             CNWSCreature attacker,
             CNWSCreature defender,
             int attackResultType,
-            int hitRate)
+            int hitRate,
+            int attackerAccuracy,
+            int defenderEvasion)
         {
             if (IsSuccessfulAttackResult(attackResultType) &&
                 UsePerkFeat.TryGetQueuedWeaponAbility(attacker.m_idSelf, out var queuedAbility))
@@ -378,7 +384,9 @@ namespace SWLOR.Game.Server.Native
                     defender.m_idSelf,
                     queuedAbility.Name,
                     attackResultType,
-                    hitRate);
+                    hitRate,
+                    attackerAccuracy,
+                    defenderEvasion);
             }
 
             return Combat.BuildCombatLogMessageNative(
@@ -386,7 +394,9 @@ namespace SWLOR.Game.Server.Native
                 attacker,
                 defender,
                 attackResultType,
-                hitRate);
+                hitRate,
+                attackerAccuracy,
+                defenderEvasion);
         }
 
         private static bool IsSuccessfulAttackResult(int attackResultType)

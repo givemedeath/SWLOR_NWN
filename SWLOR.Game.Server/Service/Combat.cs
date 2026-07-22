@@ -257,6 +257,99 @@ namespace SWLOR.Game.Server.Service
         /// <param name="critical">the critical rating of the attack, or 0 if the attack is not critical.</param>
         /// <param name="deltaCap">Value to cap the lower and upper bounds of stat delta to. For weapons, should be weapon rank.</param>
         /// <returns>A minimum and maximum damage range</returns>
+        /// <summary>
+        /// Share of the defender's own pool that soaks damage when the two sides are evenly
+        /// matched, expressed as a percentage.
+        ///
+        /// Subtractive mitigation needs some value at parity, because an opposed subtraction
+        /// alone mitigates nothing when the ratings are equal. This must scale with the
+        /// defender rather than be a flat constant: a fixed parity soak tuned for mid-game
+        /// weapons (median DV 30) exceeds the entire damage value of starting gear (DV 2-8),
+        /// which made low-level combat deal zero in both directions.
+        ///
+        /// Empirical, with no derivation from the tabletop rules. Expect to retune in playtest.
+        /// </summary>
+        public const int SoakParityPercent = 50;
+
+        /// <summary>
+        /// Damage range for personal combat, where armor mitigates <em>subtractively</em>.
+        ///
+        /// Final damage is <c>DV - soak</c> rather than <c>DV * (Attack/Defense)</c>. The
+        /// difference is the whole texture of the system: proportional mitigation means every
+        /// weapon does some damage to every target and nothing ever bounces, whereas
+        /// subtraction is what makes a hold-out pistol useless against an armored target and an
+        /// assault cannon indifferent to that armor. It is also why penetration is worth
+        /// building around.
+        ///
+        /// Soak is the defender's rating expressed as a pool, reduced by the attacker's rating
+        /// acting as armor penetration, so a stronger attacker punches through more armor.
+        ///
+        /// Starship combat deliberately keeps the proportional model - see
+        /// <see cref="CalculateDamageRange"/>.
+        /// </summary>
+        public static (int, int) CalculateSoakDamageRange(
+            int attackerAttack,
+            int attackerDMG,
+            int attackerStat,
+            int defenderDefense,
+            int defenderStat,
+            int critical,
+            int deltaCap = 0)
+        {
+            if (defenderDefense < 0)
+                defenderDefense = 0;
+
+            var statDelta = (attackerStat - defenderStat) * DamageStatDeltaMultiplier;
+            if (deltaCap > 0) statDelta = Math.Clamp(statDelta, -deltaCap, 8 + deltaCap);
+
+            var damageValue = attackerDMG + statDelta;
+
+            var soakPool = ShadowrunDisplay.GetDefensePool(defenderDefense);
+            var penetration = ShadowrunDisplay.GetAttackPool(attackerAttack);
+
+            // Two components, both scaled to the fight rather than fixed:
+            //   - the pool advantage the defender holds over the attacker, and
+            //   - a share of the defender's own pool that applies even at parity.
+            // Keeping the second proportional is what lets starting gear (DV 2-8) still deal
+            // damage while heavy armor continues to stop weak hits outright.
+            var paritySoak = soakPool * SoakParityPercent / 100;
+            var soak = Math.Max(0, soakPool - penetration) + paritySoak;
+
+            var maxDamage = Math.Max(0f, damageValue - soak);
+            var minDamage = maxDamage * 0.70f;
+
+            Log.Write(LogGroup.Attack, $"DV = {damageValue} (DMG {attackerDMG} + statDelta {statDelta}), soakPool = {soakPool}, penetration = {penetration}, soak = {soak}");
+            Log.Write(LogGroup.Attack, $"minDamage = {minDamage}, maxDamage = {maxDamage}");
+
+            if (critical > 0)
+            {
+                minDamage = maxDamage;
+                maxDamage *= ((critical - 1) / 4.0f) + 1.0f;
+                Log.Write(LogGroup.Attack, $"Critical Rating: {critical}, minDamage = {minDamage}, maxDamage = {maxDamage}");
+            }
+
+            var roundedMinDamage = (int)minDamage;
+            var roundedMaxDamage = (int)maxDamage;
+
+            // A fully soaked hit deals nothing. That outcome is the point of subtractive
+            // mitigation, so it must not be floored back up to 1 the way the proportional
+            // model does - otherwise armor can never actually stop anything.
+            if (attackerDMG > 0 && roundedMaxDamage > 0)
+            {
+                roundedMinDamage = Math.Max(1, roundedMinDamage);
+                roundedMaxDamage = Math.Max(roundedMinDamage, roundedMaxDamage);
+            }
+
+            return (roundedMinDamage, roundedMaxDamage);
+        }
+
+        /// <summary>
+        /// Damage range using proportional mitigation, where damage scales by Attack/Defense.
+        ///
+        /// Retained for starship combat, which is outside the scope of the Shadowrun
+        /// conversion and whose ratings are balanced against this curve. Personal combat uses
+        /// <see cref="CalculateSoakDamageRange"/>.
+        /// </summary>
         public static (int, int) CalculateDamageRange(
             int attackerAttack,
             int attackerDMG,
@@ -405,7 +498,11 @@ namespace SWLOR.Game.Server.Service
                 TryUseIncomingCriticalHitDowngrade(defender, critical);
             var forceMinimumNormalDamage = wasCriticalDowngraded || usedPendingCriticalDowngrade;
             var effectiveCritical = forceMinimumNormalDamage ? 0 : critical;
-            var (minDamage, maxDamage) = CalculateDamageRange(
+
+            // Personal combat mitigates subtractively. This is the only entry point used by
+            // creature attacks and abilities; starship modules go through CalculateDamage and
+            // keep the proportional curve their ratings are balanced against.
+            var (minDamage, maxDamage) = CalculateSoakDamageRange(
                 attackerAttack,
                 attackerDMG,
                 attackerStat,
@@ -9308,7 +9405,9 @@ namespace SWLOR.Game.Server.Service
             uint defender,
             string abilityName,
             int attackResultType,
-            int chanceToHit)
+            int chanceToHit,
+            int attackerAccuracy = -1,
+            int defenderEvasion = -1)
         {
             var type = string.Empty;
 
@@ -9332,7 +9431,7 @@ namespace SWLOR.Game.Server.Service
             var attackerName = PlayerName.GetColoredDisplayName(observer, attacker);
             var defenderName = PlayerName.GetColoredDisplayName(observer, defender);
 
-            return ColorToken.Combat($"{attackerName} uses {abilityName} on {defenderName}{type} : ({chanceToHit}% chance to hit)");
+            return ColorToken.Combat($"{attackerName} uses {abilityName} on {defenderName}{type} : {FormatOpposedOutcome(chanceToHit, attackerAccuracy, defenderEvasion)}");
         }
 
         public static string BuildAbilityNoTargetCombatLogMessage(
@@ -9427,7 +9526,9 @@ namespace SWLOR.Game.Server.Service
             CNWSCreature attacker,
             CNWSCreature defender,
             int attackResultType,
-            int chanceToHit)
+            int chanceToHit,
+            int attackerAccuracy = -1,
+            int defenderEvasion = -1)
         {
             var type = string.Empty;
 
@@ -9451,7 +9552,23 @@ namespace SWLOR.Game.Server.Service
             var attackerName = PlayerName.GetColoredDisplayName(observer, attacker.m_idSelf);
             var defenderName = PlayerName.GetColoredDisplayName(observer, defender.m_idSelf);
 
-            return ColorToken.Combat($"{attackerName} attacks {defenderName}{type} : ({chanceToHit}% chance to hit)");
+            return ColorToken.Combat($"{attackerName} attacks {defenderName}{type} : {FormatOpposedOutcome(chanceToHit, attackerAccuracy, defenderEvasion)}");
+        }
+
+        /// <summary>
+        /// Renders the roll outcome as opposed dice pools when the underlying ratings are
+        /// available, and falls back to the percentage form when they are not.
+        ///
+        /// The fallback exists because not every call site holds the raw ratings; showing a
+        /// stale percentage is better than showing a pool derived from a guess, since a wrong
+        /// pool is indistinguishable from a real one.
+        /// </summary>
+        private static string FormatOpposedOutcome(int chanceToHit, int attackerAccuracy, int defenderEvasion)
+        {
+            if (attackerAccuracy < 0 || defenderEvasion < 0)
+                return $"({chanceToHit}% chance to hit)";
+
+            return ShadowrunDisplay.FormatOpposedTest(attackerAccuracy, defenderEvasion);
         }
 
         public static int GetPerkAdjustedAbilityScore(uint attacker)

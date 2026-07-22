@@ -487,3 +487,71 @@ people to ignore the gate, which is the failure mode that matters most for a che
 - `tools/orchestration/checkhaks.js`
 
 *Auto-captured. Replace with a summary of what changed before closing the wave.*
+
+---
+
+## Wave 2
+
+**2026-07-22 · P5 · Combat.cs cluster delivered · controller**
+
+**Gate passed: build clean, 992/992 tests passing** (five new).
+
+Two changes, both in `Combat.cs`, kept in one package because they share the file.
+
+**Subtractive soak.** New `CalculateSoakDamageRange` implements `finalDV = max(0, DV − soak)` for
+personal combat, with soak derived from the defender's Defense Pool reduced by the attacker's Attack
+Pool acting as armor penetration, plus a named `SoakAtParity = 6`. Recorded as D8.
+
+**A scope hazard surfaced before it could do damage.** `CalculateDamageRange` was shared with
+**starship combat** — 10 ship module definitions route through it — and starships are explicitly out
+of scope, with no test coverage on their damage balance. Changing the function in place would have
+silently rebalanced them.
+
+The caller split turned out to be perfectly clean and made the separation nearly free:
+`CalculateDamage` is used *only* by ship modules; `CalculateDamageWithCriticalMitigation` *only* by
+personal combat. Personal combat now routes to the soak function; ships keep the proportional curve
+their ratings are balanced against. A test asserts the two models stay separate — the weak attack that
+fully bounces under soak still lands under the proportional model.
+
+**Pool-based combat log.** `BuildCombatLogMessageNative` and `BuildAbilityCombatLogMessage` now render
+`(Pool 12 vs 9)` instead of `(75% chance to hit)`. The ratings were not in scope at the log builders,
+only the derived percentage, so they are threaded through from the native attack roll where
+`attackerAccuracy` and `defenderEvasion` are already computed. Both parameters default to `-1` meaning
+"unknown", in which case the builder falls back to the percentage form — **a wrong pool is
+indistinguishable from a real one**, so showing a stale percentage is the safer failure. The
+ship-facing `BuildCombatLogMessage` is untouched.
+
+New tests assert the properties the proportional model could not express at any tuning: a low-DV
+attack fully bounces off heavy armor, a high-DV attack punches through the same armor, mitigation is
+flat rather than proportional, and higher Attack penetrates more.
+
+**Still open in P5's scope:** the `Attack` and `Delay` renames that P4 deferred here. The vocabulary
+for them was never settled — `Delay` plausibly becomes Initiative once the pass model is decided, and
+`Attack` overlaps with the damage-bonus stat P2 deliberately left alone. Both want a decision before
+the rename, not during it.
+
+**2026-07-22 · P5 · live test found the soak calibration was unplayable; fixed · controller**
+
+**First real in-game test of any of this work, and it failed immediately.** A new character
+(Agility 18, Perception 11) and the weakest enemy in the module could not damage each other at all,
+in either direction.
+
+Root cause was mine. `SoakAtParity = 6` was a **flat** constant calibrated against median weapon DV
+(30) and p95 (111) — mid-game gear. The real Ashwing Echo carries `Attack 3` and weapon `DV 7` at NPC
+level 2; a new character's ratings produce pools of ~2 on both sides. So
+`soak = max(0, 2 − 2 + 6) = 6`, and `7 − 6 = 1`, rounding to nothing. Starting gear sits entirely
+below a flat soak of 6.
+
+Fixed by making the parity component proportional to the defender's pool rather than fixed:
+`soak = max(0, DefensePool − AttackPool) + DefensePool × SoakParityPercent / 100`. Verified across the
+real progression curve — low-level fights deal damage again, mid and cap parity mitigate modestly, and
+heavy armor still stops a DV-8 attack outright while barely slowing a DV-120 one. 994/994 passing.
+
+**The lesson is about the tests, not the constant.** The suite asserted "low DV bounces off *heavy*
+armor" — correct, and it passed throughout. What it never asserted was that **an evenly-matched
+low-level fight still deals damage**, which is the very first thing any player experiences. Two
+regression tests now cover it, one using the literal Ashwing Echo values and one walking the low, mid
+and cap tiers.
+
+This is precisely the gap flagged when Wave 1 closed: nothing in `dotnet build` or `dotnet test` sees
+what a player sees. A green suite of 992 tests coexisted with combat being entirely non-functional.
