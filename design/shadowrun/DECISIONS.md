@@ -691,3 +691,35 @@ committing to the full 30-50.
 
 **Revisit when:** the proof street is walked. If it does not convince, that is the kill-criteria
 signal from the platform assessment - reconsider Evennia - and it was learned cheaply.
+
+---
+
+## D19 — Adopt the procedural area-generation subsystem by grafting it in-tree
+
+**2026-07-23 · P2a/procgen · accepted**
+
+**Decision:** Graft the AreaGeneration subsystem from `zunath/feature/procedural-areas` onto our branch
+(the ProcgenReview CLI exporter, the ContentBuilder WPF previewer, the tileset data, and the tests),
+rather than re-theming existing areas or merging the whole upstream branch. Generate Barrens geometry
+as data; keep runtime on-demand generation (NWNX_Tileset) dormant for now and use the offline path.
+
+**Why:** the subsystem is a mature urban generator — city blocks, streets, frontages, alleys, edge
+crossers, group stamping — with an engine-free offline exporter. It dissolves the "geometry needs the
+toolset" constraint [P2a](packages/P2a.md) was built around (see
+[PROCGEN-ASSESSMENT.md](PROCGEN-ASSESSMENT.md)). Grafting proved far cleaner than feared: ~150
+subsystem files compiled into our `SWLOR.Game.Server` with **two** added `ScriptName` constants, the
+offline exporter generated two undercity areas with no server, and the ~1,240-test grafted suite passed
+after only mechanical version-skew fixes (FluentAssertions method rename, a `module.ifo` area
+registration, a Newtonsoft.Json pin).
+
+Rejected — full branch merge: brings zunath's diverged combat-upgrade lineage into conflict with our
+rewritten combat files (soak, glitches, metatype, cyberware) for no benefit the graft doesn't give.
+Rejected — re-theming existing Star Wars areas: strictly worse output than purpose-built urban
+generation, now that the generator is available.
+
+**Consequences:** the undercity path works today with no tileset onboarding; Sixth-World street
+exteriors need a one-time onboarding of an urban tileset (`fcx01`/`srt04`). Runtime on-demand dungeon
+generation is a later prize needing the NWNX_Tileset spike the branch's own design doc flags.
+
+**Revisit when:** the first generated Barrens areas are walked in game, or if tracking the upstream
+branch's ongoing changes becomes a maintenance burden.

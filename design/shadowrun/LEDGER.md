@@ -905,3 +905,22 @@ step. So the immediate zero-onboarding win is the Barrens undercity; streets fol
 
 Added `zunath` as a read-only remote and fetched the branch for inspection. Awaiting a direction
 decision before proceeding.
+
+---
+
+**2026-07-23 · procgen subsystem grafted · Lead**
+
+Grafted the procedural area-generation subsystem onto an isolated branch (`adaptation/shadowrun-procgen`)
+per [D19](DECISIONS.md). The graft was remarkably clean for ~150 files: two added `ScriptName`
+constants was the entire code gap; the offline exporter (`SWLOR.ProcgenReview`) built standalone and
+generated two undercity areas into an ERF with no server; the ContentBuilder WPF previewer built; and
+the ~1,240-test grafted suite went green after mechanical version-skew fixes only (a FluentAssertions
+`BeGreaterOrEqualTo`→`BeGreaterThanOrEqualTo` rename across 14 files, registering the four
+`gen_placeholder` areas in `module.ifo`, a Newtonsoft.Json 13.0.3→13.0.4 pin).
+
+Skipped nothing in the end — brought the ContentBuilder previewer too, since it runs on Windows with no
+server and is the closest thing to "see the area before it is in-game" while live testing is
+unavailable. Also added `/External/` to `.gitignore` after a broad `git add -A` briefly swept the
+pre-existing `External/Radoub` checkout into a commit (corrected).
+
+Running the full combined suite as the merge gate before fast-forwarding into `adaptation/shadowrun`.
