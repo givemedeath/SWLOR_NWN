@@ -336,6 +336,11 @@ namespace SWLOR.Game.Server.Native
                 // accurate.
                 attacker.ResolveDefensiveEffects(defender, isHit ? 1 : 0);
 
+                // Roll for a glitch on the resolved attack. A hit can still glitch (minor); a miss that
+                // glitches is critical. Uses the effective accuracy that determined the hit so a more
+                // competent attacker glitches less.
+                Combat.TryApplyGlitch(attacker.m_idSelf, isHit, attackerAccuracy + accuracyModifiers);
+
                 Log.Write(LogGroup.Attack, $"Building combat log message");
                 var attackerMessage = BuildAttackFeedbackMessage(
                     attacker.m_idSelf,

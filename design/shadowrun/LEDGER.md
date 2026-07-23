@@ -828,3 +828,29 @@ catalogue, cyberlimb models — all gated on this slice playtesting well.
 Live gate (needs a running server): `/cyberclinic`, install Dermal Plating + Wired Reflexes on a troll
 street sam and watch Defense/Evasion rise and gold drop; chrome a mage and watch Magic (FP) fall;
 remove and watch it recover; confirm a non-caster is unaffected.
+
+---
+
+**2026-07-22 · P1c (glitches) shipped · Lead**
+
+Shipped glitches, the last of D1's three behavioural fixes, closing the combat-honesty thread.
+Recorded as [D17](DECISIONS.md).
+
+The design turned on one property of the combat model: hit rate is capped at 95, so the attack roll
+alone can never produce a glitch-on-success. A second D100 (mirroring the critical roll already in the
+hook) fixes that - a glitch on a hit is minor, on a miss critical - and the rate scales down with
+accuracy so competence buys reliability, matching how a big dice pool rarely rolls all 1s.
+
+Built as a pure core (`CalculateGlitchRate`, `ResolveGlitch`) plus a thin `Combat.TryApplyGlitch`
+wrapper called once from the shared attack hook, so players and NPCs glitch through one path. Effects
+reuse the status-effect framework; VFX picked by moment per the AGENTS rule. 9 focused tests on the
+curve and classification; 1034/1034 total pass. Pure C#, no haks/module changes.
+
+Deferred: disruptive effects (jam/stagger), a dedicated glitch icon, glitches on non-attack actions,
+and Edge-to-reroll.
+
+Live gate (needs a server): raise the rate temporarily, attack repeatedly, confirm minor glitches on
+some hits and critical on some misses with the right VFX/log, confirm an NPC glitches too, restore.
+
+Phase 1 identity mechanics are now largely done: metatypes (1a), cyberware/Essence (1b), glitches
+(1c). Remaining: 1d Attack/Delay vocabulary and 1e character creation flow.

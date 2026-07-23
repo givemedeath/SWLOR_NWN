@@ -68,6 +68,27 @@ namespace SWLOR.Game.Server.Service
         public const int MaximumCriticalDamagePercentAdjustment = 200;
 
         /// <summary>
+        /// Glitch chance for a minimally skilled attacker, as a percentage, before the competence
+        /// reduction. A glitch is Shadowrun's "something went wrong on its own terms" - the gun jams,
+        /// the wires cross. Rolled on a separate D100 after the hit is resolved, mirroring the critical
+        /// roll, so it can co-occur with a success. Empirical starting proposal, tuned in playtest.
+        /// </summary>
+        public const int BaseGlitchRate = 5;
+
+        /// <summary>
+        /// Floor on glitch chance. Even an apex attacker glitches occasionally - reliability is bought,
+        /// never guaranteed.
+        /// </summary>
+        public const int MinimumGlitchRate = 1;
+
+        /// <summary>
+        /// Accuracy points that buy one percentage point off the glitch chance. In Shadowrun a large
+        /// dice pool rarely rolls mostly 1s, so competence reduces glitches; Accuracy is the
+        /// percentage model's proxy for pool size.
+        /// </summary>
+        public const int GlitchAccuracyDivisor = 30;
+
+        /// <summary>
         /// Divisor applied to NPC maximum hit points, expressing the module's health curve.
         ///
         /// SWLOR's creature hit points grow far faster than weapon damage across the level range -
@@ -523,6 +544,72 @@ namespace SWLOR.Game.Server.Service
 
 
             return criticalRate;
+        }
+
+        /// <summary>The outcome of a glitch check, resolved by <see cref="ResolveGlitch"/>.</summary>
+        public enum GlitchOutcome
+        {
+            /// <summary>Nothing went wrong.</summary>
+            None,
+
+            /// <summary>A complication despite a successful attack - the gun jams, but the shot landed.</summary>
+            Minor,
+
+            /// <summary>The action went badly on a miss - a serious malfunction.</summary>
+            Critical
+        }
+
+        /// <summary>
+        /// The percentage chance an attacker glitches on a single attack, reduced by competence.
+        ///
+        /// Shadowrun glitches come from rolling mostly 1s, which a large dice pool almost never does;
+        /// Accuracy is the percentage model's proxy for pool size, so a more accurate attacker glitches
+        /// less. Clamped to <see cref="MinimumGlitchRate"/>..<see cref="BaseGlitchRate"/>.
+        /// </summary>
+        public static int CalculateGlitchRate(int attackerAccuracy)
+        {
+            var rate = BaseGlitchRate - Math.Max(0, attackerAccuracy) / GlitchAccuracyDivisor;
+
+            return Math.Clamp(rate, MinimumGlitchRate, BaseGlitchRate);
+        }
+
+        /// <summary>
+        /// Classifies a glitch from a D100 roll against the rate. A glitch that coincides with a hit is
+        /// <see cref="GlitchOutcome.Minor"/> (a complication despite success); one that coincides with a
+        /// miss is <see cref="GlitchOutcome.Critical"/>. Pure, so the classification is unit-tested
+        /// without a running server.
+        /// </summary>
+        public static GlitchOutcome ResolveGlitch(bool isHit, int glitchRoll, int glitchRate)
+        {
+            if (glitchRoll > glitchRate)
+                return GlitchOutcome.None;
+
+            return isHit ? GlitchOutcome.Minor : GlitchOutcome.Critical;
+        }
+
+        /// <summary>
+        /// Rolls for and applies a glitch to an attacker after a resolved attack: the self-debuff, the
+        /// VFX cue, and a combat-log line. Called from the shared attack hook, so players and NPCs
+        /// glitch through the same path.
+        /// </summary>
+        public static void TryApplyGlitch(uint attacker, bool isHit, int attackerAccuracy)
+        {
+            var outcome = ResolveGlitch(isHit, Random.D100(1), CalculateGlitchRate(attackerAccuracy));
+            if (outcome == GlitchOutcome.None)
+                return;
+
+            if (outcome == GlitchOutcome.Minor)
+            {
+                StatusEffect.ApplyStatusEffect<GlitchStatusEffect>(attacker, attacker, 6f);
+                ApplyEffectToObject(DurationType.Instant, EffectVisualEffect(VisualEffect.Vfx_Com_Sparks_Parry), attacker);
+                FloatingTextStringOnCreature(ColorToken.Combat("Glitch!"), attacker, false);
+            }
+            else
+            {
+                StatusEffect.ApplyStatusEffect<CriticalGlitchStatusEffect>(attacker, attacker, 12f);
+                ApplyEffectToObject(DurationType.Instant, EffectVisualEffect(VisualEffect.Vfx_Imp_Head_Electricity), attacker);
+                FloatingTextStringOnCreature(ColorToken.Combat("Critical Glitch!"), attacker, false);
+            }
         }
 
         /// <summary>

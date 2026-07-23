@@ -621,3 +621,40 @@ playtest whether the chrome-vs-magic tension is fun before building the full cat
 
 **Revisit when:** the tradeoff is playtested — then decide on grades, bioware as a second track,
 death-at-0, and catalogue breadth.
+
+---
+
+## D17 — Glitches use a separate roll, hit → minor and miss → critical, scaled by competence
+
+**2026-07-22 · P1c · accepted**
+
+**Decision:** Add glitches to the shared attack path as a second D100 rolled after the hit is
+resolved. A glitch on a hit is minor; on a miss it is critical. The glitch rate falls with the
+attacker's accuracy. Both apply a brief self-debuff plus a VFX cue and a combat-log line, to players
+and NPCs alike.
+
+**Why a separate roll:** the hit is `attackRoll <= hitRate` with hit rate capped at 95, so rolls of
+96-100 always miss. A glitch keyed to a band of that one roll could only ever coincide with a miss,
+losing Shadowrun's signature "you succeed but something still goes wrong." A second roll - mirroring
+the critical roll already in the hook - separates the glitch signal from success and gives both the
+minor (on a hit) and critical (on a miss) varieties.
+
+**Why competence-scaled:** in Shadowrun a large dice pool almost never rolls mostly 1s, so skill buys
+reliability. Accuracy is the percentage model's proxy for pool size, so
+`glitchRate = clamp(BaseGlitchRate - accuracy/GlitchAccuracyDivisor, MinimumGlitchRate, BaseGlitchRate)`.
+Starting proposal: base 5%, divisor 30, floor 1% - a green runner (~30 accuracy) glitches ~4%, a
+veteran (~90) ~2%, an apex attacker ~1%. Playtest-tunable.
+
+**Effects** are two declarative status effects on the existing framework: minor is
+`AccuracyPercentAdjustment -15` for ~6s; critical is `-25` Accuracy and `-25` Evasion for ~12s. They
+reuse the `Confused`/`Stunned` effect icons for the slice - a dedicated glitch icon is deferred rather
+than dragging in the icon pipeline. VFX are an instant self-impact chosen by moment per AGENTS:
+sparks for a minor glitch, head electricity for a critical one.
+
+The pure core (`CalculateGlitchRate`, `ResolveGlitch`) mirrors `CalculateHitRate`/`CalculateCriticalRate`
+so the curve and classification are unit-tested; `TryApplyGlitch` is the thin rolling/applying wrapper
+the native hook calls once per resolved attack.
+
+**Revisit when:** playtest shows the rate or the debuffs need tuning, or to add disruptive effects
+(weapon jam, self-stagger), a dedicated icon, glitches on non-attack actions, or spending Edge to
+reroll a glitch (the reserved Edge mechanic from D6).
