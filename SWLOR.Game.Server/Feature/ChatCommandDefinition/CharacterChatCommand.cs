@@ -32,6 +32,7 @@ namespace SWLOR.Game.Server.Feature.ChatCommandDefinition
             Recipes();
             Perks();
             Techniques();
+            Cyberclinic();
             DeleteCommand();
             LanguageCommand();
             ToggleEmoteStyle();
@@ -180,6 +181,20 @@ namespace SWLOR.Game.Server.Feature.ChatCommandDefinition
                     Gui.TogglePlayerWindow(user, GuiWindowType.Perks);
                 });
 
+        }
+
+        private void Cyberclinic()
+        {
+            // Interim opener for the P1b playtest slice. In the built district the cyberclinic is
+            // reached through the street-doc conversation (CyberdocDialog); this command lets the
+            // tradeoff be tested before any NPC is placed and should be removed once one is.
+            _builder.Create("cyberclinic", "chrome")
+                .Description("Toggles the cyberclinic menu, where cyberware is installed and removed.")
+                .Permissions(AuthorizationLevel.All)
+                .Action((user, target, location, args) =>
+                {
+                    Gui.TogglePlayerWindow(user, GuiWindowType.Cyberware);
+                });
         }
 
         private void Techniques()

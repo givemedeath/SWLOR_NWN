@@ -798,3 +798,33 @@ builder's `IncreasesStat`/`GrantsFeat`/`TriggerPurchase` were the fallback if th
 fit; and there is no nuyen currency (`CurrencyType` holds only tokens).
 
 Next: write the P1b package brief and implement the slice.
+
+---
+
+**2026-07-22 · P1b (cyberware + Essence) built · Lead**
+
+Shipped the cyberware slice per [D16](DECISIONS.md). Built in two verified halves.
+
+Mechanics core (committed first): a `Cyberware` service + builder/detail/discovery trio cloning the
+ship-module shape but wiring grants through the player stat layer — passive StatType bonuses read live
+via `Cyberware.GetStatBonus`, folded into `Stat.GetStatAdjustmentExcludingTemporaryModifiers` with the
+`Mimicry` short-circuit guard. Essence is a 0–6 budget (`InstalledCyberware` + cached `EssenceSpent`
+on `Player`); Magic loss scales `GetMaxFP` by remaining Essence, uniform for all and self-balancing
+because only Force users spend FP. Five seed cyberware sum to exactly 6.0 Essence, so full chrome is an
+unmistakable Magic wipe. 12 tests: budget, aggregation, monotonic Magic-loss curve.
+
+Install path: a cyberclinic NUI (`CyberwareDefinition` + `CyberwareViewModel`) modelled on the simple
+list-with-actions windows, with Install/Remove per row, Essence and nuyen headers, gold charged on
+install, free removal for the slice. Opened by a street-doc conversation (`CyberdocDialog`) for the
+eventual NPC, and by an interim `/cyberclinic` chat command so the tradeoff is testable before any NPC
+is placed — the command is flagged for removal once the cyberdoc is in the world.
+
+1025/1025 tests pass. No haks/module changes — pure C# plus a dialog (the NPC that carries it is
+module content, placed when the district is built).
+
+Deferred per D16: grades, bioware track, death at 0, attribute-boosting and active cyberware, the full
+catalogue, cyberlimb models — all gated on this slice playtesting well.
+
+Live gate (needs a running server): `/cyberclinic`, install Dermal Plating + Wired Reflexes on a troll
+street sam and watch Defense/Evasion rise and gold drop; chrome a mage and watch Magic (FP) fall;
+remove and watch it recover; confirm a non-caster is unaffected.
