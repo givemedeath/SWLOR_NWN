@@ -294,3 +294,6 @@ Module/Star Wars LOR v2.mod
 # blanket "**/packages/*" rule above is a NuGet Package Restore leftover and
 # would otherwise swallow them silently.
 !/design/shadowrun/packages/*
+
+# Vendored/pre-existing external repo checkout; never part of this repo.
+/External/
