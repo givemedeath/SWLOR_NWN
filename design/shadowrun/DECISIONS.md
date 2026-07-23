@@ -565,3 +565,59 @@ launch.
 
 **Revisit when:** playtest shows the deltas are too swingy or too flat, or when the custom troll model
 lands.
+
+---
+
+## D16 — Cyberware is a dedicated system built on the ship-module template
+
+**2026-07-22 · P1b design · accepted**
+
+**Decision:** Build cyberware as a dedicated system modelled on SWLOR's ship-module architecture but
+wired through the player stat layer. Essence is a 0–6 budget with proportional Magic loss for all.
+Install and removal happen at a street-doc cyberclinic NUI.
+
+**Why the ship-module system is the template but not the mechanism:** the ship-module system is a
+proven socketable-modules-with-capacity design — `ShipModuleBuilder` has exactly the shape cyberware
+needs (`Create/Name/Type/Description/EquippedAction/UnequippedAction/ActivatedAction/RequirePerk/
+ValidationAction`), installed modules live in a `Dictionary<slot, module>` on the host, and
+`ShipManagementViewModel` is a working install/remove UI. Cloning that shape removes the design risk of
+inventing a socket system from scratch.
+
+But it cannot be reused literally, for two concrete reasons found in the code:
+
+1. **Its grant mechanism is a parallel stat pipeline.** `ShipModuleEquippedDelegate(ShipStatus, int)`
+   grants bonuses by mutating a `ShipStatus` struct (`shipStatus.ThermalDefense += 3`), which only
+   space combat reads. Personal combat reads the entirely separate `Stat.GetStatAdjustment` layer
+   (perk/status/mimicry/metatype) plus ability-score effects. Cyberware that mutated a status struct
+   would be invisible to personal combat. So cyberware grants must flow through the player stat layer:
+   passive bonuses via a `Cyberware.GetStatBonus` folded into
+   `Stat.GetStatAdjustmentExcludingTemporaryModifiers` (the exact pattern [D15](#d15) used for metatype
+   traits), attribute bonuses via ability effects, active cyberware via `GrantsFeat` + recast.
+2. **Its slots are discrete and hull-bound; Essence is continuous.** Ships have fixed numbered nodes
+   (`HighPowerNodes`); Essence is a 0–6 pool spent in fractions. The capacity concept maps; the
+   representation changes from "N slots" to "6.0 Essence."
+
+Rejected — literally reusing ship modules: entangles body cyberware with space-combat code and forces
+combat to read two stat sources. Rejected — cyberware as a perk category: overloads the perk economy
+(699 → 730+ PerkTypes), mixes perk points with Essence/nuyen, and discards the socket/capacity model
+the ship system already proves works.
+
+**Essence model (first slice):** `Essence` is a `float` on `Player`, max 6.0. Each cyberware has an
+Essence cost; install validates `spent + cost <= 6`. Magic loss applies to everyone through the single
+`Stat.GetMaxFP` chokepoint (`baseFP + Willpower*3 + StatType.MaxFP bonus`) — Essence spent reduces
+MaxFP proportionally, so a chromed-up street samurai keeps almost no Magic while a clean mage keeps it
+all. Uniform and self-balancing: non-casters have little FP to lose, casters feel it sharply. No grades
+or death-at-0 in the first slice — those are faithful additions deferred until the tradeoff is
+playtested.
+
+**Money is NWN gold**, not a `CurrencyType` (which only holds tokens). Cyberware costs gold via
+`TakeGoldFromCreature`; players start with 200.
+
+**Install path:** a cyberclinic NUI modelled on `ShipManagementViewModel`, opened by a street-doc NPC.
+Install/remove for gold, Essence cost shown. Fits the fiction and gives the world a real location.
+
+**Slice discipline:** ship 3–5 cyberware + Essence + the Magic-loss hook + the clinic first, to
+playtest whether the chrome-vs-magic tension is fun before building the full catalogue.
+
+**Revisit when:** the tradeoff is playtested — then decide on grades, bioware as a second track,
+death-at-0, and catalogue breadth.

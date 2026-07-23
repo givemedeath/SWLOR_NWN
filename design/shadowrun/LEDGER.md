@@ -771,3 +771,30 @@ Still to verify in live play (the gate): roll a troll street samurai and a dwarf
 five appear on the race wheel with correct names, the troll is visibly larger and wears armor, and the
 sheet reads coherently. Two specific wrinkles to watch: whether the login-applied attribute effect
 feeds HP/FP/STM (derived at init from the base score), and troll skin tone.
+
+---
+
+**2026-07-22 · P1b (cyberware) design vetted · Lead**
+
+Researched the requirements for cyberware + Essence and vetted the architecture. The user pointed at
+the ship-module system as a possible fit, which turned out to be the key insight — investigated and
+recorded as [D16](DECISIONS.md).
+
+Conclusion: the ship-module system is the right *design template* (socketable modules, equip/unequip/
+activate hooks, capacity budget, a working install UI in `ShipManagementViewModel`) but the wrong
+*mechanism* — its `EquippedAction` mutates a `ShipStatus` struct read only by space combat, whereas
+personal combat reads the `Stat.GetStatAdjustment` layer. So cyberware clones the template's shape but
+wires grants through the player stat layer, exactly as the metatype traits do. This de-risks the build
+considerably: the socket/capacity/UI design is proven, and the stat integration is the pattern just
+shipped in P1a.
+
+Settled four decisions: dedicated system on the ship-module template (Option A′); Essence as a 0–6
+budget with Magic loss for all via the single `GetMaxFP` chokepoint; street-doc cyberclinic NUI for
+install/remove; money is NWN gold. Sliced: 3–5 cyberware first to playtest the chrome-vs-magic tension
+before building grades, bioware, or the full catalogue.
+
+Also confirmed the enabling facts: no cyberware or Essence exists today (genuinely net-new); the perk
+builder's `IncreasesStat`/`GrantsFeat`/`TriggerPurchase` were the fallback if the ship template hadn't
+fit; and there is no nuyen currency (`CurrencyType` holds only tokens).
+
+Next: write the P1b package brief and implement the slice.
