@@ -878,3 +878,30 @@ Magic loss, and the cyberclinic together.
 
 The design is the deliverable now; the build (re-themed areas, creature blueprints, spawn tables,
 fixer/bar dialogs) is the follow-on, best done with live iteration so the mood gate can steer it.
+
+---
+
+**2026-07-22 · procgen branch assessed for the Barrens · Lead**
+
+Investigated `zunath/feature/procedural-areas` for generating the Barrens areas. Full writeup in
+[PROCGEN-ASSESSMENT.md](PROCGEN-ASSESSMENT.md).
+
+Verdict: **yes, and it changes the Phase 2 approach.** The branch is not the cave-only spike its design
+doc describes — it is a mature, actively-developed urban generator (newest commit, yesterday: "Make
+city streets read as painted avenues and ground every building on real platform"). ~121 impl files,
+full test suite, implemented urban primitives (city blocks, building frontages, plazas, streets,
+alleys, edge crossers, group stamping), a "City Streets" layout profile, clean theme-authoring
+builder, and — the key enabler — an **offline exporter** (`SWLOR.ProcgenReview --erf`) that emits
+`.are/.git` with no running server and no NWNX at generation time.
+
+This dissolves the "geometry needs the toolset" constraint P2a was built around. Recommended path:
+**use the offline output out-of-tree (worktree), no merge** — generate Barrens geometry, bring the
+static area files into our module, layer our content on top. Zero integration risk; runtime procgen
+(on-demand dungeons) is a separate later prize needing a full merge + the NWNX_Tileset spike.
+
+Tileset nuance: undercity/sewer/facility areas generate now on onboarded profiles (`tds01`/`zsf01`);
+street *exteriors* on a Shadowrun-looking tileset (`fcx01`/`srt04`) need a one-time tileset-onboarding
+step. So the immediate zero-onboarding win is the Barrens undercity; streets follow.
+
+Added `zunath` as a read-only remote and fetched the branch for inspection. Awaiting a direction
+decision before proceeding.
