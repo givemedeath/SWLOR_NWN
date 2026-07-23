@@ -854,3 +854,27 @@ some hits and critical on some misses with the right VFX/log, confirm an NPC gli
 
 Phase 1 identity mechanics are now largely done: metatypes (1a), cyberware/Essence (1b), glitches
 (1c). Remaining: 1d Attack/Delay vocabulary and 1e character creation flow.
+
+---
+
+**2026-07-22 · P2a district design (Barrens) · Lead**
+
+Designed the first district while the P1a/1b/1c combat gates sit in the live-test queue - pure design,
+touching none of the unverified code. Recorded as [D18](DECISIONS.md); full creative record in
+[districts/barrens.md](districts/barrens.md).
+
+The setting: the **Erie Metroplex**, an invented rust-and-neon Great Lakes sprawl with a real-world
+anchor but original names; first district **The Barrens**. The design doc is the single naming source,
+which also discharges the D12 rename/IP audit - every place, faction, and NPC name is defined once so a
+forced rename stays contained.
+
+The pipeline investigation was the load-bearing finding: NWN area geometry is toolset (GUI) work I
+cannot do, but re-theming existing areas (copy `.are.json`/`.git.json`, change mood, repopulate) plus
+creatures, spawn tables (C#), and dialogs is data I can. And 38 urban-tileset areas already ship. So
+the district assembles mostly from re-themes, and the first build is a 6-area **proof street** scoped
+to the kill-criteria question - and deliberately co-locating the three pending combat gates, so one
+walk (roll a troll sam, chrome up at the clinic, fight the Rustkings) validates soak, wounds, glitches,
+Magic loss, and the cyberclinic together.
+
+The design is the deliverable now; the build (re-themed areas, creature blueprints, spawn tables,
+fixer/bar dialogs) is the follow-on, best done with live iteration so the mood gate can steer it.

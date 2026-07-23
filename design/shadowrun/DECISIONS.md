@@ -658,3 +658,36 @@ the native hook calls once per resolved attack.
 **Revisit when:** playtest shows the rate or the debuffs need tuning, or to add disruptive effects
 (weapon jam, self-stagger), a dedicated icon, glitches on non-attack actions, or spending Edge to
 reroll a glitch (the reserved Edge mechanic from D6).
+
+---
+
+## D18 — The setting: the Erie Metroplex and The Barrens
+
+**2026-07-22 · P2a · accepted**
+
+**Decision:** The original Sixth World city is the **Erie Metroplex**, a rust-and-neon Great Lakes
+sprawl anchored loosely to the Detroit-to-Buffalo industrial corridor. The first district is **The
+Barrens**, its abandoned edge. Full design in [districts/barrens.md](districts/barrens.md), which is
+the single source of truth for every place, faction, and NPC name.
+
+**Why a real-world anchor:** an invented city with familiar bones (a dead rust belt, a poisoned lake,
+corp arcologies on the corpse of twentieth-century industry) gives players shorthand without the lore
+burden or IP surface of a canonical Shadowrun city. Deliberately not Seattle or Chicago - original
+geography, original corps (`Ecerre-Vandt`), invented gang names.
+
+**Why the Barrens first:** it is the iconic runner starting ground - walk-in danger, cheap chrome,
+fixers - and it maps onto the slum/industrial urban tilesets that already ship, so it re-themes from
+existing areas rather than needing new geometry.
+
+**Why the names live in one file:** per [D12](#d12), setting vocabulary must stay containable so a
+forced rename is cheap. The design doc is that container; content references its canonical strings
+rather than scattering literals. This also discharges the rename/IP audit that D12 flagged.
+
+**Build pipeline reality that shaped the scope:** area geometry is NWN-toolset (GUI) work, but
+re-theming an existing area's `.are.json`/`.git.json` and authoring creatures, spawn tables (C#), and
+dialogs is data. So the first build is a ~6-area proof street re-themed from existing urban areas,
+scoped to answer the kill-criteria question ("does one street read as the Sixth World?") before
+committing to the full 30-50.
+
+**Revisit when:** the proof street is walked. If it does not convince, that is the kill-criteria
+signal from the platform assessment - reconsider Evennia - and it was learned cheaply.
