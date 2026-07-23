@@ -92,6 +92,8 @@ namespace SWLOR.Game.Server.Entity
             Craftsmanship = new Dictionary<SkillType, int>();
             CPBonus = new Dictionary<SkillType, int>();
             Currencies = new Dictionary<CurrencyType, int>();
+            InstalledCyberware = new List<string>();
+            EssenceSpent = 0f;
             OutfitSlotLimit = DefaultOutfitSlotLimit;
             DisguiseSlotLimit = DefaultDisguiseSlotLimit;
             MarketListingLimit = DefaultMarketListingLimit;
@@ -204,6 +206,20 @@ namespace SWLOR.Game.Server.Entity
         public Dictionary<GuiWindowType, GuiRectangle> WindowGeometries { get; set; }
         public Dictionary<CurrencyType, int> Currencies { get; set; }
         public float AppearanceScale { get; set; }
+
+        /// <summary>
+        /// Installed cyberware, by definition id. Drives the passive stat bonuses read live through
+        /// <see cref="Service.Cyberware.GetStatBonus"/> and is the source of truth for what a
+        /// character has chromed in.
+        /// </summary>
+        public List<string> InstalledCyberware { get; set; }
+
+        /// <summary>
+        /// Essence spent on installed cyberware, cached from the sum of installed pieces' costs so the
+        /// Magic-loss calculation in <see cref="Service.Stat.GetMaxFP(uint, Player)"/> does not resum
+        /// on every FP query. Mutated only on install and removal.
+        /// </summary>
+        public float EssenceSpent { get; set; }
     }
 
     public class MapPin

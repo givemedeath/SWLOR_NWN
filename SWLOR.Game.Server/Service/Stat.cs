@@ -154,13 +154,16 @@ namespace SWLOR.Game.Server.Service
                 }
                 baseFP = dbPlayer.MaxFP;
 
+                // Cyberware erodes Magic. FP is the Magic pool, so a player's maximum FP scales down
+                // with the Essence they have spent on chrome. This is uniform - "reduces Magic for
+                // all" - and self-balancing, because only Force users spend FP; a non-caster loses a
+                // resource they never draw on.
+                return ApplyEssenceMagicLoss(GetMaxFP(baseFP, willpower, bonus), dbPlayer.EssenceSpent);
             }
+
             // NPCs
-            else
-            {
-                var npcStats = GetNPCStats(creature);
-                baseFP = npcStats.FP;
-            }
+            var npcStats = GetNPCStats(creature);
+            baseFP = npcStats.FP;
 
             return GetMaxFP(baseFP, willpower, bonus);
         }
@@ -168,6 +171,23 @@ namespace SWLOR.Game.Server.Service
         public static int GetMaxFP(int baseFP, int willpower, int bonus)
         {
             return baseFP + willpower * FPPerWillpower + bonus;
+        }
+
+        /// <summary>
+        /// Scales a maximum FP total by the Magic a character has left after spending Essence on
+        /// cyberware: <c>round(rawMaxFP * (available / max))</c>. Full Essence leaves FP untouched;
+        /// a fully chromed character (all 6 Essence spent) is left with essentially no Magic. Pure and
+        /// clamped so it can be unit-tested and never returns a negative.
+        /// </summary>
+        public static int ApplyEssenceMagicLoss(int rawMaxFP, float essenceSpent)
+        {
+            if (rawMaxFP <= 0)
+                return Math.Max(0, rawMaxFP);
+
+            var available = Math.Clamp(Cyberware.MaxEssence - essenceSpent, 0f, Cyberware.MaxEssence);
+            var scaled = (int)Math.Round(rawMaxFP * (available / Cyberware.MaxEssence), MidpointRounding.AwayFromZero);
+
+            return Math.Max(0, scaled);
         }
 
         /// <summary>
@@ -1979,8 +1999,9 @@ namespace SWLOR.Game.Server.Service
             var perkAdjustment = Perk.GetStatBonus(creature, stat);
             var mimicryTraitAdjustment = Mimicry.GetStatBonus(creature, stat);
             var metatypeAdjustment = Metatype.GetStatBonus(creature, stat);
+            var cyberwareAdjustment = Cyberware.GetStatBonus(creature, stat);
 
-            return statusAdjustment + perkAdjustment + mimicryTraitAdjustment + metatypeAdjustment;
+            return statusAdjustment + perkAdjustment + mimicryTraitAdjustment + metatypeAdjustment + cyberwareAdjustment;
         }
 
         public static int ApplyOutgoingAbilityHealingAdjustment(uint source, int amount)
