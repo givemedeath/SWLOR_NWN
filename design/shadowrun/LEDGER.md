@@ -947,3 +947,51 @@ Landed the verifiable half now: added a **`--json-out`** flag to `SWLOR.ProcgenR
 module-native `.are.json`/`.git.json` (no GFF/pack step), and generated three Barrens undercity
 candidates on `tds01` (12x12–16x16, all keys a real module area has). The procgen→Barrens pipeline
 produces committable geometry. Candidates held in scratch until the fresh module exists.
+
+**2026-07-23 · idle · subagent completed · subagent**
+
+96 edits across 38 files:
+
+- `C:/Users/benco/.claude/plans/investigate-in-detail-a-merry-moler.md`
+- `SWLOR.Game.Server.Tests/Feature/CombatUpgradeTlkConsistencyTests.cs`
+- `SWLOR.Game.Server.Tests/SWLOR.Game.Server.Tests.csproj`
+- `SWLOR.Game.Server.Tests/Service/CombatFeelHarnessTests.cs`
+- `SWLOR.Game.Server.Tests/Service/CyberwareTests.cs`
+- `SWLOR.Game.Server.Tests/Service/GlitchTests.cs`
+- `SWLOR.Game.Server.Tests/Service/MetatypeTests.cs`
+- `SWLOR.Game.Server/Core/ScriptName.cs`
+- `SWLOR.Game.Server/Entity/Player.cs`
+- `SWLOR.Game.Server/Feature/ChatCommandDefinition/CharacterChatCommand.cs`
+- `SWLOR.Game.Server/Feature/CyberwareDefinition/CoreCyberwareDefinition.cs`
+- `SWLOR.Game.Server/Feature/DialogDefinition/CyberdocDialog.cs`
+- …and 26 more
+
+*This wave = the P1a/1b/1c + procgen-graft work (metatypes, cyberware/Essence, glitches, the grafted
+area generator and ContentBuilder). Detailed per-package records above; the Phase-1 live gates were
+queued for a server boot.*
+
+**2026-07-23 · P2c · fresh "Erie Metroplex" module stood up · controller**
+
+Built the two-module layout. `ModuleSR/` is a fresh, minimal module beside the now-dormant SW
+`Module/`; the server chooses between them with one line in `debugserver/swlor.env`
+(`NWN_MODULE="Erie Metroplex"`, gitignored so it's a local switch — documented in `ModuleSR/README.md`).
+
+- **Contents:** trimmed `module.ifo` (copy of SW event/hak/TLK wiring — all 113 haks + `sw_tlk` kept —
+  with the area list cut to ours and `Mod_Name=Erie Metroplex`; entry area stays `ooc_area`); the three
+  system areas the C# needs at boot (`ooc_area` entry, `czs220_hangar` = `ENTRY_STARTING_WP` +
+  `DTH_DEFAULT_RESPAWN_POINT`, `no_access` = `MIGRATION_STORAGE`/`TEMP_ITEM_STORAGE`/`OUTFIT_BARREL`),
+  `gen_placeholder1-4`, `repute.fac`, `module.jrl`.
+- **Why it's tiny:** NWN `.git` instances are fully self-contained (a creature carries 113 fields), so
+  the three system areas were copied *verbatim* and bring their objects without needing the 8k+ `utp`/
+  `uti`/`utc` blueprint files. Result: **6.1 MB vs the SW module's 187 MB → packs in 2.7 s vs minutes.**
+- **Tooling:** `PackModuleSR.cmd` mirrors `ncs`/`nss` from `../Module` at pack time (not duplicated in
+  git — `.gitignore`d) and creates the empty resource folders the packer enumerates. Verified the packed
+  `.mod` lists `module.ifo` + all 7 areas + fac/jrl + 310 scripts (330 entries).
+- **Deployed** to `debugserver/modules/Erie Metroplex.mod`; both modules now coexist there.
+
+Offline-verifiable half is done and green. Remaining is the **boot gate**: create a character, confirm
+spawn at `ENTRY_STARTING_WP` with the storage tags resolving and the Shadowrun-termed sheet working — in
+a module with zero Star Wars content. Re-theming the spawn into the Barrens is P2b.
+
+Known pre-existing red (not from P2c): `DungeonDefinitionTests.AllTilesetProfiles_PlaceholdersExistAndMatchTheirTileset`
+fails in the grafted procgen suite — to investigate when P2b actually drives procgen.
