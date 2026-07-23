@@ -79,6 +79,7 @@ var matrix = false;
 string areasArg = null;
 string extraAreasArg = null;
 string areasFileArg = null;
+string jsonOutDir = null;
 
 for (var i = 0; i < args.Length; i++)
 {
@@ -95,6 +96,12 @@ for (var i = 0; i < args.Length; i++)
             break;
         case "--erf":
             erfPath = args[++i];
+            break;
+        case "--json-out":
+            // Emit the raw generated .are.json/.git.json into this directory (module-native format),
+            // instead of / in addition to packing a .mod/.erf. Used to drop generated areas straight
+            // into a module source tree.
+            jsonOutDir = args[++i];
             break;
         case "--matrix":
             matrix = true;
@@ -115,7 +122,7 @@ for (var i = 0; i < args.Length; i++)
 }
 
 var root = FindRepositoryRoot();
-if (outPath == null && erfPath == null)
+if (outPath == null && erfPath == null && jsonOutDir == null)
     outPath = Path.Combine(root, "Module", "SWLOR Procgen Review.mod");
 var gffTool = Path.Combine(root, "tools", "SWLOR.CLI", "nwn_gff.exe");
 var erfTool = Path.Combine(root, "tools", "SWLOR.CLI", "nwn_erf.exe");
@@ -483,6 +490,22 @@ try
     // export deliberately carries no module-only resources (see ErfPacker.PackErf).
     if (outPath != null)
         EmitModuleIfo(root, areas, stage);
+
+    // Emit the raw module-native JSON before it is converted to GFF and the stage is deleted. This is
+    // the path that drops generated areas straight into a module source tree.
+    if (jsonOutDir != null)
+    {
+        Directory.CreateDirectory(jsonOutDir);
+        foreach (var jsonFile in Directory.GetFiles(stage, "*.are.json")
+                     .Concat(Directory.GetFiles(stage, "*.git.json")))
+        {
+            File.Copy(jsonFile, Path.Combine(jsonOutDir, Path.GetFileName(jsonFile)), overwrite: true);
+        }
+        Console.WriteLine($"json-out: {areas.Count} area(s) written to {jsonOutDir}");
+    }
+
+    if (outPath == null && erfPath == null)
+        return 0; // json-out only: no GFF conversion or packing needed.
 
     ConvertJsonToGff(stage, gffTool);
 

@@ -924,3 +924,26 @@ unavailable. Also added `/External/` to `.gitignore` after a broad `git add -A` 
 pre-existing `External/Radoub` checkout into a commit (corrected).
 
 Running the full combined suite as the merge gate before fast-forwarding into `adaptation/shadowrun`.
+
+---
+
+**2026-07-23 · module reset decided; Barrens generation pipeline proven · Lead**
+
+Procgen makes areas cheap, so revisited [D12](DECISIONS.md)'s "keep the SW module" half. Decided a
+**fresh clean module** (the Erie Metroplex), reset **before** building the Barrens so content lands on
+the clean base once. Approach: a two-module layout — the 195 MB SW `Module/` stays as dormant
+reference (its deeply-coupled content tests keep passing), a new minimal module is built beside it and
+made live via the single `NWN_MODULE` switch. Full plan in [packages/P2c.md](packages/P2c.md) and
+[packages/P2b.md](packages/P2b.md).
+
+Scoped the fresh-module essentials against the C#: it needs the script/runtime scaffolding block
+(`ncs`/`nss`/`config`/dlls, 223+87 files), three system areas (`ooc_area` entry, `czs220_hangar`
+spawn with `ENTRY_STARTING_WP`/`DTH_DEFAULT_RESPAWN_POINT`, `no_access` with the storage tags),
+starting-gear blueprints, and the `gen_placeholder` areas. The C# is defensive about missing content
+(`GetIsObjectValid` guards), so dropped SW content stays dormant rather than crashing. Module assembly
+is boot-gated — buildable offline but only a server boot fully validates it.
+
+Landed the verifiable half now: added a **`--json-out`** flag to `SWLOR.ProcgenReview` that writes raw
+module-native `.are.json`/`.git.json` (no GFF/pack step), and generated three Barrens undercity
+candidates on `tds01` (12x12–16x16, all keys a real module area has). The procgen→Barrens pipeline
+produces committable geometry. Candidates held in scratch until the fresh module exists.
