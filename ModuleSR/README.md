@@ -1,57 +1,71 @@
-# ModuleSR — the "Erie Metroplex" module
+# ModuleSR — Erie Metroplex
 
-This is the fresh, minimal module the Shadowrun adaptation is built into. It exists so
-new content lands on a clean base with **zero Star Wars residue** and boots in seconds
-instead of minutes (the SW `../Module` packs to a ~195 MB `.mod`; this one is a few MB).
+`ModuleSR/` is the only supported runtime module on the Shadowrun adaptation branch. It provides a
+small, explicit content boundary while the historical `../Module` remains in the repository for
+regression tests and reference. The old module is not maintained as a second playable world here.
 
-See [design/shadowrun/packages/P2c.md](../design/shadowrun/packages/P2c.md) and
-[design/shadowrun/DECISIONS.md](../design/shadowrun/DECISIONS.md) (D12 revision → fresh
-module) for the rationale.
+See [P2m](../design/shadowrun/packages/P2m.md), the current
+[plan of record](../design/shadowrun/PLAN.md), and D20–D23 in
+[DECISIONS.md](../design/shadowrun/DECISIONS.md).
 
-## Two-module layout
+## Runtime contract
 
-The old SW `../Module` **stays in the repo, intact and dormant.** Dozens of tests assert
-specific SW areas, creatures, spawns and placements exist, so deleting or stripping it
-in place would turn the suite red. Instead the server chooses which module to load with a
-single switch:
+The debug server selects:
 
-- `debugserver/swlor.env` → `NWN_MODULE="Erie Metroplex"` (was `"Star Wars LOR v2"`).
+```text
+NWN_MODULE="Erie Metroplex"
+SWLOR_GAME_PROFILE=shadowrun
+SWLOR_DATA_NAMESPACE=erie
+```
 
-Flip that one line to boot the SW module again.
+Shadowrun-profile startup fails without a data namespace. Persistent entity keys and RediSearch
+indexes therefore cannot silently collide with the historical world.
 
-## What's committed here
+## Committed resources
 
-| Folder | Contents |
+| Path | Purpose |
 |---|---|
-| `ifo/` | `module.ifo.json` — a copy of the SW module's event/hak/TLK wiring, with only the **area list** trimmed to ours and **Mod_Name** set to `Erie Metroplex`. Entry area stays `ooc_area`; custom TLK stays `sw_tlk`; all 113 haks retained. |
-| `are/`, `git/`, `gic/` | The three system areas the C# needs at boot, plus the four procgen placeholders — see below. |
-| `fac/` | `repute.fac` (faction table). |
-| `jrl/` | `module.jrl` (journal). |
+| `ifo/module.ifo.json` | Erie name, event/TLK wiring, six-area list, entry coordinates, 9-HAK allowlist |
+| `are/erie_arrival.are.json` | deterministic clean-room arrival generated from Sci-Fi Base seed 4242 |
+| `git/erie_arrival.git.json` | entry and default-respawn waypoints |
+| `are/git gen_placeholder1-4` | four verified procgen templates |
+| `are/git/gic no_access` | private runtime storage area; no creature instances |
+| `uti/` | the three items `PlayerInitialization` creates for new characters |
+| `fac/`, `jrl/` | faction and journal scaffolding |
 
-### Areas
+The 9 HAKs are shared mechanics/UI/VFX assets plus the five tilesets required by committed areas.
+This is an explicit dependency manifest, not a claim that inherited generic assets have completed a
+legal/provenance review.
 
-| Area | Why it's here |
-|---|---|
-| `ooc_area` | Module entry area (`Mod_Entry_Area`); character-creation staging. |
-| `czs220_hangar` | Spawn area — holds `ENTRY_STARTING_WP` (players teleport here on enter) and `DTH_DEFAULT_RESPAWN_POINT`. |
-| `no_access` | Service area — holds the `MIGRATION_STORAGE`, `TEMP_ITEM_STORAGE`, and `OUTFIT_BARREL` storage placeables the C# looks up by tag. |
-| `gen_placeholder1`–`4` | Required by the procedural area generator (D19). |
+`ncs/` and `nss/` are mirrored from `../Module` at pack time because the C# event bridge remains
+shared. Other empty resource directories are created for the packer and ignored.
 
-These three system areas are copied **verbatim** from the SW module. NWN `.git` instances
-are fully self-contained, so they carry their objects without needing the 8k+ blueprint
-files — which is what keeps this module tiny. Re-theming the spawn into the Barrens is
-**P2b's** job, not P2c's.
+## Prepare and build
 
-## What is NOT committed (materialized at pack time)
+After changing the arrival, starter resources, area list, or HAK policy:
 
-`ncs/` and `nss/` are mirrored from `../Module` by `PackModuleSR.cmd`, and the empty
-resource folders (`utc/`, `uti/`, `utp/`, …) are created by it. All are `.gitignore`d.
+```powershell
+powershell -ExecutionPolicy Bypass -File tools/PrepareShadowrunModule.ps1
+```
 
-## Building
+Pack and deploy:
 
 ```bat
 ModuleSR\PackModuleSR.cmd
 ```
 
-Produces `Erie Metroplex.mod` and copies it to `debugserver/modules/`. Then boot with
-`NWN_MODULE="Erie Metroplex"`.
+The pack command deploys the module and the exact nine HAKs plus custom TLK
+from `SWLOR_Haks/output/` to `debugserver/`. Build the changed HAK first; it
+fails rather than silently retaining an older deployed copy.
+
+Packing also writes `Erie Metroplex.release.json` beside the module and in
+`debugserver/modules/`. It records SHA-256 hashes of the module, custom TLK, server assembly, and every
+referenced HAK, along with both source revisions and dirty-state flags. Dirty manifests are development
+artifacts, not release candidates.
+
+## Acceptance
+
+Automated tests enforce the five playable metatypes, portrait coverage, entry/respawn waypoints,
+starter resources, private-area contents, and HAK/tileset closure. Final acceptance still requires
+the cold-boot/create/reconnect/respawn/cyberclinic matrix in
+[P2m](../design/shadowrun/packages/P2m.md).

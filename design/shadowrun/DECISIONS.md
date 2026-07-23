@@ -1,4 +1,4 @@
-# Shadowrun Presentation Layer — Decisions
+# Erie Metroplex Adaptation — Decisions
 
 ADR-style record. One entry per decision, written **at the moment it is made**, not retrospectively.
 
@@ -611,7 +611,9 @@ or death-at-0 in the first slice — those are faithful additions deferred until
 playtested.
 
 **Money is NWN gold**, not a `CurrencyType` (which only holds tokens). Cyberware costs gold via
-`TakeGoldFromCreature`; players start with 200.
+`TakeGoldFromCreature`. Erie characters receive a 20,000-credit prototype stipend so the live
+cyberware gate is reachable; that value is test scaffolding and must be replaced by the Phase 3
+economy model before public launch.
 
 **Install path:** a cyberclinic NUI modelled on `ShipManagementViewModel`, opened by a street-doc NPC.
 Install/remove for gold, Essence cost shown. Fits the fiction and gives the world a real location.
@@ -723,3 +725,94 @@ generation is a later prize needing the NWNX_Tileset spike the branch's own desi
 
 **Revisit when:** the first generated Barrens areas are walked in game, or if tracking the upstream
 branch's ongoing changes becomes a maintenance burden.
+
+---
+
+## D20 — The adaptation branch supports Erie as its only runtime world
+
+**2026-07-23 · runtime scope · accepted**
+
+**Decision:** `ModuleSR/` is the only deployable world supported by this branch. The historical
+`Module/` stays in the repository as a reference and regression fixture because inherited tests and
+assets depend on it, but it is not a second runtime selected by changing one environment line.
+
+**Why:** shared services, static definitions, combat math, 2DAs, TLK, and HAK sources are process-wide.
+The former “two live modules” wording implied a compatibility boundary that did not exist. Preserving
+that promise would require service registration, data, balance, release, and test isolation for both
+games on every change—work with no value for the adaptation’s vertical slice. Keeping the old module
+as a fixture preserves evidence and extraction paths without turning it into a release target.
+
+The `starwars` application profile remains the default so existing tools/deployments retain historical
+behavior, but that is backward compatibility in shared code, not a branch-level product commitment.
+
+**Revisit when:** a separate team explicitly funds and owns dual-world compatibility, at which point
+the correct solution is distinct branches/builds or a complete registration/content boundary—not a
+module-name toggle.
+
+---
+
+## D21 — Erie persistence is namespaced and namespace omission is fatal
+
+**2026-07-23 · P2m · accepted**
+
+**Decision:** The Erie runtime uses `SWLOR_GAME_PROFILE=shadowrun` and
+`SWLOR_DATA_NAMESPACE=erie`. Entity JSON keys become `erie:<EntityType>:<id>` and RediSearch indexes
+become `erie_<EntityType>`. A Shadowrun-profile process refuses to initialize without a namespace.
+
+**Why:** the database layer previously keyed every world by the entity type alone. A fresh module
+pointed at the same Redis instance would load and mutate historical players, properties, markets,
+quests, and world state despite looking visually empty. A module reset is not a data reset.
+Namespacing at the DB choke point covers every `EntityBase` consumer without hundreds of feature
+special cases and retains unprefixed behavior for an existing Star Wars deployment.
+
+Background-job streams and external integrations still need the runtime-service allowlist in the plan;
+entity namespacing prevents world-data collision but is not a claim of total process isolation.
+
+**Revisit when:** cross-world account identity or transfers are deliberately designed. They require an
+explicit shared schema and migration, not removal of the namespace.
+
+---
+
+## D22 — Erie starts from deterministic content and an explicit HAK allowlist
+
+**2026-07-23 · P2m · accepted**
+
+**Decision:** Replace the copied Star Wars OOC room and hangar with a deterministic Sci-Fi Base area
+(seed 4242), package every literal starter resource, expose exactly five metatypes, remove the legacy
+creature from the private service area, use base-game starter/portrait models, and reduce the module’s
+HAK list from 113 entries to the 9
+dependencies its committed slice demonstrates.
+
+**Why:** `.git` instances being self-contained did not make the module self-contained:
+`PlayerInitialization` creates three UTI resrefs that were absent, and the shared race 2DA still
+advertised legacy species. The copied entry areas also made “zero Star Wars content” visibly false,
+while a full 13 GB HAK declaration made distribution and provenance unbounded. A generated static
+arrival gives a reproducible clean route; tests enforce the race/resource/tileset closure; the
+allowlist makes every future asset addition a conscious review point.
+
+“Clean” means no player-visible legacy area, actor, conversation, race, or undeclared dependency. It
+does not mean the shared engine has no historical names, nor does it establish legal clearance.
+
+**Revisit when:** an accepted area or feature proves it needs another HAK. Add the smallest
+demonstrated dependency and its provenance record.
+
+---
+
+## D23 — Release identity is a hash manifest; automated success does not accept live gates
+
+**2026-07-23 · delivery policy · accepted**
+
+**Decision:** Packing Erie emits a manifest containing SHA-256 hashes for the module, custom TLK,
+server assembly, and referenced HAKs plus repository/submodule revisions and dirty flags. Plans and
+ledger entries use three distinct states: designed, implemented, and accepted.
+
+**Why:** a `.mod`, TLK, DLL, and mutable HAK directory can drift independently, making a playtest
+result impossible to reproduce. The manifest binds the exact tested artifact set. Separately, earlier
+records called work “done” or “validated in live play” while multiple server-only gates remained queued.
+Builds and unit tests prove structure and invariants; they cannot prove spawn flow, visual mood,
+combat feel, reconnect/recovery behavior, performance, onboarding, or asset rights.
+
+Dirty manifests are useful during local development but cannot identify a release candidate.
+
+**Revisit when:** CI/artifact storage signs and retains immutable release bundles; the manifest can
+then become input to that stronger pipeline.

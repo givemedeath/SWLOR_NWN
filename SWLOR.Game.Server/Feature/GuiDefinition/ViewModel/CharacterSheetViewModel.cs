@@ -790,7 +790,13 @@ namespace SWLOR.Game.Server.Feature.GuiDefinition.ViewModel
                 var dmgText = $"{ShadowrunDisplay.GetDamageValue(dmg)} DV";
                 var attack = Stat.GetAttack(_target, damageAbility, skill);
                 var defense = Stat.CalculateDefense(damageStat, skillRank, 0);
-                var (min, max) = Combat.CalculateDamageRange(attack, dmg, damageStat, defense, damageStat, 0);
+                var (min, max) = Combat.CalculateSoakDamageRange(
+                    attack,
+                    dmg,
+                    damageStat,
+                    defense,
+                    damageStat,
+                    0);
                 var tooltip = $"Est. DV: {ShadowrunDisplay.GetDamageValue(min)} - {ShadowrunDisplay.GetDamageValue(max)}";
 
                 return (dmgText, tooltip);

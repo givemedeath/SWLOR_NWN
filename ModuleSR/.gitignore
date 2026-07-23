@@ -1,18 +1,18 @@
 # ModuleSR is the fresh "Erie Metroplex" module (two-module layout, see README.md).
-# Its own content lives in are/ git/ gic/ ifo/ fac/ jrl/ and is committed.
+# Its own content lives in are/ git/ gic/ ifo/ fac/ jrl/ and uti/ and is committed.
 # Everything below is materialized at pack time by PackModuleSR.cmd and must NOT
 # be committed:
 
 # Script scaffolding is mirrored from ../Module at pack time, never duplicated here.
 /ncs/
 /nss/
+/dlg/
 
 # Empty resource folders the packer requires to exist (SWLOR.CLI enumerates all 16).
-/dlg/
+# The clean arrival currently needs no module conversations.
 /itp/
 /utc/
 /utd/
-/uti/
 /utm/
 /utp/
 /uts/
@@ -23,3 +23,4 @@
 /packing/
 *.mod
 *.packing.mod
+*.release.json

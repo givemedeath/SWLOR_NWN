@@ -343,7 +343,9 @@ namespace SWLOR.Game.Server.Feature
                 ActionEquipItem(item, InventorySlot.Chest);
             });
 
-            GiveGoldToCreature(player, 200);
+            GiveGoldToCreature(
+                player,
+                ApplicationSettings.GetStartingCredits(ApplicationSettings.Get().GameProfile));
         }
 
         /// <summary>

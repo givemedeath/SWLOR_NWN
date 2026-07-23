@@ -108,10 +108,14 @@ public class CombatUpgradeTlkConsistencyTests
         }
 
         entries[81040].Should().Contain("Mando'a language");
+        entries[81314].Should().Be("Mundane");
+        entries[81315].Should().Be("mundane");
         entries[81316].Should().Be(
-            "Standard characters cannot train the Force skill or use Force powers, lightsabers, or saberstaffs. They can train Devices and access Standard-only Devices and Espionage perks.");
+            "Mundane characters cannot train Magic or use magical abilities. They can train Devices and access technology-focused Devices and Espionage perks.");
+        entries[81317].Should().Be("Awakened");
+        entries[81318].Should().Be("awakened");
         entries[81319].Should().Be(
-            "Force Sensitive characters can train the Force skill and access Force powers, lightsaber perks, and saberstaff perks. They cannot train Devices or access Standard-only Devices and Espionage perks.");
+            "Awakened characters can train Magic and access magical abilities. They cannot train Devices or access Mundane-only Devices and Espionage perks. Cyberware reduces their maximum Magic as Essence is spent.");
     }
 
     [Test]

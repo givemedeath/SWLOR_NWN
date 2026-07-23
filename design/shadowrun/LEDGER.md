@@ -933,7 +933,8 @@ Procgen makes areas cheap, so revisited [D12](DECISIONS.md)'s "keep the SW modul
 **fresh clean module** (the Erie Metroplex), reset **before** building the Barrens so content lands on
 the clean base once. Approach: a two-module layout — the 195 MB SW `Module/` stays as dormant
 reference (its deeply-coupled content tests keep passing), a new minimal module is built beside it and
-made live via the single `NWN_MODULE` switch. Full plan in [packages/P2c.md](packages/P2c.md) and
+made live via the single `NWN_MODULE` switch. The corrected foundation plan is now
+[packages/P2m.md](packages/P2m.md); area work is [packages/P2b.md](packages/P2b.md).
 [packages/P2b.md](packages/P2b.md).
 
 Scoped the fresh-module essentials against the C#: it needs the script/runtime scaffolding block
@@ -970,7 +971,7 @@ produces committable geometry. Candidates held in scratch until the fresh module
 area generator and ContentBuilder). Detailed per-package records above; the Phase-1 live gates were
 queued for a server boot.*
 
-**2026-07-23 · P2c · fresh "Erie Metroplex" module stood up · controller**
+**2026-07-23 · originally labelled P2c, now P2m · fresh "Erie Metroplex" module stood up · controller**
 
 Built the two-module layout. `ModuleSR/` is a fresh, minimal module beside the now-dormant SW
 `Module/`; the server chooses between them with one line in `debugserver/swlor.env`
@@ -995,3 +996,113 @@ a module with zero Star Wars content. Re-theming the spawn into the Barrens is P
 
 Known pre-existing red (not from P2c): `DungeonDefinitionTests.AllTilesetProfiles_PlaceholdersExistAndMatchTheirTileset`
 fails in the grafted procgen suite — to investigate when P2b actually drives procgen.
+
+---
+
+**2026-07-23 · adaptation audit remediation and plan v3 · controller**
+
+Completed an end-to-end audit of the presentation, identity, procgen, module, and delivery work. The
+systems proof of concept was strong, but the packaged world was not yet a playable vertical slice and
+several earlier completion claims were broader than their evidence. This entry corrects current status
+without rewriting the historical entries above.
+
+Concrete defects resolved:
+
+- Added an explicit runtime profile and Redis namespace. Erie uses `shadowrun` + `erie`; entity keys
+  and RediSearch indexes are isolated, and Shadowrun startup fails if the namespace is omitted.
+- Replaced the inherited OOC room and CZ-220 hangar with deterministic `erie_arrival` geometry
+  (Sci-Fi Base seed 4242), with entry and default-respawn waypoints.
+- Removed the inherited Holonet creature from the private service area while retaining the five
+  storage placeables current services require.
+- Packaged `survival_knife`, `fresh_bread`, and newly authored `travelers_clothes`, matching every
+  literal starter resource created by `PlayerInitialization`.
+- Restricted character creation to Human, Elf, Dwarf, Ork, and Troll; retained male/female portrait
+  coverage for all five.
+- Raised Erie’s starting funds from the historical 200 to a clearly labelled 20,000-credit prototype
+  stipend so the 4,000–15,000 cyberware gate can actually be exercised. Production economy remains a
+  required Phase 3 gate.
+- Changed the character-sheet estimate to the same subtractive-soak function used by personal combat.
+- Reduced Erie’s declared HAK stack from 113 to 9 demonstrated dependencies by using base-game
+  starter and portrait models.
+- Added deterministic module preparation and a release manifest hashing the module, server DLL,
+  referenced HAKs, source revisions, and dirty states.
+- Added structural tests for profiles/namespaces, five-race selection, portraits, entry/respawn,
+  starter resources, HAK/tileset closure, and private-area contents.
+- Re-ran the formerly reported procgen placeholder test; it passes. The stale “known red” above is no
+  longer current.
+
+Planning corrections:
+
+- Replaced plan v2 with v3. It distinguishes designed, implemented, and accepted work and no longer
+  claims queued live gates have passed.
+- Declared `ModuleSR/` the branch’s only supported runtime; historical `Module/` is a fixture.
+- Assigned the module foundation the unique `P2m` ID. Replaced the duplicate `P2b` copy of the master
+  plan with an executable proof-street brief and made `P2c` exclusively the creature package.
+- Added missing gates for economy, service allowlisting, party/run lifecycle, operations, performance,
+  accessibility/onboarding, release rollback, and asset provenance/legal review.
+- Converted Matrix and rigging from optimistic estimates into bounded prototypes with recovery and
+  ownership gates.
+
+Current status is **implemented, not accepted** for P2m and Phase 1 mechanics. Remaining acceptance
+requires a live cold-boot/create/reconnect/respawn/cyberclinic test with an empty Erie namespace and
+the release manifest archived. The immediate content step after that is one finished Barrens street,
+not a 30–50 area build.
+
+Verification for this remediation:
+
+- test project build: succeeded, 0 warnings / 0 errors;
+- focused profile/module/combat/metatype/procgen gate: 82/82 passed;
+- broad non-AreaGeneration partition: 1,050/1,050 passed;
+- full 2,290-test suite: attempted twice and made steady passing progress through the long procgen
+  matrices, but exceeded bounded 10-minute and 6-minute runs; no full-suite result is claimed;
+- former placeholder regression:
+  `DungeonDefinitionTests.AllTilesetProfiles_PlaceholdersExistAndMatchTheirTileset` passed;
+- HAK/TLK guard: all checks passed with the documented maintained-vs-vendored builder warning;
+- all 113 source HAKs rebuilt; Erie deploys/references only 9 (215,228,875 bytes total);
+- Erie module packed 19 resources + 310 scripts in 6,131,595 bytes and deployed successfully;
+- release manifest module hash
+  `5c9aef6c3e6fb1ca94bf346e88df8381530e5ec2f54cdec60197b56da5a40aa2`;
+  source/deployed module and all nine HAK hashes matched.
+
+---
+
+**2026-07-23 · P2m live boot and metatype chargen correction · user + controller**
+
+First live evidence received: Erie Metroplex loads and runs; a previously created Human character can
+log in and walk the starting area. This accepts the basic module-load, existing-character login, and
+arrival-area traversal portions of P2m.
+
+New Troll creation reached the background/class page but both choices were unselectable. Root cause:
+the two player classes (`Standard` and `ForceSensitive`) use race-whitelist prerequisite tables
+(`cls_pres_stand.2da` and `cls_pres_force.2da`). The metatype work enabled Dwarf, Elf, Ork, and Troll
+in `racialtypes.2da` and supplied portraits, but added none of them to those class whitelists. Human
+worked because it was already listed. This was a cross-table chargen invariant missing from the
+original tests and would have affected all four newly enabled fantasy races.
+
+Added Dwarf `0`, Elf `1`, Ork `5`, and Troll `170` to both playable-class prerequisite tables. Added a
+regression that discovers every `PlayerClass=1` row, follows its `PreReqTable`, and requires every
+player-visible metatype in each race whitelist. Build passed with 0 warnings/errors; all six
+Shadowrun module-scaffolding tests passed. Rebuilt and deployed `sw_2da.hak`; live Troll creation
+through class selection remains the immediate retest.
+
+The same live page exposed adjacent player-visible residue: the two backgrounds were still named
+`Standard` and `Force Sensitive`, and their descriptions referenced Force powers, lightsabers, and
+saberstaffs. Updated existing TLK ids `81314`–`81319` to **Mundane** and **Awakened**, with descriptions
+matching Magic, Devices, cyberware, and Essence. Regenerated/deployed `sw_tlk.tlk`; the combined
+chargen/TLK regression set passed 10/10. Expanded the release manifest to hash the custom TLK as well
+as the module, server assembly, and nine HAKs. Deployed TLK hash:
+`f0bcf096f3ea810e29f54a3d4b9c9a96ac508514f6b05ae442fe9e05df939609`.
+
+---
+
+**2026-07-23 · P2m accepted · live operator confirmation**
+
+The operator confirmed the remaining Erie live acceptance checks. The five-metatype
+chargen path is usable, the arrival/login flow is correct, and the character sheet
+and cyberclinic were exercised. Installing the full starter cyberware catalogue
+reduced available Essence to `0.0 / 6.0`; removing it restored `6.0 / 6.0` and
+returned each action to **Install**. This confirms both mutation directions and
+the visible Essence state. P2m is accepted and no longer blocks P2b.
+
+Next package: **P2b — one finished Barrens proof street**, followed by its minimum
+creature/NPC set in P2c/P2d.

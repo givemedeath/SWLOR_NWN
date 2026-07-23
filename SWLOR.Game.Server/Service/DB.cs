@@ -31,6 +31,7 @@ namespace SWLOR.Game.Server.Service
 
         private static ApplicationSettings _appSettings;
         private static readonly Dictionary<Type, string> _keyPrefixByType = new();
+        private static readonly Dictionary<Type, string> _indexNameByType = new();
         private static readonly Dictionary<Type, Client> _searchClientsByType = new();
         private static readonly Dictionary<Type, List<string>> _indexedPropertiesByName = new();
         private static ConnectionMultiplexer _multiplexer;
@@ -115,7 +116,7 @@ namespace SWLOR.Game.Server.Service
             try
             {
                 // FT.DROPINDEX is used here in lieu of DropIndex() as it does not cause all documents to be lost.
-                _multiplexer.GetDatabase().Execute("FT.DROPINDEX", type.Name);
+                _multiplexer.GetDatabase().Execute("FT.DROPINDEX", _indexNameByType[type]);
                 Console.WriteLine($"Dropped index for {type}");
             }
             catch (Exception ex)
@@ -207,14 +208,22 @@ namespace SWLOR.Game.Server.Service
             foreach (var entity in entityInstances)
             {
                 var type = entity.GetType();
-                // Register the type by itself first.
-                _keyPrefixByType[type] = type.Name;
+                var keyPrefix = ApplicationSettings.BuildEntityKeyPrefix(
+                    _appSettings.DataNamespace,
+                    type.Name);
+                var indexName = ApplicationSettings.BuildEntityIndexName(
+                    _appSettings.DataNamespace,
+                    type.Name);
+
+                _keyPrefixByType[type] = keyPrefix;
+                _indexNameByType[type] = indexName;
 
                 // Register the search client.
-                _searchClientsByType[type] = new Client(type.Name, _multiplexer.GetDatabase());
+                _searchClientsByType[type] = new Client(indexName, _multiplexer.GetDatabase());
                 ProcessIndex(entity);
 
-                Console.WriteLine($"Registered type '{entity.GetType()}' using key prefix {type.Name}");
+                Console.WriteLine(
+                    $"Registered type '{entity.GetType()}' using key prefix '{keyPrefix}' and index '{indexName}'");
             }
         }
 

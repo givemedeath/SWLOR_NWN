@@ -3,9 +3,9 @@
 How asset-side changes are made, verified, and shipped for the Shadowrun conversion.
 
 `SWLOR_Haks` is a **git submodule** — a separate repository from the C# work. That single fact drives
-everything here: hak changes are invisible to `dotnet build` and `dotnet test`, they commit and push
-separately, and they break in ways the .NET toolchain cannot detect. Nothing in the test suite reads a
-2DA or a TLK.
+everything here: hak changes are invisible to `dotnet build`, they commit and push separately, and
+they break in ways the .NET toolchain cannot detect. Shadowrun scaffolding tests now read the race and
+portrait 2DAs, but `checkhaks.js` remains the comprehensive TLK/2DA/submodule gate.
 
 Run the guard rails at every wave gate and after any package that touches `SWLOR_Haks`:
 
@@ -25,7 +25,8 @@ node tools/orchestration/checkhaks.js
 | `SWLOR_Haks/sw_2da/` | 747 2DA tables |
 | `SWLOR_Haks/hakbuilder.json` | Build manifest — the 113 haks and their source dirs |
 | `SWLOR_Haks/output/` | Built `.hak` files. **Gitignored** — artifacts, not sources |
-| `Module/ifo/module.ifo.json` | References all 113 haks by name plus `sw_tlk` |
+| `Module/ifo/module.ifo.json` | Historical fixture; references the full inherited HAK stack |
+| `ModuleSR/ifo/module.ifo.json` | Erie runtime allowlist: 9 demonstrated HAK dependencies plus `sw_tlk` |
 
 Only *sources* are versioned. Built haks are reproducible artifacts and are never committed.
 
@@ -51,15 +52,8 @@ merged in.
 | `upstream` remote | `https://github.com/zunath/SWLOR_Haks` — kept so engine and tooling fixes stay pullable |
 | `.gitmodules` | points at the fork, `branch = adaptation/shadowrun` |
 
-**Remaining step:** the branch exists locally but has not been pushed.
-
-```bash
-git -C SWLOR_Haks push -u origin adaptation/shadowrun
-```
-
-`checkhaks.js` reports `adaptation branch is pushed` as a failure until then — a local-only branch is
-one disk failure from losing the work, and the outer repo cannot reference it, because bumping the
-pointer to a commit that exists on no remote gives everyone else an unresolvable checkout.
+**Current status:** the branch is pushed and tracks `origin/adaptation/shadowrun`. `checkhaks.js`
+continues to block any future local-only commit from being referenced by the outer repository.
 
 **Detached HEAD is the trap to watch for.** The submodule arrives detached by default, and a commit
 made there is orphaned the moment anything else is checked out. The guard rail checks for this on
@@ -127,20 +121,20 @@ The most dangerous TLK failure is a 2DA pointing at an id that does not exist. N
 `Bad Strref` at runtime; nothing in the build or test suite catches it. `checkhaks.js` scans all 747
 2DA files against the TLK's actual id set specifically to find these.
 
-**There is a known pre-existing one:** `racialtypes.2da` references strref `16858047` (id `80831`),
-which is absent while its neighbours `80830` and `80832` exist. It predates this conversion. Not fixed
-here because racial-type naming belongs to a metatype package that does not exist yet.
+The former dangling biography strref `16858047` (TLK id `80831`) was repaired during the metatype
+package with a real empty entry. Treat any new dangling reference as a blocking failure.
 
 ---
 
 ## Rebuild cadence
 
-Rebuild at **wave gates**, not on every hak-touching package. 113 haks over ~13 GB is too slow for
-per-package rebuilds, and too risky to leave until deploy.
+Rebuild at **wave gates**, not on every hak-touching package. The source repository still contains
+113 haks over ~13 GB, but Erie clients depend only on the 9 entries in its IFO allowlist. Build the
+changed source HAKs and always verify every Erie-listed artifact before a release candidate.
 
 ```bash
 cd SWLOR_Haks && BuildHaks.cmd     # all 113 haks
-cd Module && PackModule.cmd        # repack the module
+ModuleSR\PackModuleSR.cmd          # pack Erie and write its hash manifest
 ```
 
 Only rebuild the haks whose sources actually changed where the builder supports it. A TLK-only change

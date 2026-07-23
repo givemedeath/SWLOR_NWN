@@ -1,233 +1,227 @@
-# Shadowrun on SWLOR's Engine — Plan of Record
+# Erie Metroplex Adaptation — Plan of Record
 
-**v2 · 2026-07-22 · supersedes [PLAN-ARCHIVE-presentation-layer.md](PLAN-ARCHIVE-presentation-layer.md)**
+**v3 · 2026-07-23 · supersedes v2 and the presentation-layer plan**
 
-v1 was a presentation-layer plan: translate SWLOR's combat vocabulary into Shadowrun terms in 9–12
-weeks. That work is **done and validated in live play**. This is a different document — a plan for
-building a game, informed by everything the first round measured.
+This is the authoritative delivery plan for turning SWLOR's engine and reusable systems into a
+playable, non-commercial Sixth World-inspired persistent-world vertical slice. Historical work is
+recorded in [LEDGER.md](LEDGER.md); architectural decisions and their evidence are in
+[DECISIONS.md](DECISIONS.md). Old presentation packages remain useful history, but they do not define
+current completion.
 
-The v1 plan is archived rather than deleted. It remains the accurate record of Waves 0–2.
+## Outcome
 
----
+The target is one polished Erie district in which a small party can:
 
-## What the first round actually taught us
+1. create one of five metatypes;
+2. make a meaningful chrome-versus-magic build decision;
+3. meet a fixer, perform a structured run, get paid, and recover;
+4. find repeatable work without a GM;
+5. participate in richer live events when a GM is present.
 
-Three assumptions in v1 and in [PLATFORM-ASSESSMENT.md](PLATFORM-ASSESSMENT.md) survived only until
-someone measured them. That pattern is the most important finding of all, and it shapes how this plan
-is written: **every phase below ends in a measurement, not an opinion.**
+The target is a vertical slice, not SWLOR-scale content and not a faithful tabletop rules simulator.
+Percentage resolution remains under the hood. Identity systems—metatypes, Essence, cyberware, Drain,
+Matrix access, and rigging where admitted by their gates—must create real choices rather than labels.
 
-| Assumption | What measurement showed |
+## Current truth
+
+“Implemented” below means code/data exists and automated checks pass. “Accepted” requires the stated
+in-game gate. No package is called complete merely because it builds.
+
+| Capability | State | Evidence still required |
+|---|---|---|
+| Shadowrun display layer and retuned personal combat | Implemented | consolidated live combat gate |
+| Metatypes: Human, Elf, Dwarf, Ork, Troll | Implemented | create both sexes for all five; inspect models and derived stats |
+| Cyberware, Essence, five seed implants, clinic NUI | Implemented | install/remove with real character funds; verify Magic loss and combat effects |
+| Glitches and wound penalties | Implemented | repeated player/NPC combat with log and VFX inspection |
+| Clean Erie module foundation (`P2m`) | Implemented; boot/existing-human login passed | complete new-character metatype matrix, reconnect, respawn, and inspect distribution |
+| Barrens district design (`P2a`) | Designed | one finished street mood gate |
+| Barrens area build (`P2b`) | Not started beyond arrival-area pipeline | walkable proof street |
+| Creature set (`P2c`) | Not started | encounter balance and visual-language gate |
+| NPCs, shops, fixers (`P2d`) | Not started | service loop works in-world |
+| Authored and repeatable runs | Not started | staffed and unstaffed session gate |
+| Magic/Drain, Matrix, rigging | Deferred prototypes | separate feasibility gates before production scope |
+
+The old `Module/` remains in the repository as a read-only-in-practice reference and regression
+fixture for inherited tests and assets. On this branch it is **not a supported second runtime**.
+`ModuleSR/` is the only deployable game module. The shared assembly retains a `starwars` profile
+default for historical tools and existing deployments, but this branch does not promise that Erie
+combat/content changes preserve a playable Star Wars world.
+
+## Locked architecture
+
+| Decision | Rule |
 |---|---|
-| Displayed dice pools would read as meaningful | Every even fight resolved at 74–76% regardless of pools. The display was decorative until [D9](DECISIONS.md) |
-| A 2080s sprawl is a serious tileset project | **D20 Shadowrun Exterior** (315 tiles) and **D20 VirtuNet** (72) already ship. 38 areas already use urban sets |
-| The Matrix is a multi-year subsystem | `Space.cs` — the whole parallel-game precedent — is 2,214 LOC and 41 definition files |
-| Custom species are a big lift | **269 custom appearance rows** already exist at 10000+. The pipeline is built |
-| Metatypes are free | Models exist, but SWLOR **disabled** every fantasy race. Re-enabling is a 2DA edit |
-| No cyberware system exists | Confirmed. Genuinely nothing — this one held |
+| Runtime | `SWLOR_GAME_PROFILE=shadowrun`; boot fails if Erie has no data namespace |
+| Persistence | `SWLOR_DATA_NAMESPACE=erie`; entity keys and RediSearch indexes are isolated |
+| Module | `ModuleSR/` contains only committed Erie areas/resources plus shared script scaffolding |
+| Assets | Erie declares an explicit minimal HAK manifest; adding content adds only demonstrated dependencies |
+| Releases | every packed module emits SHA-256 hashes for module, custom TLK, server assembly, HAKs, and source revisions |
+| Content | new district and characters; inherited systems are enabled only as their player-facing data is converted |
+| Fidelity | Shadowrun-flavored mechanics, not a dice-pool rewrite |
+| Setting | original Erie city, original factions/plot; setting vocabulary remains containable and renameable |
+| Team | solo direction with agents handling bounded mechanical work; feel, balance, and voice remain human gates |
 
----
+“Clean” means no player-visible Star Wars areas, actors, conversations, races, or undeclared HAK
+dependencies. It does not mean the shared open-source engine contains no historical identifiers.
+Likewise, the asset and naming boundary is engineering risk control, not a legal conclusion.
 
-## Locked decisions
+## Delivery sequence
 
-| Question | Answer | Consequence |
-|---|---|---|
-| **Content** | Hybrid — new district, existing systems | New areas and creatures; keep item/recipe/quest data and convert as it becomes player-visible |
-| **Fidelity** | Shadowrun-flavored systems | Percentage resolution stays under the hood. Cyberware/Essence, metatypes, and Drain get built for real |
-| **Setting** | Original city, canonical world | Sixth World rules, metatypes, megacorps; an invented sprawl. No lore-policing, less trademark surface |
-| **Team** | Solo + agent assistance | Sequence tightly, minimize context-switching, dispatch mechanical work to subagents |
+### Foundation — `P2m` · implemented, live gate pending
 
-**"Shadowrun-flavored" is the load-bearing decision.** It means the resolution kernel is settled and
-will not be revisited — no dice-pool rewrite — while the *identity* systems are real builds. Cyberware
-is not a reskinned perk tree; Essence is a real resource with a real tradeoff.
+The foundation exists before more content is admitted:
 
----
+- deterministic `erie_arrival` entry and default respawn;
+- five playable metatypes and complete male/female portrait coverage;
+- packaged starter knife, food, and street clothes;
+- 20,000-credit prototype stipend so the cyberware gate is reachable;
+- isolated Redis entity/index namespace;
+- 9-entry HAK allowlist instead of the inherited 113-entry stack;
+- reproducible preparation and release-manifest scripts;
+- legacy OOC/hangar content removed; private service area contains storage only.
 
-## The unresolved risk: video game rights
+**Gate:** from a cold server and empty `erie:*` keyspace, create each metatype, enter with all starter
+items and 20,000 credits, reconnect, die/respawn, open the character sheet and cyberclinic, and confirm
+that no player-visible Star Wars content or missing-resource errors appear. Archive the release
+manifest and the relevant server log. The stipend is test scaffolding; economy acceptance must replace
+it before public launch.
 
-`Topps` owns the Shadowrun IP and licenses tabletop to Catalyst Game Labs. **Microsoft holds the video
-game rights.** This is a video game.
+### Phase 1 — Identity · consolidate and accept
 
-That is a more direct exposure than a tabletop fan project, and it should be a deliberate choice
-rather than something drifted into. The mitigations are conventional and cheap, and all of them are
-easier to adopt now than to retrofit:
-
-- Never charge for access, and take no donations tied to access or content
-- Use no assets, art, logos, or verbatim text from any published Shadowrun product
-- Original city, original characters, original plot — already the chosen setting direction
-- Be ready to rename. **Keep setting-specific vocabulary behind `ShadowrunDisplay`** rather than
-  hardcoded into 900 content files, so a forced rename is a one-file change
-
-That last point is a concrete architectural requirement, not a disclaimer, and it is why the display
-indirection layer built in v1 should be *extended* rather than dissolved into content.
-
-**This plan does not require a decision today.** It requires not foreclosing one.
-
----
-
-## What we keep, build, and replace
-
-| Keep as-is | Build new | Replace eventually |
-|---|---|---|
-| Combat kernel (retuned, validated) | Metatypes as playable species | FP/Stamina → Magic + Drain ([P9](#phase-4--depth)) |
-| 82 services: crafting, market, property, factions, achievements | Cyberware + Essence | Star Wars areas → sprawl districts |
-| Quest engine + dialog snippet system (259 quests, 33 files) | 8–12 authored Runs | Star Wars creatures → Sixth World critters and gangs |
-| NUI framework, DB persistence, AI | Run objective vocabulary | Item/recipe data, as it becomes visible |
-| NWN DM Client for live GM work | GM event kit | Existing Star Wars quest content |
-| 269-row custom appearance pipeline | Sprawl district content | |
-
----
-
-## Phases
-
-Sized for solo work at roughly 10–15 productive hours per week, with agents taking mechanical bulk.
-Each phase ends in a **gate** — something measured or played, not something declared done.
-
-### Phase 1 — Identity · *you can make a Shadowrun character* · ~6–8 weeks
-
-The cheapest path to the game feeling like Shadowrun rather than like SWLOR with new labels.
-
-| # | Package | Notes |
-|---|---|---|
-| `1a` | **Metatypes** — human, elf, dwarf, ork, troll as playable species | 2DA work plus the existing custom-appearance pipeline. Troll needs a model decision: Ogre/Giant/Minotaur base, or a custom appearance row |
-| `1b` | **Cyberware + Essence** | The identity mechanic. New `StatType` entries, an Essence resource, and the magic-versus-chrome tradeoff. Hangs on existing perk + item-property infrastructure |
-| `1c` | **Glitches** (was P7) | Carried from v1. Brief accuracy debuff plus VFX on the existing status-effect framework |
-| `1d` | **Attack/Delay vocabulary** (was P5b) | Small. Settle `Delay` → Initiative once the pass model is decided |
-| `1e` | **Character creation flow** | Metatype choice, starting cyberware, Essence display on the sheet |
-
-**Gate:** roll a troll street samurai with wired reflexes and a dwarf mage, fight something, and have
-the character sheet read coherently in Shadowrun terms.
-
-**Cut from v1:** *P8, the 910 perk descriptions.* It is polish on text attached to content being
-replaced. Revisit only when the perk trees themselves are Shadowrun-native.
-
-### Phase 2 — Place · *there is somewhere to be* · ~3–6 months · **the long pole**
-
-The single largest time sink in the project, and the one most likely to stall. Everything here is
-area-building, which does not parallelize to agents well.
-
-| # | Package | Notes |
-|---|---|---|
-| `2a` | **District design** — one sprawl district, ~30–50 areas | Downtown core, barrens, corp enclave, docks, a few interiors. Name it, map it, then build |
-| `2b` | **Area build-out** | Uses `srt04`, `dgt04`, `fcx01` which already ship. Lighting and fog do more for mood here than geometry |
-| `2c` | **Creature set** | Gangers, corp sec, drones, critters, spirits. Reuse SWLOR stat skins; new appearances where needed |
-| `2d` | **NPCs, shops, fixers** | The Johnson who hands out work, the fixer who sells gear, the doc who installs chrome. **Place these deliberately — each Johnson is a delivery point for Phase 3's authored Runs**, so the district layout and the run roster should be designed together rather than in sequence |
-
-**Gate:** walk the district end to end and have it read as the Sixth World without explanation.
-
-**Sequencing note:** build **one** area to full finish quality before building thirty. A finished
-street answers "does this look right" definitively, and the answer changes everything downstream.
-
-### Phase 3 — The loop · *there is something to do* · ~8–12 weeks
-
-**Three tiers of content, and they are not interchangeable.** This is the core structural insight of
-the whole project:
-
-| Tier | Source | Provides | Available |
+| ID | Package | State | Acceptance |
 |---|---|---|---|
-| **Authored Runs** | NPC Johnsons | The content **floor** — real missions with structure and stakes | Always |
-| **Contract board** | Procedural | Repeatable grind between runs | Always |
-| **GM events** | Live staff | The living, breathing world — consequence, surprise, story | When staffed |
+| `1a` | Metatypes | implemented | creation/model/stat matrix passes |
+| `1b` | Cyberware + Essence | implemented | chrome changes stats and Magic exactly as displayed |
+| `1c` | Glitches | implemented | success/failure variants work for players and NPCs |
+| `1d` | Attack/Delay vocabulary | open | initiative wording agrees with the actual pass model |
+| `1e` | Character-creation and onboarding flow | partial | player understands metatype, Essence, stipend, and next destination without external explanation |
 
-GMs make the world feel alive. **Authored Runs make it survive the nights they are offline.** A world
-with only GM content is dead six evenings out of seven; a world with only procedural contracts is an
-MMO with a Shadowrun skin. Both tiers are required, and the authored Runs are the harder of the two to
-retrofit later.
+**Consolidated gate:** create a troll street samurai with Wired Reflexes and a dwarf mage, fight the
+same calibrated enemy before and after chrome, inspect soak/wounds/glitches, and confirm every displayed
+number and term describes the behavior observed. Record time-to-first-decision and every point where a
+tester asks what to do.
 
-| # | Package | Notes |
+### Phase 2 — Place · prove one street before a district
+
+| ID | Package | Deliverable |
 |---|---|---|
-| `3a` | **Authored Runs** — 8–12 for launch | The floor. Johnson dialog → meet → legwork → objective → payout. Target a mix of one-shots and `IsRepeatable()` runs so the district does not exhaust in a weekend |
-| `3b` | **Run objective vocabulary** | Extend the quest builder — see below. Blocks `3a` from feeling varied |
-| `3c` | **Contract board** | Reskin `QuestContractBoard` into procedural runs. Existing service, mostly a vocabulary pass |
-| `3d` | **GM event kit** | Spawn kits, faction levers, staged encounters a GM triggers live. The DM Client already provides possession, spawning, and invisible observation — this is the content layer on top |
-| `3e` | **Heat / street cred** | Existing faction standing, reskinned. `AddFactionStandingReward` already exists on the quest builder |
-| `3f` | **Downtime conversion** | Market, property, crafting surfaces as they become visible, per the hybrid decision |
+| `2a` | District design | canonical Barrens map, names, routes, service placement, run hooks |
+| `2b` | Area build-out | 5–8 area proof street generated statically, curated, then committed |
+| `2c` | Creature set | gangers, corp security, drones, critters, and spirits with role/readability matrix |
+| `2d` | NPCs, shops, fixers | cyberdoc, fixer/Johnson, merchants, transition and spawn wiring |
 
-#### What the quest system already supports
+Use the offline procgen path: generate with recorded seed → render/inspect → curate → commit fixed
+`.are.json`/`.git.json` → hand-place content → pack and walk. Runtime random generation is not part of
+the district. The first finished exterior determines lighting, fog, signage, density, and prop
+standards before the remaining areas are produced.
 
-Verified rather than assumed. **259 quests already ship across 33 definition files**, and the builder
-covers most of a run:
+**Gate:** a new tester walks arrival → street → bar → clinic → combat area → home route without DM
+teleportation or instructions. The street reads as Erie’s Sixth World-inspired setting without a lore
+brief, all transitions work both ways, and a four-role encounter is legible and performant.
 
-| Run stage | Support today |
-|---|---|
-| Meet the Johnson | ✅ dialog + `action-accept-quest` snippet |
-| Legwork — talk to contacts | ✅ dialog + `action-advance-quest` snippet |
-| Eliminate / steal | ✅ `AddKillObjective`, `AddCollectItemObjective` |
-| Multi-stage structure | ✅ `AddState` + `SetStateJournalText` |
-| Gated follow-ups | ✅ `PrerequisiteQuest`, `PrerequisiteKeyItem`, `PrerequisiteSkill` |
-| Payout in nuyen | ✅ `AddGoldReward` |
-| Heat / cred | ✅ `AddFactionStandingReward`, `AddFactionPointsReward` |
-| Repeatability | ✅ `IsRepeatable()` |
-| **Reach a location** | ⚠️ script-only — `ExplorationTrigger` calling `Quest.AdvanceQuest` |
-| **Hack a terminal / use an object** | ⚠️ script-only — `PlaceableScripts` calling `Quest.AdvanceQuest` |
-| **Extract a person** | ❌ no escort support |
+**Kill criterion:** if one fully finished street still does not communicate the intended world, stop
+area expansion and reconsider the presentation or platform. Do not build thirty mediocre areas to
+avoid answering this.
 
-The dialog **snippet system** (`condition-has-quest`, `condition-on-quest-state`,
-`action-advance-quest`, `action-request-quest-items`) is the reason most of this already works: any
-conversation node can gate on or advance quest state, so legwork is authored in dialog rather than in
-code.
+### Phase 3 — Loop · one complete run before a catalogue
 
-**`3b` exists because only two objective types are declarative** — kill and collect. Every run built
-on those alone is "kill N" or "fetch N", which is precisely the MMO texture authored Runs are meant to
-escape. `Quest.AdvanceQuest(player, source, questId)` is callable from any script, so the escape hatch
-exists; the package is about making *reach-location*, *use-object*, and *extract* first-class builder
-methods instead of hand-scripted every time.
+Three content tiers are complementary:
 
-**Gate:** a GM runs a live session for two or three players — **and those same players log in the
-next evening with no GM online and find a Johnson with work worth doing.** Both halves must pass.
-This is the whole value proposition, tested directly.
-
-### Phase 4 — Depth · *ongoing, after the slice is real*
-
-| # | Package | Notes |
+| Tier | Purpose | Availability |
 |---|---|---|
-| `4a` | **Magic + Drain** (P9) | Replaces FP/Stamina. Full writeup preserved in the archived plan. Large; do not start before Phase 3's gate |
-| `4b` | **Matrix** | Cheaper than assessed. `VirtuNet` tileset ships; `Space.cs` is the architectural precedent at 2,214 LOC |
-| `4c` | **More districts** | Only after one district proves the pipeline |
-| `4d` | **Rigging / drones** | SWLOR's droid system is the nearest existing analogue |
+| Authored runs | narrative/content floor | always |
+| Contract board | repeatable progression and income | always |
+| GM events | consequence, surprise, live story | when staffed |
 
----
+| ID | Package | Required work |
+|---|---|---|
+| `3a` | Run vertical slice | one Johnson → legwork → objective → payout → cooldown/repeat path |
+| `3b` | Objective vocabulary | declarative reach-location, use-object/hack, defend, and extract/follow |
+| `3c` | Contract board | generate offers from a converted item/enemy/location allowlist; not a text-only reskin |
+| `3d` | GM event kit | bounded spawn kits, faction levers, staged encounters, cleanup |
+| `3e` | Heat / street cred | faction standing with visible consequences and decay policy |
+| `3f` | Downtime economy | sources/sinks, cyberware affordability, death/recovery, market/crafting visibility |
 
-## Working method
+The first run must define party ownership, late join, disconnect/reconnect, abandonment, instance
+cleanup, reward idempotency, failure, retry, and GM intervention. Those are system requirements, not
+polish. Only after this run passes should the authored roster expand toward 8–12.
 
-**Measure, then decide.** Every significant constant in this project has been wrong on first guess and
-right after measurement. The combat harness (`CombatFeelHarnessTests`) is the template: build the
-instrument before tuning the thing.
+**Gate:** two or three players complete the run with a GM, then return without a GM and find worthwhile
+repeatable work. A second test deliberately disconnects, rejoins, fails, retries, and attempts to claim
+the payout twice.
 
-**Agents take mechanical bulk, not judgement.** Per the tiering in
-[ORCHESTRATION.md](ORCHESTRATION.md): 2DA edits, bulk text, definition scaffolding, and data
-extraction dispatch well. Balance, feel, and setting voice stay with the human.
+### Phase 4 — Depth · prototype before commitment
 
-**Area building does not dispatch.** Phase 2 is hand work. Plan around that rather than hoping
-otherwise.
+| ID | Prototype gate | Production work only if gate passes |
+|---|---|---|
+| `4a` | one spell demonstrates Magic cost, Drain, recovery, and Essence interaction | spell catalogue and magical roles |
+| `4b` | one Matrix room supports entry, one meaningful action, opposition, exit, and failure recovery | Matrix content and progression |
+| `4c` | one drone supports deploy, command, loss, reconnect, and ownership recovery | rigging and drone catalogue |
+| `4d` | first district retains players and the content pipeline is sustainable | additional districts |
 
-**Keep the durable record current.** [LEDGER.md](LEDGER.md) for what happened,
-[DECISIONS.md](DECISIONS.md) for why. Both have already paid for themselves — the empirical constants
-in this project are unreconstructible without them.
+`Space.cs` and droids are architectural references, not estimates. A subsystem’s line count does not
+measure its UI, persistence, content, recovery, balance, or operational burden.
 
----
+## Cross-cutting gates
 
-## Kill criteria
+These are release requirements even though they are not feature phases.
 
-v1 set a six-month deadline on the art question. That question is now **answered** — the tilesets
-ship, the areas exist, and the visual direction is accepted. Replacing it:
+### Economy
 
-> **If Phase 2 does not produce one finished street that reads as the Sixth World, stop and
-> reconsider Evennia.**
+Before public testing, replace the 20,000-credit prototype stipend with a documented model covering
+starting resources, run payout bands, cyberware/consumable costs, repair/death costs, crafting inputs,
+market sources/sinks, inflation telemetry, and exploit limits. Test “time to first meaningful implant”
+and “time to recover after a failed run,” not just prices in isolation.
 
-Not from-scratch. Evennia — a text MUD has no art pipeline at all, which is the only remaining
-structural risk in this plan.
+### Runtime service allowlist
 
-> **If Phase 3's gate fails — a GM runs an event and players have nothing to do the next night —
-> the problem is the game loop, not the engine**, and no amount of further building fixes it.
+Inventory all auto-registered services and handlers under the Shadowrun profile. Classify each as
+enabled, converted, dormant-safe, or blocked. A dormant service must have no scheduled work,
+player-facing UI, external broadcast, or missing-object noise. Complete this audit before the first
+external playtest; do not assume defensive null checks equal isolation.
 
----
+### Operations and performance
 
-## Honest cost
+Define cold-start, pack, client-download, area-transition, reconnect, backup/restore, release rollback,
+log review, and incident ownership. Record budgets for HAK download size, server boot time, transition
+latency, generated-area memory, and party concurrency. The release manifest is the artifact boundary;
+a dirty manifest is acceptable for local development but not a release candidate.
 
-To a **playable vertical slice** — one district, metatypes, cyberware, runs, GM events — at solo pace
-with agent assistance: **6–12 months part-time.**
+### Accessibility and onboarding
 
-To a world at SWLOR's current scale: **years**, and that is not the goal. The district is the goal.
+Test at supported UI scales and common resolutions. Do not rely on color alone for wounds, glitches,
+hostility, or Essence warnings. A new player must reach their first actionable choice and first run
+without a wiki or a GM.
 
-For comparison, measured earlier: a faithful ruleset conversion was 38–53 engineer-months, and SWLOR
-itself represents roughly a decade of work that this plan inherits rather than repeats.
+### IP and asset provenance
+
+Maintain an inventory for every shipped name, text, logo, portrait, model, texture, sound, and music
+asset with source, license/permission, modification status, and replacement owner. No claim of legal
+clearance is made by this repository. Before any public release, obtain qualified review or ship under
+an original setting/terminology plan with the same mechanics.
+
+## Verification policy
+
+Every package supplies:
+
+- focused automated tests and then a justified broad suite;
+- HAK/TLK checks when asset sources change;
+- a packed Erie module and release manifest when module resources change;
+- a clean-start test against an empty Erie namespace when persistence changes;
+- an in-game gate with observer, build, manifest hash, scenario, expected result, actual result, and
+  defects recorded in the ledger.
+
+Automated checks prove structure and invariants. They cannot accept visual mood, onboarding clarity,
+combat feel, networking/reconnect behavior, or licensing.
+
+## Immediate critical path
+
+1. `P2m` is accepted: preserve its release manifest and live evidence as the clean-module baseline.
+2. Run the consolidated Phase 1 live gate; tune only from recorded observations.
+3. Build and accept one finished Barrens street (`2b`), then its minimum creature/NPC set (`2c/2d`).
+4. Ship one complete authored run plus repeatable contract (`3a–3c`) with lifecycle tests.
+5. Replace the prototype stipend with the measured economy and complete operations/provenance gates.
+6. Expand content only after retention and maintainability justify it.
+
+At solo pace, a credible vertical slice remains a **6–12 month part-time** project. A world at SWLOR’s
+scale is years of content production and is explicitly not the objective.
