@@ -17,6 +17,10 @@ namespace SWLOR.Game.Server.Core
         public const string OnModuleDying = "mod_dying";
         public const string OnModuleRespawn = "mod_respawn";
         public const string OnModuleAcquire = "mod_acquire";
+
+        // Procedural dungeon events (from the area-generation subsystem)
+        public const string OnDungeonExitUsed = "dungeon_exit";
+        public const string OnDungeonExitDoorUsed = "dungeon_exitdr";
         public const string OnModuleUnacquire = "mod_unacquire";
         public const string OnModuleContentChange = "mod_content_chg";
         public const string OnModulePreload = "mod_preload";

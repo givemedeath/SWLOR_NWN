@@ -1,0 +1,665 @@
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
+using SWLOR.Game.Server.Core;
+using SWLOR.Game.Server.Feature.DungeonDefinition;
+using SWLOR.Game.Server.Service.LogService;
+using SWLOR.NWN.API.Engine;
+using SWLOR.NWN.API.NWScript.Enum;
+using SWLOR.Game.Server.Service.AreaGenerationService.Decoration;
+using SWLOR.Game.Server.Service.AreaGenerationService.Frontage;
+
+namespace SWLOR.Game.Server.Service.AreaGenerationService
+{
+    /// <summary>
+    /// Populates a freshly generated area with tier-scaled content: ambient creature spawns in
+    /// Standard rooms, a boss + treasure container in the Boss room, and an exit placeable in the
+    /// Entrance room that returns players to RuntimeAreaInstance.ExitLocation. This is the M4
+    /// "content loop" consumer described in design/ProceduralAreaGeneration.md.
+    ///
+    /// Dungeon theme definitions are discovered via reflection over IDungeonListDefinition at
+    /// module load, mirroring how Spawn.cs/Loot.cs/Ability.cs cache their own definitions.
+    /// </summary>
+    public static class DungeonContentPlacer
+    {
+        private static readonly Dictionary<string, DungeonDetail> _dungeons = new();
+        private static readonly Dictionary<string, DungeonTilesetProfile> _tilesetProfiles = new();
+        private static readonly Dictionary<string, DungeonLayoutProfile> _layoutProfiles = new();
+
+        // World-space tile size/offset used by the tile resolver's grid (matches
+        // AreaGenerationChatCommand's entrance-jump math: tile (x,y) -> world (x*10+5, y*10+5)).
+        private const float TileSize = 10f;
+        private const float TileHalf = 5f;
+
+        // Small random offset so multiple creatures placed on the same tile don't stack exactly.
+        private const float PositionJitter = 3f;
+
+        // Offset from the boss room/entrance room center used for the treasure container and
+        // exit placeable, so they don't spawn exactly on top of the boss or the player's landing spot.
+        private const float FeatureOffset = 2.5f;
+
+
+        [NWNEventHandler(ScriptName.OnModuleCacheBefore)]
+        public static void CacheDungeonDefinitions()
+        {
+            var allTypes = AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(s => s.GetTypes())
+                .Where(t => !t.IsInterface && !t.IsAbstract)
+                .ToList();
+
+            foreach (var type in allTypes.Where(t => typeof(IDungeonTilesetProfileListDefinition).IsAssignableFrom(t)))
+            {
+                var instance = (IDungeonTilesetProfileListDefinition)Activator.CreateInstance(type);
+                foreach (var (key, profile) in instance.BuildTilesetProfiles())
+                {
+                    if (string.IsNullOrWhiteSpace(key) || _tilesetProfiles.ContainsKey(key))
+                    {
+                        Log.Write(LogGroup.Error, $"Tileset profile '{key}' in {type.Name} is invalid or duplicated.");
+                        continue;
+                    }
+
+                    _tilesetProfiles[key] = profile;
+                }
+            }
+
+            DungeonTilesetPaletteInheritance.Apply(_tilesetProfiles);
+
+            foreach (var type in allTypes.Where(t => typeof(IDungeonLayoutProfileListDefinition).IsAssignableFrom(t)))
+            {
+                var instance = (IDungeonLayoutProfileListDefinition)Activator.CreateInstance(type);
+                foreach (var (key, profile) in instance.BuildLayoutProfiles())
+                {
+                    if (string.IsNullOrWhiteSpace(key) || _layoutProfiles.ContainsKey(key))
+                    {
+                        Log.Write(LogGroup.Error, $"Layout profile '{key}' in {type.Name} is invalid or duplicated.");
+                        continue;
+                    }
+
+                    _layoutProfiles[key] = profile;
+                }
+            }
+
+            foreach (var type in allTypes.Where(t => typeof(IDungeonListDefinition).IsAssignableFrom(t)))
+            {
+                var instance = (IDungeonListDefinition)Activator.CreateInstance(type);
+                var builtDungeons = instance.BuildDungeons();
+
+                foreach (var dungeon in builtDungeons)
+                {
+                    if (string.IsNullOrWhiteSpace(dungeon.Key))
+                    {
+                        Log.Write(LogGroup.Error, $"Dungeon definition in {type.Name} has an invalid theme key.");
+                        continue;
+                    }
+
+                    if (_dungeons.ContainsKey(dungeon.Key))
+                    {
+                        Log.Write(LogGroup.Error, $"Dungeon theme '{dungeon.Key}' has already been registered. Please make sure all dungeon themes use a unique key.");
+                        continue;
+                    }
+
+                    if (!_tilesetProfiles.ContainsKey(dungeon.Value.TilesetProfileKey))
+                    {
+                        Log.Write(LogGroup.Error, $"Dungeon theme '{dungeon.Key}' references unknown tileset profile '{dungeon.Value.TilesetProfileKey}'.");
+                        continue;
+                    }
+
+                    if (!_layoutProfiles.ContainsKey(dungeon.Value.LayoutProfileKey))
+                    {
+                        Log.Write(LogGroup.Error, $"Dungeon theme '{dungeon.Key}' references unknown layout profile '{dungeon.Value.LayoutProfileKey}'.");
+                        continue;
+                    }
+
+                    _dungeons[dungeon.Key] = dungeon.Value;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Resolves a (content, tileset, layout) composition. The theme supplies content and its
+        /// default profiles; either profile can be overridden per request — nothing ties a content
+        /// package to a specific tileset.
+        /// </summary>
+        public static DungeonComposition GetComposition(string themeKey, string tilesetProfileKey = null, string layoutProfileKey = null)
+        {
+            var content = GetDungeonDetail(themeKey);
+            var tilesetKey = string.IsNullOrEmpty(tilesetProfileKey) ? content.TilesetProfileKey : tilesetProfileKey;
+            var layoutKey = string.IsNullOrEmpty(layoutProfileKey) ? content.LayoutProfileKey : layoutProfileKey;
+
+            if (!_tilesetProfiles.TryGetValue(tilesetKey, out var tileset))
+                throw new Exception($"Tileset profile '{tilesetKey}' is not registered.");
+            if (!_layoutProfiles.TryGetValue(layoutKey, out var layout))
+                throw new Exception($"Layout profile '{layoutKey}' is not registered.");
+
+            return new DungeonComposition
+            {
+                Content = content,
+                Tileset = tileset,
+                Layout = layout
+            };
+        }
+
+        public static bool TilesetProfileExists(string key)
+        {
+            return _tilesetProfiles.ContainsKey(key);
+        }
+
+        public static bool LayoutProfileExists(string key)
+        {
+            return _layoutProfiles.ContainsKey(key);
+        }
+
+        public static IReadOnlyDictionary<string, DungeonTilesetProfile> GetAllTilesetProfiles()
+        {
+            return _tilesetProfiles;
+        }
+
+        public static IReadOnlyDictionary<string, DungeonLayoutProfile> GetAllLayoutProfiles()
+        {
+            return _layoutProfiles;
+        }
+
+        /// <summary>
+        /// Retrieves a dungeon theme definition by its unique key.
+        /// Throws if the theme is not registered.
+        /// </summary>
+        public static DungeonDetail GetDungeonDetail(string themeKey)
+        {
+            if (!_dungeons.TryGetValue(themeKey, out var detail))
+                throw new Exception($"Dungeon theme '{themeKey}' is not registered. Did you enter the right key?");
+
+            return detail;
+        }
+
+        /// <summary>
+        /// Checks whether a dungeon theme is defined by the specified key.
+        /// </summary>
+        public static bool DungeonThemeExists(string themeKey)
+        {
+            return _dungeons.ContainsKey(themeKey);
+        }
+
+        /// <summary>
+        /// Returns every registered dungeon theme, keyed by theme key. Exposed primarily for tests.
+        /// </summary>
+        public static IReadOnlyDictionary<string, DungeonDetail> GetAllDungeonThemes()
+        {
+            return _dungeons;
+        }
+
+        /// <summary>
+        /// Populates a freshly generated area instance with tier-scaled content for the given dungeon
+        /// theme: ambient creatures in every Standard room, a boss + filled treasure container in the
+        /// Boss room, and an exit placeable at every Exit transition point. All randomness derives
+        /// from the instance's layout seed (plus the tier), so a given (seed, tier) always produces
+        /// the same population. Safe to call once, immediately after a successful Generate/QueueGeneration.
+        /// </summary>
+        public static DungeonPopulationResult Populate(RuntimeAreaInstance instance, string themeKey, int tier)
+        {
+            var detail = GetDungeonDetail(themeKey);
+            if (!detail.Tiers.TryGetValue(tier, out var tierDetail))
+                throw new Exception($"Dungeon theme '{themeKey}' has no tier {tier} defined.");
+
+            var rng = new System.Random(instance.Layout.Seed ^ (tier * 397));
+            var area = instance.Area;
+            var result = new DungeonPopulationResult();
+
+            foreach (var room in instance.Layout.Rooms)
+            {
+                // LayoutGroupStamper set-piece rooms (WallRooms) are walkable only via their own
+                // baked model walkmesh, not the abstract tile grid this placer reasons about; never
+                // spawn ambient creatures, bosses, or treasure inside one.
+                if (room.IsSetPiece)
+                    continue;
+
+                switch (room.Role)
+                {
+                    case RoomRole.Standard:
+                        PopulateStandardRoom(area, room, tierDetail, rng, instance, result);
+                        break;
+
+                    case RoomRole.Boss:
+                        PopulateBossRoom(area, room, detail, tierDetail, rng, instance, result);
+                        break;
+                }
+            }
+
+            foreach (var transition in instance.Layout.Transitions)
+            {
+                // Door-style entrances get a real door too (an empty doorway alcove looks unfinished,
+                // and walking back out the way you came in should work); placeable-style entrances
+                // stay bare arrival anchors as before. GroupExit transitions (Exit-kind only) reuse
+                // the same door-spawning path — the exit group's tile carries the door slot, PlaceTransitionDoor
+                // only reads the planner's world-transform fields, unchanged for either style.
+                if (transition.Style is TransitionStyle.Door or TransitionStyle.GroupExit)
+                    PlaceTransitionDoor(area, transition, detail, instance, result);
+                else if (transition.Kind == TransitionKind.Exit)
+                    PlaceExit(area, transition, detail, instance, result);
+            }
+
+            PlaceDecorations(area, instance, detail, result);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Spawns the theme's curated "set dressing" decoration pass (see DungeonDecorationPlanner),
+        /// gated by the generating request's EnableDecorations/DecorationDensityPercent (defaults:
+        /// on, 100%). Decorations are plain CreateObject spawns of curated blueprints — no scripts,
+        /// plot flag, or useable override — tracked in instance.SpawnedObjects for teardown exactly
+        /// like every other content-population spawn.
+        ///
+        /// Resolves the ACTUAL tileset profile this instance was composed with (instance.Request.
+        /// TilesetProfileKey, falling back to the theme's own default when the request never recorded
+        /// one — e.g. callers built before this field existed) rather than blindly assuming the
+        /// theme's default tileset profile, so a theme composed onto a non-default tileset (e.g. Alien
+        /// Ruin content generated on the Futuristic City tileset) still dresses with THAT tileset's own
+        /// bulk palette instead of a mismatched one.
+        /// </summary>
+        /// <summary>How many decoration placeables spawn per scheduler tick. City-density plans run
+        /// to ~600 placements at 20x20 and ~1500 at 32x32 (see DungeonTilesetProfile.
+        /// DecorationDensityPerTile) -- spawning them all in one tick would hitch the main loop, so
+        /// the plan spawns in batches chained across ticks. 150 per tick keeps a 32x32 city plan
+        /// under ~10 ticks (~1s) while a typical non-city plan (30-90 placements) still completes
+        /// in its very first, synchronous batch exactly as before.</summary>
+        private const int DecorationSpawnBatchSize = 150;
+
+        /// <summary>Delay between chained decoration spawn batches.</summary>
+        private static readonly System.TimeSpan DecorationSpawnBatchDelay = System.TimeSpan.FromMilliseconds(100);
+
+        private static void PlaceDecorations(
+            uint area,
+            RuntimeAreaInstance instance,
+            DungeonDetail detail,
+            DungeonPopulationResult result)
+        {
+            var enabled = instance.Request?.EnableDecorations ?? true;
+            if (!enabled)
+            {
+                result.DecorationsSpawnComplete = true;
+                return;
+            }
+
+            var tilesetKey = string.IsNullOrEmpty(instance.Request?.TilesetProfileKey)
+                ? detail.TilesetProfileKey
+                : instance.Request.TilesetProfileKey;
+            if (!_tilesetProfiles.TryGetValue(tilesetKey, out var tileset))
+                tileset = null;
+
+            var densityPercent = instance.Request?.DecorationDensityPercent ?? 100;
+            var decorationProfile = instance.Request?.DecorationProfile ?? string.Empty;
+            var plan = DungeonDecorationPlanner.Plan(instance.Layout, tileset, detail, densityPercent, decorationProfile);
+            result.DecorationsPlanned = plan.Count;
+
+            SpawnDecorationBatch(area, instance, result, plan, 0);
+        }
+
+        /// <summary>
+        /// Spawns one batch of the decoration plan (index <paramref name="startIndex"/> onward, up
+        /// to <see cref="DecorationSpawnBatchSize"/>) and chains the next batch onto a later
+        /// scheduler tick until the plan is exhausted -- the first batch runs synchronously inside
+        /// Populate, so small plans behave exactly as the original single-pass spawn did. A chained
+        /// batch re-validates the area first: if the instance was torn down (DestroyGeneratedArea)
+        /// while batches were pending, the remainder is dropped cleanly.
+        /// </summary>
+        private static void SpawnDecorationBatch(
+            uint area,
+            RuntimeAreaInstance instance,
+            DungeonPopulationResult result,
+            List<PlannedDecoration> plan,
+            int startIndex)
+        {
+            if (!GetIsObjectValid(area))
+            {
+                result.DecorationsSpawnComplete = true;
+                return;
+            }
+
+            var end = System.Math.Min(plan.Count, startIndex + DecorationSpawnBatchSize);
+            for (var i = startIndex; i < end; i++)
+            {
+                var planned = plan[i];
+                // Ground at the plan's SUPPORT ANCHOR when one is declared (frontage buildings on
+                // chasm-bearing tilesets -- see PlannedDecoration.GroundAnchor): the sample lands
+                // on the platform surface the building's face stands flush with. A naive sample at
+                // the placement's own XY would hit the chasm floor far below a deep tower's
+                // overhanging center and sink the whole building. Anchor-less decorations keep the
+                // exact previous own-XY grounding.
+                var groundSample = planned.GroundAnchor ?? new Vector2(planned.Position.X, planned.Position.Y);
+                var grounded = GroundedPosition(area, groundSample.X, groundSample.Y);
+                if (planned.GroundAnchor.HasValue)
+                {
+                    result.GroundAnchorsPlanned++;
+                    if (System.Math.Abs(grounded.Z - planned.GroundZ) <= 0.5f)
+                        result.GroundAnchorsVerified++;
+                }
+
+                // The planned Z is a HEIGHT OFFSET above ground (0 for every ground placement;
+                // the mined mounting height for wall-mounted facade dressing -- see
+                // BuildingFrontagePlanner.PlanFacadeMounts), layered on top of the live ground
+                // height so mounts hang on building faces at their evidence-derived band.
+                var position = new Vector3(planned.Position.X, planned.Position.Y,
+                    grounded.Z + planned.Position.Z);
+                var location = Location(area, position, planned.Facing);
+
+                var placeable = CreateObject(ObjectType.Placeable, planned.Resref, location);
+                if (!GetIsObjectValid(placeable))
+                    continue;
+
+                // Per-instance uniform scale (frontage scale jitter -- see
+                // PlannedDecoration.VisualScale): the live mirror of the .git VisualTransform
+                // struct the offline review path persists. Read back and counted so the
+                // self-test can assert the live path really applied every planned transform.
+                if (System.Math.Abs(planned.VisualScale - 1f) > 0.0001f)
+                {
+                    result.ScaleTransformsPlanned++;
+                    SetObjectVisualTransform(placeable, ObjectVisualTransform.Scale, planned.VisualScale);
+                    var applied = GetObjectVisualTransform(placeable, ObjectVisualTransform.Scale);
+                    if (System.Math.Abs(applied - planned.VisualScale) < 0.001f)
+                        result.ScaleTransformsApplied++;
+                }
+
+                instance.SpawnedObjects.Add(placeable);
+                result.DecorationsPlaced++;
+            }
+
+            if (end >= plan.Count)
+            {
+                result.DecorationsSpawnComplete = true;
+                return;
+            }
+
+            Scheduler.Schedule(() => SpawnDecorationBatch(area, instance, result, plan, end), DecorationSpawnBatchDelay);
+        }
+
+        private static void PopulateStandardRoom(
+            uint area,
+            LayoutRoom room,
+            DungeonTierDetail tier,
+            System.Random rng,
+            RuntimeAreaInstance instance,
+            DungeonPopulationResult result)
+        {
+            if (room.Tiles.Count == 0 || tier.Creatures.Count == 0)
+                return;
+
+            var count = rng.Next(tier.MinCreaturesPerRoom, tier.MaxCreaturesPerRoom + 1);
+            var spawnedInRoom = 0;
+
+            for (var i = 0; i < count; i++)
+            {
+                var tile = room.Tiles[rng.Next(room.Tiles.Count)];
+                var location = JitteredTileLocation(area, tile, rng);
+                var resref = PickWeightedCreature(tier.Creatures, rng);
+
+                var creature = CreateObject(ObjectType.Creature, resref, location);
+                if (!GetIsObjectValid(creature))
+                    continue;
+
+                instance.SpawnedObjects.Add(creature);
+                spawnedInRoom++;
+                result.CreaturesSpawned++;
+            }
+
+            if (spawnedInRoom > 0)
+                result.RoomsPopulated++;
+        }
+
+        private static void PopulateBossRoom(
+            uint area,
+            LayoutRoom room,
+            DungeonDetail detail,
+            DungeonTierDetail tier,
+            System.Random rng,
+            RuntimeAreaInstance instance,
+            DungeonPopulationResult result)
+        {
+            var centerPosition = RoomCenterPosition(area, room);
+
+            if (!string.IsNullOrWhiteSpace(tier.BossResref))
+            {
+                var bossLocation = Location(area, centerPosition, 0f);
+                var boss = CreateObject(ObjectType.Creature, tier.BossResref, bossLocation);
+
+                if (GetIsObjectValid(boss))
+                {
+                    instance.SpawnedObjects.Add(boss);
+                    result.BossSpawned = true;
+                    result.BossResref = tier.BossResref;
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(tier.TreasureLootTableId) && Loot.LootTableExists(tier.TreasureLootTableId))
+            {
+                var treasurePosition = GroundedPosition(area, centerPosition.X + FeatureOffset, centerPosition.Y + FeatureOffset);
+                var treasureLocation = Location(area, treasurePosition, 0f);
+                var container = CreateObject(ObjectType.Placeable, detail.TreasurePlaceableResref, treasureLocation);
+
+                if (GetIsObjectValid(container))
+                {
+                    SetName(container, detail.TreasureDisplayName);
+                    // Several suitable container blueprints double as scavenge points; strip the
+                    // markers so the scavenging system never claims a generated treasure cache.
+                    DeleteLocalInt(container, "SCAVENGE_POINT_LEVEL");
+                    DeleteLocalString(container, "SCAVENGE_POINT_LOOT_TABLE_NAME");
+                    instance.SpawnedObjects.Add(container);
+
+                    result.TreasurePlaced = true;
+                    result.TreasureContainer = container;
+
+                    // A placeable's inventory rejects CreateItemOnObject within the script context
+                    // that created it (verified on a live server: fills fail same-script even in
+                    // boot-time areas, succeed on pre-existing placeables). Fill on a later tick;
+                    // the result object's item count updates when the fill completes.
+                    Scheduler.Schedule(() =>
+                    {
+                        result.TreasureItemsSpawned = FillTreasureContainer(container, tier, rng);
+                        if (result.TreasureItemsSpawned == 0)
+                            Log.Write(LogGroup.Error, $"Treasure fill produced no items for table '{tier.TreasureLootTableId}'.");
+                    }, TimeSpan.FromSeconds(1));
+                }
+            }
+        }
+
+        private static void PlaceExit(
+            uint area,
+            TransitionPoint transition,
+            DungeonDetail detail,
+            RuntimeAreaInstance instance,
+            DungeonPopulationResult result)
+        {
+            var flat = TileCenter(transition.Tile.X, transition.Tile.Y);
+            var exitPosition = GroundedPosition(area, flat.X + FeatureOffset, flat.Y - FeatureOffset);
+            var exitLocation = Location(area, exitPosition, 0f);
+
+            var exit = CreateObject(ObjectType.Placeable, detail.ExitPlaceableResref, exitLocation);
+            if (!GetIsObjectValid(exit))
+                return;
+
+            SetName(exit, detail.ExitDisplayName);
+            SetPlotFlag(exit, true);
+            SetEventScript(exit, EventScript.Placeable_OnUsed, ScriptName.OnDungeonExitUsed);
+
+            instance.SpawnedObjects.Add(exit);
+            result.ExitsPlaced++;
+        }
+
+        /// <summary>
+        /// Creates a real door object in a Door-style transition's tile door slot. The door is kept
+        /// locked and plot so it never opens into the terminator alcove behind it; clicking it fires
+        /// OnFailToOpen, which ports the player out exactly like the exit placeable. If door creation
+        /// fails (bad blueprint), an Exit transition falls back to the placeable so players are never
+        /// left without a way out.
+        /// </summary>
+        private static void PlaceTransitionDoor(
+            uint area,
+            TransitionPoint transition,
+            DungeonDetail detail,
+            RuntimeAreaInstance instance,
+            DungeonPopulationResult result)
+        {
+            var position = new Vector3(transition.DoorX, transition.DoorY, transition.DoorZ);
+            var location = Location(area, position, transition.DoorOrientation);
+            var tag = transition.Kind == TransitionKind.Exit ? "GEN_DOOR_EXIT" : "GEN_DOOR_ENT";
+
+            var door = SWLOR.NWN.API.NWNX.UtilPlugin.CreateDoor(detail.ExitDoorResref, location, tag);
+            if (!GetIsObjectValid(door))
+            {
+                Log.Write(LogGroup.Error,
+                    $"Transition door '{detail.ExitDoorResref}' failed to create at ({transition.DoorX}, {transition.DoorY}); falling back to exit placeable.");
+                if (transition.Kind == TransitionKind.Exit)
+                    PlaceExit(area, transition, detail, instance, result);
+                return;
+            }
+
+            SetName(door, detail.ExitDisplayName);
+            SetPlotFlag(door, true);
+            SetLocked(door, true);
+            SetEventScript(door, EventScript.Door_OnFailToOpen, ScriptName.OnDungeonExitDoorUsed);
+            SetEventScript(door, EventScript.Door_OnClicked, ScriptName.OnDungeonExitDoorUsed);
+
+            instance.SpawnedObjects.Add(door);
+            result.DoorsCreated++;
+            if (transition.Kind == TransitionKind.Exit)
+                result.ExitsPlaced++;
+        }
+
+        /// <summary>
+        /// Fills a treasure container from the tier's loot table, mirroring Loot.SpawnLoot's item
+        /// selection but driven by the population's seeded RNG for deterministic content.
+        /// Items spawn at the container's location and are force-acquired: CreateItemOnObject
+        /// fails outright against dynamically created placeables (verified on a live server),
+        /// while ground creation plus NWNX AcquireItem works.
+        /// </summary>
+        private static int FillTreasureContainer(uint container, DungeonTierDetail tier, System.Random rng)
+        {
+            var table = Loot.GetLootTableByName(tier.TreasureLootTableId);
+            var containerLocation = GetLocation(container);
+            var spawned = 0;
+
+            for (var i = 0; i < tier.TreasureItemCount; i++)
+            {
+                var item = table.GetRandomItem();
+                var quantity = rng.Next(item.MaxQuantity) + 1;
+
+                var created = CreateObject(ObjectType.Item, item.Resref, containerLocation);
+                if (!GetIsObjectValid(created))
+                {
+                    Log.Write(LogGroup.Error, $"Treasure fill: could not create item '{item.Resref}'.", true);
+                    continue;
+                }
+
+                if (quantity > 1)
+                    SetItemStackSize(created, quantity);
+
+                if (!SWLOR.NWN.API.NWNX.ObjectPlugin.AcquireItem(container, created))
+                {
+                    Log.Write(LogGroup.Error, $"Treasure fill: container refused item '{item.Resref}'.", true);
+                    DestroyObject(created);
+                    continue;
+                }
+
+                item.OnSpawn?.Invoke(created);
+                spawned++;
+            }
+
+            return spawned;
+        }
+
+        /// <summary>
+        /// Picks a creature resref from the tier's weighted pool using the population's seeded RNG.
+        /// </summary>
+        private static string PickWeightedCreature(List<DungeonCreatureEntry> creatures, System.Random rng)
+        {
+            var totalWeight = creatures.Sum(c => c.Weight);
+            if (totalWeight <= 0)
+                return creatures[0].Resref;
+
+            var roll = rng.Next(totalWeight);
+            var cumulative = 0;
+
+            foreach (var creature in creatures)
+            {
+                cumulative += creature.Weight;
+                if (roll < cumulative)
+                    return creature.Resref;
+            }
+
+            return creatures[^1].Resref;
+        }
+
+        private static Vector3 TileCenter(int tileX, int tileY)
+        {
+            return new Vector3(tileX * TileSize + TileHalf, tileY * TileSize + TileHalf, 0f);
+        }
+
+        private static Vector3 RoomCenterPosition(uint area, LayoutRoom room)
+        {
+            var flat = TileCenter(room.CenterTile.X, room.CenterTile.Y);
+            return GroundedPosition(area, flat.X, flat.Y);
+        }
+
+        private static Vector3 GroundedPosition(uint area, float x, float y)
+        {
+            var probe = Location(area, new Vector3(x, y, 0f), 0f);
+            var z = GetGroundHeight(probe);
+            return new Vector3(x, y, z);
+        }
+
+        private static Location JitteredTileLocation(uint area, (int X, int Y) tile, System.Random rng)
+        {
+            var flat = TileCenter(tile.X, tile.Y);
+            var jitterX = (float)(rng.NextDouble() * (PositionJitter * 2) - PositionJitter);
+            var jitterY = (float)(rng.NextDouble() * (PositionJitter * 2) - PositionJitter);
+            var facing = (float)(rng.NextDouble() * 360.0);
+
+            var position = GroundedPosition(area, flat.X + jitterX, flat.Y + jitterY);
+            return Location(area, position, facing);
+        }
+
+        /// <summary>
+        /// Handles a player using a dungeon exit placeable: returns them to the location the instance
+        /// was entered from. If the instance hasn't had its ExitLocation calibrated (should not happen
+        /// for consumers that follow the /genarea pattern), the player is told rather than left stuck.
+        /// </summary>
+        [NWNEventHandler(ScriptName.OnDungeonExitUsed)]
+        public static void UseDungeonExit()
+        {
+            var user = GetLastUsedBy();
+            var placeable = OBJECT_SELF;
+            var area = GetArea(placeable);
+
+            if (!RuntimeAreaRegistry.TryGetByArea(area, out var instance) || instance.ExitLocation == null)
+            {
+                SendMessageToPC(user, "This exit hasn't been calibrated. Inform a DM.");
+                return;
+            }
+
+            AssignCommand(user, () => ActionJumpToLocation(instance.ExitLocation));
+        }
+
+        /// <summary>
+        /// Handles a player clicking a Door-style transition door (fires via OnFailToOpen since the
+        /// door is kept locked, and via OnClicked as a safety net): returns them to the location the
+        /// instance was entered from, mirroring the exit placeable.
+        /// </summary>
+        [NWNEventHandler(ScriptName.OnDungeonExitDoorUsed)]
+        public static void UseDungeonExitDoor()
+        {
+            var user = GetClickingObject();
+            var door = OBJECT_SELF;
+            var area = GetArea(door);
+
+            if (!GetIsObjectValid(user))
+                return;
+
+            if (!RuntimeAreaRegistry.TryGetByArea(area, out var instance) || instance.ExitLocation == null)
+            {
+                SendMessageToPC(user, "This exit hasn't been calibrated. Inform a DM.");
+                return;
+            }
+
+            AssignCommand(user, () => ActionJumpToLocation(instance.ExitLocation));
+        }
+    }
+}

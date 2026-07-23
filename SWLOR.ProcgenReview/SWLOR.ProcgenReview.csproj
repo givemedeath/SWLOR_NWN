@@ -1,0 +1,85 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>SWLOR.ProcgenReview</AssemblyName>
+    <RootNamespace>SWLOR.ProcgenReview</RootNamespace>
+  </PropertyGroup>
+
+  <!--
+    Links the pure (engine-free) generation sources and theme definitions directly, so the
+    review module always reflects the exact production solver and dungeon definitions.
+  -->
+  <ItemGroup>
+    <Compile Include="..\SWLOR.Game.Server\Service\AreaGenerationService\Tileset\*.cs" Link="Generation\Tileset\%(Filename)%(Extension)" />
+    <Compile Include="..\SWLOR.Game.Server\Service\AreaGenerationService\Decoration\*.cs" Link="Generation\Decoration\%(Filename)%(Extension)" />
+    <Compile Include="..\SWLOR.Game.Server\Service\AreaGenerationService\Frontage\*.cs" Link="Generation\Frontage\%(Filename)%(Extension)" />
+    <Compile Include="..\SWLOR.Game.Server\Service\AreaGenerationService\Atmosphere\*.cs" Link="Generation\Atmosphere\%(Filename)%(Extension)" />
+    <Compile Include="..\SWLOR.Game.Server\Service\AreaGenerationService\CornerTerrainGrid.cs" Link="Generation\CornerTerrainGrid.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Service\AreaGenerationService\EdgeCrosserGrid.cs" Link="Generation\EdgeCrosserGrid.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Service\AreaGenerationService\RoomRole.cs" Link="Generation\RoomRole.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Service\AreaGenerationService\LayoutStyleSizeFloor.cs" Link="Generation\LayoutStyleSizeFloor.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Service\AreaGenerationService\CorridorMode.cs" Link="Generation\CorridorMode.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Service\AreaGenerationService\CorridorCrosserType.cs" Link="Generation\CorridorCrosserType.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Service\AreaGenerationService\TunnelLink.cs" Link="Generation\TunnelLink.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Service\AreaGenerationService\TransitionKind.cs" Link="Generation\TransitionKind.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Service\AreaGenerationService\TransitionStyle.cs" Link="Generation\TransitionStyle.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Service\AreaGenerationService\TransitionPoint.cs" Link="Generation\TransitionPoint.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Service\AreaGenerationService\LayoutRoom.cs" Link="Generation\LayoutRoom.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Service\AreaGenerationService\MacroLayout.cs" Link="Generation\MacroLayout.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Service\AreaGenerationService\DungeonLayoutStyle.cs" Link="Generation\DungeonLayoutStyle.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Service\AreaGenerationService\MacroLayoutParameters.cs" Link="Generation\MacroLayoutParameters.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Service\AreaGenerationService\ResolvedTile.cs" Link="Generation\ResolvedTile.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Service\AreaGenerationService\ResolvedLayout.cs" Link="Generation\ResolvedLayout.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Service\AreaGenerationService\AreaBatchFile.cs" Link="Generation\AreaBatchFile.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Service\AreaGenerationService\AreaBatchFileEntry.cs" Link="Generation\AreaBatchFileEntry.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Service\AreaGenerationService\LayoutSolver.cs" Link="Generation\LayoutSolver.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Service\AreaGenerationService\LayoutSolverResult.cs" Link="Generation\LayoutSolverResult.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Service\AreaGenerationService\LayoutParameterConstraints.cs" Link="Generation\LayoutParameterConstraints.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Service\AreaGenerationService\MacroLayoutGenerator.cs" Link="Generation\MacroLayoutGenerator.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Service\AreaGenerationService\TileResolver.cs" Link="Generation\TileResolver.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Service\AreaGenerationService\TunnelVocabularyCheck.cs" Link="Generation\TunnelVocabularyCheck.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Service\AreaGenerationService\RoadVocabularyCheck.cs" Link="Generation\RoadVocabularyCheck.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Service\AreaGenerationService\TileDoorPlanner.cs" Link="Generation\TileDoorPlanner.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Service\AreaGenerationService\TileDoorGeometry.cs" Link="Generation\TileDoorGeometry.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Service\AreaGenerationService\GroupExitPlanner.cs" Link="Generation\GroupExitPlanner.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Service\AreaGenerationService\DungeonCreatureEntry.cs" Link="Generation\DungeonCreatureEntry.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Service\AreaGenerationService\DungeonTierDetail.cs" Link="Generation\DungeonTierDetail.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Service\AreaGenerationService\DungeonTileLighting.cs" Link="Generation\DungeonTileLighting.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Service\AreaGenerationService\DungeonTilesetProfile.cs" Link="Generation\DungeonTilesetProfile.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Service\AreaGenerationService\DungeonLayoutProfile.cs" Link="Generation\DungeonLayoutProfile.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Service\AreaGenerationService\DungeonDetail.cs" Link="Generation\DungeonDetail.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Service\AreaGenerationService\DungeonComposition.cs" Link="Generation\DungeonComposition.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Service\AreaGenerationService\DungeonDefinitionBuilder.cs" Link="Generation\DungeonDefinitionBuilder.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Service\AreaGenerationService\DungeonTilesetProfileBuilder.cs" Link="Generation\DungeonTilesetProfileBuilder.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Service\AreaGenerationService\DungeonLayoutProfileBuilder.cs" Link="Generation\DungeonLayoutProfileBuilder.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Service\AreaGenerationService\Layouts\*.cs" Link="Generation\Layouts\%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\SWLOR.Game.Server\Feature\DungeonDefinition\IDungeonListDefinition.cs" Link="Definitions\IDungeonListDefinition.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Feature\DungeonDefinition\IDungeonTilesetProfileListDefinition.cs" Link="Definitions\IDungeonTilesetProfileListDefinition.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Feature\DungeonDefinition\IDungeonLayoutProfileListDefinition.cs" Link="Definitions\IDungeonLayoutProfileListDefinition.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Feature\DungeonDefinition\StandardTilesetProfiles.cs" Link="Definitions\StandardTilesetProfiles.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Feature\DungeonDefinition\BaseGameTilesetProfiles.cs" Link="Definitions\BaseGameTilesetProfiles.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Feature\DungeonDefinition\StandardLayoutProfiles.cs" Link="Definitions\StandardLayoutProfiles.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Feature\DungeonDefinition\MineCaveDungeonDefinition.cs" Link="Definitions\MineCaveDungeonDefinition.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Feature\DungeonDefinition\SciFiBaseDungeonDefinition.cs" Link="Definitions\SciFiBaseDungeonDefinition.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Feature\DungeonDefinition\SewerDungeonDefinition.cs" Link="Definitions\SewerDungeonDefinition.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Feature\DungeonDefinition\AlienRuinDungeonDefinition.cs" Link="Definitions\AlienRuinDungeonDefinition.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Feature\DungeonDefinition\TatooineWastesDungeonDefinition.cs" Link="Definitions\TatooineWastesDungeonDefinition.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Feature\DungeonDefinition\DathomirWildlandsDungeonDefinition.cs" Link="Definitions\DathomirWildlandsDungeonDefinition.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Feature\DungeonDefinition\NightsisterCovenDungeonDefinition.cs" Link="Definitions\NightsisterCovenDungeonDefinition.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Feature\DungeonDefinition\QionHiveDungeonDefinition.cs" Link="Definitions\QionHiveDungeonDefinition.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Feature\DungeonDefinition\DeepMineDungeonDefinition.cs" Link="Definitions\DeepMineDungeonDefinition.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Feature\DungeonDefinition\MandalorianGarrisonDungeonDefinition.cs" Link="Definitions\MandalorianGarrisonDungeonDefinition.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Feature\DungeonDefinition\UndercityDenDungeonDefinition.cs" Link="Definitions\UndercityDenDungeonDefinition.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Feature\DungeonDefinition\DroidFoundryDungeonDefinition.cs" Link="Definitions\DroidFoundryDungeonDefinition.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Feature\DungeonDefinition\LostRuinsDungeonDefinition.cs" Link="Definitions\LostRuinsDungeonDefinition.cs" />
+    <Compile Include="..\SWLOR.Game.Server\Feature\DungeonDefinition\SithAcademyDungeonDefinition.cs" Link="Definitions\SithAcademyDungeonDefinition.cs" />
+  </ItemGroup>
+
+</Project>
