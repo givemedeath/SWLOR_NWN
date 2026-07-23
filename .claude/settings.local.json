@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -vE \"\\\\.\\(mod|cmd|BackupMod\\)$\")",
+      "Bash(python -)"
+    ]
+  }
+}
