@@ -23,7 +23,9 @@ reference/regression fixture, not a world selected by flipping one environment l
   20,000-credit prototype stipend.
 - `no_access` contains only runtime storage placeables; its inherited legacy creature is removed.
 - The module references 9 HAKs: shared mechanics/UI/VFX resources and only the five tilesets its
-  committed areas require.
+  committed areas require. *(Superseded 2026-07-23 by [D25](../DECISIONS.md): reverted to the full
+  shared SWLOR stack so placeable/creature/item models render; the minimal allowlist returns as a
+  pre-release provenance/download-size gate.)*
 - `tools/PrepareShadowrunModule.ps1` regenerates the arrival and enforces the manifest.
 - `PackModuleSR.cmd` packs/deploys and invokes `tools/WriteShadowrunReleaseManifest.ps1`, which hashes
   the module, custom TLK, server assembly, HAKs, and source revisions.

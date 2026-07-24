@@ -26,7 +26,7 @@ node tools/orchestration/checkhaks.js
 | `SWLOR_Haks/hakbuilder.json` | Build manifest — the 113 haks and their source dirs |
 | `SWLOR_Haks/output/` | Built `.hak` files. **Gitignored** — artifacts, not sources |
 | `Module/ifo/module.ifo.json` | Historical fixture; references the full inherited HAK stack |
-| `ModuleSR/ifo/module.ifo.json` | Erie runtime allowlist: 9 demonstrated HAK dependencies plus `sw_tlk` |
+| `ModuleSR/ifo/module.ifo.json` | Erie runtime HAK list: the full shared SWLOR stack ([D25](DECISIONS.md)) plus `sw_tlk` (P2m's 9-entry allowlist was reverted so placeable/creature/item models render) |
 
 Only *sources* are versioned. Built haks are reproducible artifacts and are never committed.
 

@@ -816,3 +816,133 @@ Dirty manifests are useful during local development but cannot identify a releas
 
 **Revisit when:** CI/artifact storage signs and retains immutable release bundles; the manifest can
 then become input to that stronger pipeline.
+
+---
+
+## D24 — The Barrens exterior tileset is fcx01 (D20 Futuristic City), generated then committed static
+
+**2026-07-23 · P2b · accepted** *(applies [D19](#d19--adopt-the-procedural-area-generation-subsystem-by-grafting-it-in-tree); supersedes the re-theme sources in [districts/barrens.md](districts/barrens.md))*
+
+**Decision:** The Barrens proof-street exterior is generated on the **`fcx01`** tileset (D20 Futuristic
+City SW), profile `futcity`, layout `packed`, and committed as static module content
+(`ModuleSR/are|git/barrens_strip.*`). This adds one demonstrated HAK dependency, `sw_t_futcity`,
+taking the Erie allowlist from 9 to 10 — exactly the "add the smallest demonstrated dependency"
+path [D22](#d22--erie-starts-from-deterministic-content-and-an-explicit-hak-allowlist) reserves.
+
+**Why fcx01 over the alternatives:**
+
+- **`fcx01` (futcity) is the only *onboarded* urban-exterior profile**, and it is heavily finished:
+  a full frontage/building pipeline, street dressing, a named neon-night atmosphere tuple mined from
+  *Smuggler's Moon - Promenade*, and a declared signature composition (packed city at size 24). The
+  [PROCGEN-ASSESSMENT](PROCGEN-ASSESSMENT.md) named it "the strongest Sixth-World look."
+- **`srt04` (the literal "D20 Shadowrun" set, `sw_t_shadowrun`) is *not* onboarded** — no profile,
+  no adjacency/frontage/dressing data. Onboarding a tileset is real per-tileset work
+  (`DungeonTilesetProfileBuilder`, solve-rate validation). Choosing the ready, benchmarked set over
+  the unbuilt one is the low-risk path for the first exterior, and it can be revisited if the mood
+  review rejects fcx01's look.
+- **Layout `packed`, not `streets`:** fcx01 lacks the Alley tile-shape inventory the `streets`
+  layout needs, so `streets` deterministically downgrades to `packed` on this tileset (the generator
+  skips it as a duplicate). `packed` is fcx01's own signature pairing.
+
+**Why generated-then-static, not runtime procgen:** per [D19](#d19--adopt-the-procedural-area-generation-subsystem-by-grafting-it-in-tree),
+the district is committed geometry with no runtime generation dependency. Selection was seed `777` at
+size 24 over seeds 4242/1337 (both ~51 unique tile IDs — visibly repetitive silhouettes) because 777
+carries 116 unique tile IDs at the same scale.
+
+**What this decision does *not* settle:** the visual mood itself. Offline metrics (tile variety,
+decoration density, solver-guaranteed connectivity) chose *among* candidates; whether the fcx01 look
+reads as Erie's Barrens without a lore brief is the live gate the operator still owns, and it is the
+kill-criteria question for the whole platform ([D18](#d18--the-setting-the-erie-metroplex-and-the-barrens)).
+
+**Revisit when:** the live mood review rejects fcx01 (then onboard `srt04` or re-theme), or when a
+later Barrens zone needs a tileset fcx01 cannot express (undercity/interior already have profiles).
+
+---
+
+## D25 — Erie ships the full shared SWLOR HAK stack for now; minimal allowlist deferred to a provenance gate
+
+**2026-07-23 · P2b · accepted** *(supersedes the 9-entry HAK allowlist of [D22](#d22--erie-starts-from-deterministic-content-and-an-explicit-hak-allowlist); the rest of D22 stands)*
+
+**Decision:** Erie's module HAK list is the full shared SWLOR stack (the 113 HAKs the reference
+`Module/` declares), not a minimal per-tileset allowlist. The list is derived from the reference
+module's IFO so the two stay in parity. Trimming to a demonstrated subset returns later as a
+pre-release provenance/download-size gate, not as a content-blocking constraint now.
+
+**Why — the minimal allowlist broke rendering, found in live test.** The first live walk of the P2b
+build could not find the arrival exit, and investigation showed the deeper cause: the 9-HAK allowlist
+carried only the 2DA/UI/VFX and *tileset* HAKs. But NWN area geometry renders tiles from the tileset
+HAK while **placeables render their models from the shared placeable HAKs** (`sw_plc`, `sw_plc_cep`,
+`sw_plc_mdrn`, `sw_plc_swtor`) via `placeables.2da` appearance rows. The Barrens street's 631 frontage
+and street-dressing placeables use custom appearances (20000–31000) whose models live in those HAKs —
+none of which Erie declared. So the mood dressing that P2b exists to prove would have been **invisible**,
+and any visible exit marker faced the same gap. The same is true ahead for every creature (`sw_cr_*`)
+and item (`sw_item`/`sw_weapon`) P2c/P2d will place.
+
+A minimal allowlist that closes only *tileset* models is a false economy: `.git` placeable/creature/
+item instances are self-describing enough to load, so nothing errors — the models just silently do not
+render, which no automated check catches and which reads in-game as a bare, broken world. Enumerating
+the exact placeable/creature/item HAK closure for every future content addition is real per-item work
+with no payoff during the vertical slice.
+
+**What this costs and why it is acceptable now:** the full stack is ~13 GB of source and a much larger
+client download than a trimmed set, and it reintroduces HAKs whose provenance D22 wanted enumerated.
+Both are **pre-release** concerns, not build-time ones. The plan already carries an *IP and asset
+provenance* cross-cutting gate and an operations *download-size budget*; the minimal allowlist is
+folded into those. The content boundary D22 really cares about — no player-visible legacy *areas,
+actors, conversations, or races* — is enforced by content and the metatype/area tests, not by the HAK
+count.
+
+Rejected — computing a minimal placeable/creature/item HAK closure now: it would have to be recomputed
+on every content addition, blocks playtesting on bookkeeping, and produces exactly the "silently
+invisible model" failure mode above whenever the closure is a hair too tight.
+
+**Revisit when:** the pre-release provenance/download-size pass runs. Then measure the actually-used
+model set across all committed content and trim to it (plus a margin), with the same tileset-closure
+and now placeable/creature/item-closure tests guarding it.
+
+---
+
+## D26 — Barrens Strip uses the proven dgt04 slum re-theme, not fcx01
+
+**2026-07-23 · P2b · accepted** *(supersedes D24 for `barrens_strip`)*
+
+**Decision:** Replace the generated `fcx01`/`futcity`/`packed` Strip with a static re-theme of the
+finished hand-built `dgt04` area `pw_ar_narslum` (Smuggler's Moon - The Slums). Retain its 16×16
+geometry and 1,288 generic environmental placeables, clean legacy labels/audio/spawn waypoints, and
+wire the existing Erie arrival loop to the re-themed area.
+
+**Why:** The live review answered the visual question D24 explicitly left open: `fcx01` reads as a
+high-tech downtown/corporate district, not a blighted Barrens street. `dgt04` already provides the
+rusted, dense, industrial-slum silhouette required by P2a and has finished authored geometry that can
+be inspected in-game immediately. This preserves the small vertical-slice objective and gives `fcx01`
+the right future role as a high-tech downtown/corp zone.
+
+Rejected for this iteration: onboarding `srt04` or `dgt04` for procgen before the first mood gate. Both
+are larger per-tileset investments and would delay the evidence needed to decide whether the Barrens
+art direction works at all.
+
+**Revisit when:** the live review rejects the re-themed dgt04 street, or when later district areas need
+procedural geometry rather than authored slum composition.
+
+---
+
+## D27 — Large Barrens procgen is a separate comparison area
+
+**2026-07-23 · P2b feasibility · implemented; live review pending**
+
+**Decision:** Add one separate deterministic procgen comparison area, `barrens_pgen40`, using the new
+`modernex` profile on `dgt04`, `Packed` layout, seed `20260723`, size `40×40`, and 253 generated
+environmental placeables. Branch it from arrival through a second labeled test exit; do not replace
+the accepted authored `barrens_strip`.
+
+**Why:** The operator asked for direct evidence that procgen can produce a large Barrens-scale area.
+The candidate exercises real dgt04 terrain boundaries, street-group resolution, large-area solving,
+deterministic static export, placeable blueprint closure, and module routing. Keeping it separate makes
+the comparison reversible and preserves the accepted first-street baseline.
+
+**Known limitation:** dgt04 lacks the complete Alley shape inventory required by the `Streets` layout,
+so that pairing downgrades/skips. The candidate uses the compatible `Packed` layout; the profile is
+intentionally a first feasibility palette, not the final dgt04 production dressing grammar.
+
+**Revisit when:** the live comparison rejects the generated geometry, or when a full dgt04 Streets
+profile is worth the separate Alley/road-shape onboarding effort.

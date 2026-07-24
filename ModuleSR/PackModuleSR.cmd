@@ -46,14 +46,11 @@ if exist "..\debugserver\modules" (
   )
   echo Deploying to ..\debugserver\modules...
   copy /Y ".\Erie Metroplex.mod" "..\debugserver\modules\Erie Metroplex.mod" >nul
-  echo Deploying Erie HAK and TLK artifacts...
-  for %%h in (sw_2da sw_ability sw_ui sw_vfx sw_t_minecave sw_t_scifibase sw_t_sewer sw_t_alienruin sw_t_template) do (
-    if not exist "..\SWLOR_Haks\output\hak\%%h.hak" (
-      echo ERROR: missing built HAK ..\SWLOR_Haks\output\hak\%%h.hak
-      popd & endlocal & exit /b 1
-    )
-    copy /Y "..\SWLOR_Haks\output\hak\%%h.hak" "..\debugserver\hak\%%h.hak" >nul
-  )
+  REM Erie now ships the full shared SWLOR HAK stack per decision D25, so deploy
+  REM every built HAK. The release manifest hashes each HAK the module.ifo
+  REM references and fails if one is missing, the authoritative completeness check.
+  echo Deploying Erie HAK and TLK artifacts - full shared stack...
+  copy /Y "..\SWLOR_Haks\output\hak\*.hak" "..\debugserver\hak\" >nul
   copy /Y "..\SWLOR_Haks\output\tlk\sw_tlk.tlk" "..\debugserver\tlk\sw_tlk.tlk" >nul
 )
 

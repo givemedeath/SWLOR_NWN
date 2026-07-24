@@ -100,6 +100,77 @@ modifiers, glitches, and Magic loss in real play. The fixer (3) seeds Phase 3 wi
 
 ---
 
+## Committed build (P2b) — the first finished exterior
+
+Per [P2b](../packages/P2b.md), the first exterior is finished and committed before the rest of the
+route is generated. The re-theme sources in the table above are superseded by the procgen path
+([D19](../DECISIONS.md), [D24](../DECISIONS.md)): the Strip is generated on the **D20 Futuristic City**
+tileset (`dgt04`), using the finished hand-built slum `pw_ar_narslum`; `fcx01` was rejected in live
+review because it reads as high-tech downtown rather than the Barrens.
+
+### Seed / resref / generation record
+
+| Field | Value |
+|---|---|
+| Area | The Strip (proof-street area 1) |
+| Committed resref / tag | `barrens_strip` |
+| Area name | `The Barrens - The Strip` |
+| Tileset | `dgt04` (D20 Modern Exterior) → HAK `sw_t_modernex` |
+| Source area | `pw_ar_narslum` — “Smuggler's Moon - The Slums” |
+| Layout | hand-built static slum geometry |
+| Seed | not applicable; authored source geometry |
+| Size | `16 × 16` |
+| Decorations | 1,288 static placeables across 167 blueprint resrefs |
+| Transform | renamed, cleaned legacy labels/audio/waypoints, retained generic street dressing |
+| Rejected candidate | `fcx01`/`futcity`/`packed` seed 777 read as high-tech downtown |
+
+Generated geometry is committed as **static** `ModuleSR/are/barrens_strip.are.json` /
+`git/barrens_strip.git.json`. The district uses no runtime random generation.
+
+### Mood applied
+
+- **Lighting / fog / sky:** retained from the hand-built slum's permanent-night industrial mood.
+- **Signage / props / landmarks:** retained 1,288 authored buildings, facades, lights, barriers, refuse,
+  and street-dressing placeables; player-facing legacy labels were removed or reworded.
+- **Ambient sound / music:** set deliberately (not inherited) — `al_pl_citynite` ambient bed and
+  `mus_cityslumnite` music, `mus_bat_city1` in combat.
+- **Legacy residue removed:** SW-branded placeable labels, droid/Imperial naming, ship flyby audio,
+  old spawn waypoints, and old area-specific routes were removed. Creatures and service NPCs remain
+  deferred to P2c/P2d.
+
+### Route from arrival
+
+| From | Transition (Type 1 trigger) | To (waypoint) |
+|---|---|---|
+| `erie_arrival` | `arrival_to_strip` @ (85,45) | `barrens_strip` : `WP_STRIP_FROM_ARRIVAL` (65,105) |
+| `barrens_strip` | `strip_to_arrival` @ (145,119) | `erie_arrival` : `WP_ARRIVAL_FROM_STRIP` (35,65) |
+
+Transitions are the standard NWN engine area-transition trigger (`Type=1`, `LinkedTo` a destination
+waypoint tag, `LinkedToFlags=2`). Each trigger is placed clear of every spawnable waypoint in its
+own area (the outbound trigger is 10m from the respawn point, 44m from the arrival spot; the return
+trigger is ~80m from the strip arrival spot) so a returning or respawning runner never loops.
+
+The outbound trigger is an invisible floor volume, so a **visible elevator** placeable
+(`barrens_elevator`, `_mdrn_pl_elevato`) sits on it — the findable "ride out to street level" landmark.
+This surfaced in the first live test: the exit could not be found without a marker, which also exposed
+that the P2m minimal HAK allowlist rendered no placeable models at all (the elevator, and the Strip's
+631 street-dressing placeables, load their models from the shared placeable HAKs). Erie now ships the
+full shared SWLOR stack ([D25](../DECISIONS.md)).
+
+### Review result
+
+The operator walked `erie_arrival → barrens_strip → back` on the deployed module and judged the dgt04
+Strip's Barrens mood good. P2b's visual acceptance gate passed. Download-size / boot /
+transition-latency / frame-time notes remain useful operational measurements for later release review.
+
+### Large procgen comparison
+
+`barrens_pgen40` is a separate deterministic 40×40 dgt04 candidate: profile `modernex`, Packed layout,
+seed `20260723`, 253 generated environmental placeables, and 172 packaged blueprint resources. It is
+reachable from the second labeled arrival sign, returns to arrival, and exists to answer whether the
+procgen pipeline can scale beyond the authored 16×16 Strip. The dgt04 `Streets` layout is not used yet
+because its required Alley shape inventory is incomplete.
+
 ## Run hooks seeded here (for Phase 3)
 
 Not built now, but the fixtures exist so authored Runs drop in:

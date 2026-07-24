@@ -1106,3 +1106,173 @@ the visible Essence state. P2m is accepted and no longer blocks P2b.
 
 Next package: **P2b — one finished Barrens proof street**, followed by its minimum
 creature/NPC set in P2c/P2d.
+
+---
+
+**2026-07-23 · P2b · first Barrens exterior built (`barrens_strip`) · Lead**
+
+Implemented the first finished exterior of the proof street, stopping there per the "finish and
+review the first exterior before expanding the route" directive. Recorded as [D24](DECISIONS.md);
+full seed/resref/route record in [districts/barrens.md](districts/barrens.md).
+
+**Phase 1 gate reconciliation (the pre-work the package required).** P2m's operator evidence covers
+the *identity* half of the consolidated Phase 1 gate — chargen, login, arrival, character sheet,
+cyberclinic install/remove with the Essence display. The gate's *combat* half (fight the same enemy
+before and after chrome; inspect soak, wounds, glitches, Magic loss in play) is **still open and
+blocked on P2c** — Erie has nothing to fight yet. Recorded as a distinct unverified gate in PLAN's
+critical path rather than treated as passed; it does not block P2b. No results were invented.
+
+**Tileset decision.** The re-theme sources in P2a are superseded by procgen (D19). `fcx01`
+(D20 Futuristic City, profile `futcity`) is the only *onboarded* urban-exterior tileset and is
+heavily finished — frontage pipeline, street dressing, a neon-night atmosphere tuple mined from
+*Smuggler's Moon - Promenade*, a signature packed-city composition. `srt04` (the literal "Shadowrun"
+set) is **not** onboarded (no profile/adjacency/frontage data), so choosing it would mean real
+per-tileset onboarding work; deferred as a fallback if the mood review rejects fcx01. This adds one
+demonstrated HAK, `sw_t_futcity` (allowlist 9 → 10, exactly D22's "smallest demonstrated dependency").
+
+**Generation → selection → commit.** Ran `SWLOR.ProcgenReview --json-out --areas
+undercity:futcity:packed:{4242,777,1337}:24` (+ a size-20). `streets` was auto-skipped (fcx01 lacks
+the Alley inventory; it downgrades to `packed`, its signature). Inspected structurally: seeds 4242 and
+1337 carried only ~51 unique tile IDs (repetitive silhouettes, a P2b reject criterion); **seed 777
+carried 116** at the same 24×24 scale with 631 decorations. Selected 777, committed static as
+`barrens_strip.are/.git` with stable resref/tag, name "The Barrens - The Strip", and the fcx01
+neon-night atmosphere. Set deliberate audio (`al_pl_citynite` / `mus_cityslumnite`) rather than the
+inherited placeholder values, and deleted the generator's stray `nw_door_fancy` — a medieval door is
+fantasy residue in a neon street.
+
+**Route + transitions.** Bidirectional NWN area-transition triggers (`Type=1`, `LinkedTo` a
+destination waypoint, `LinkedToFlags=2`), matching the inherited `anchor_entreenor` convention.
+`erie_arrival → barrens_strip` via `arrival_to_strip`; `barrens_strip → erie_arrival` via
+`strip_to_arrival`. Placement was **not** guessed: parsed the arrival's `zsf01` tiles against the
+committed `.are` to confirm walkable floor (including the `floor2` secondary terrain the first naive
+pass missed), and anchored the outbound trigger on a verified full-floor tile 10m clear of the
+respawn point and 44m from the arrival spot, so no fresh spawn / respawn / return lands inside a
+trigger and loops. The return trigger sits ~80m across the street from the arrival spot.
+
+**Reproducibility.** `PrepareShadowrunModule.ps1` regenerates the arrival from procgen, so it would
+have dropped the new trigger and the barrens registration on its next run — folded both into the
+script (arrival transition injection, area list, HAK list). A PowerShell trap caught in validation:
+bare `-3.0` arguments to a scriptblock bind as *strings*, so the first pass wrote
+`{"type":"float","value":"-3.0"}` and `nwn_gff` rejected it; fixed with a typed `New-TransitionPoint`
+helper. Also added `sw_t_futcity` to `PackModuleSR.cmd`'s deploy list (the manifest reads the HAK
+list from the IFO, so it needed no edit).
+
+**Verification.** Test project built once (`-p:RunPostBuildEvent=Never`, 0 errors); focused
+`BarrensProofStreetTests | ShadowrunModuleScaffoldingTests` = **15/15 passing** (9 new). Every edited
+module JSON round-trips through `nwn_gff`. `checkhaks.js` shows no new failures (the one FAIL is the
+pre-existing unpushed submodule commit `fe7b72d20d` from the chargen-assets work; I touched no HAK
+sources, `haksDirty:false`). Module packed to 6,869,505 bytes (`sha256 ad5958e1…`), 10 HAKs, and the
+release manifest regenerated (`repositoryDirty:true` — a dev artifact, not a release candidate).
+
+**Not done (deliberate):** the remaining 5 proof-street areas, any creatures (P2c), any NPCs/shops
+(P2d). **Live gate still owed:** walk `arrival → strip → back`, visual mood review, and
+download/boot/transition-latency/frame-time notes — none of which an offline build can accept.
+
+---
+
+**2026-07-23 · P2b · first live feedback — exit unfindable; HAK-model gap fixed · Lead + operator**
+
+The operator's first walk couldn't find the way out of `erie_arrival`. Two causes, one shallow and one
+that would have sunk the whole mood gate:
+
+1. **No landmark.** The outbound transition is an invisible floor trigger. Added a visible **elevator**
+   placeable (`barrens_elevator`, appearance 1414 `shp_elev01`) sitting on it — "ride out to street
+   level" — with `Plot`/`Static` set. The Type-1 trigger under it still does the transition.
+2. **The minimal HAK allowlist rendered no placeable models at all.** Tracing the arrival exit marker
+   exposed that P2m's 9-HAK allowlist carried tileset HAKs but none of the shared **placeable** HAKs
+   (`sw_plc*`). NWN renders tiles from the tileset HAK but placeables from `placeables.2da` appearance
+   rows whose models live in `sw_plc`/`sw_plc_mdrn`/etc. The Barrens street's 631 frontage/dressing
+   placeables use custom appearances (20000–31000) in those HAKs — so **the entire mood dressing would
+   have been invisible**, and nothing errored because `.git` instances load self-described. Per the
+   operator's call, reverted to the **full shared SWLOR stack** (113 HAKs, derived from the reference
+   module's IFO so the two stay in parity). Recorded as [D25](DECISIONS.md), superseding only the
+   allowlist half of D22; the minimal set returns as a pre-release provenance/download-size gate.
+
+Propagated the stack change through every reproducibility surface: `module.ifo` (9 → 113),
+`PrepareShadowrunModule.ps1` (now derives the list from the reference module and injects the elevator),
+`PackModuleSR.cmd` (deploys all built HAKs by wildcard). Two cmd traps caught in packing: `(D25)` and
+`(full shared stack)` inside a parenthesized `if` block close it early — reworded without parens.
+`BarrensProofStreetTests` gained an exit-marker regression; the scaffolding HAK test flipped from a
+`≤ 10` cap to **parity with the reference module's stack** plus the same tileset closure.
+
+**Verification.** Test project built once; `BarrensProofStreetTests | ShadowrunModuleScaffoldingTests`
+**16/16 passing**. Every edited module JSON round-trips through `nwn_gff`. Repacked and redeployed:
+module 6,875,576 bytes (`sha256 624f941a…`), **113 HAKs hashed in the manifest** (placeable/creature/
+item HAKs confirmed present). The 113-HAK client download and provenance are now pre-release gate items,
+not build blockers.
+
+**Still owed (operator):** re-walk arrival → elevator → strip → back; confirm the Strip's dressing now
+renders; capture mood/perf. Automated checks still cannot accept visual mood.
+
+---
+
+**2026-07-23 · P2b · second live miss — placeable blueprints were not packaged · Lead + operator**
+
+After the HAK-stack fix and a real server restart (operator confirmed it loads from `debugserver/
+modules`), placeables still did not render. Ruled out the obvious layers by inspection, not guesswork:
+the packed `.mod` contains the areas and — checked in the binary — every hak resref including
+`sw_plc_mdrn`; `debugserver/hak` holds all 113 built haks; the boot log shows `Loading Module: Erie
+Metroplex` with no missing-resource errors; NWSync is empty/unused so the client renders from its local
+haks (which it must have, since it connected without a missing-hak prompt).
+
+**Root cause: the module packaged no placeable blueprints.** A `.git` placeable instance references its
+blueprint by `TemplateResRef`, and NWN needs that `.utp` packaged to spawn/render the placeable — which
+is why the reference SW module ships **8345** `.utp` files. The fresh Erie module shipped **3** (the
+starter items only). So the Strip's 631 dressing placeables and the arrival exit marker referenced
+blueprints that were not in the package, and rendered as nothing. This is the layer under D25: D25 got
+the *models* loadable (haks); the blueprints are a separate packaging dependency. The base-game barrels
+in `no_access` were unaffected because their blueprints are base-game, provided by the engine.
+
+Fixes: mirrored the **82** blueprints the Barrens street references (all present in the reference
+`Module/utp`) plus the elevator into `ModuleSR/utp`, and added a reproducible mirror step to
+`PrepareShadowrunModule.ps1` that scans every committed `.git` for placeable `TemplateResRef`s and
+copies the referenced custom blueprints (base-game ones need no copy). Also swapped the arrival exit
+marker off `shp_elev01` (appearance 1414 — a model with no blueprint anywhere) to `_mdrn_pl_elevato`
+(appearance 21077 "Elevator Cage", a real blueprint whose model is in `sw_plc_mdrn`). Added
+`EveryCommittedPlaceableBlueprintIsPackagedOrBaseGame` — the regression that would have caught this,
+scanning every committed area, not just the street.
+
+**Verification.** `BarrensProofStreetTests | ShadowrunModuleScaffoldingTests` **17/17**; every edited
+module JSON round-trips through `nwn_gff`; module repacked with the 83 blueprints and redeployed.
+
+**Confirmed live (operator):** after the blueprint fix and a server restart, placeables render — the
+arrival elevator and the Strip's dressing both appear. This closes the three-layer render chain
+(model via HAKs, blueprint via packaging, instance in the `.git`) and clears the blocker that stopped
+the P2b walk. The mood/perf review of the finished Strip is now the operator's remaining gate.
+
+---
+
+**2026-07-23 · P2b · fcx01 rejected; Barrens Strip re-themed on dgt04 slum source · Lead + operator**
+
+The operator's live review found that the generated `fcx01`/`futcity` Strip read as high-tech
+downtown rather than a blighted Barrens street. Per D26, replaced `barrens_strip` with a static
+re-theme of the finished hand-built `dgt04` area `pw_ar_narslum` ("The Slums"). Retained its 16×16
+geometry and 1,288 generic environmental placeables across 167 blueprint resrefs; removed legacy
+SW-branded labels, droid/Imperial naming, ship flyby audio, spawn waypoints, and old area routes;
+added the Erie arrival loop and retained the visible elevator landmark.
+
+Verification: prepare script reproduced the area and blueprint closure; all edited GFF JSON validated;
+focused structural suite **17/17** passing. Repacked 189 module resources; deployed module is
+7,866,926 bytes with 168 `.utp` blueprints, all 113 HAKs, and release manifest module SHA-256
+`3e76247f5b4b704b978db67fa9e9873bb6273191b0ac5eebcb8bce137df1770c`. The live mood/performance walk
+of the dgt04 re-theme remains the P2b acceptance gate.
+
+---
+
+**2026-07-23 · P2b feasibility · large dgt04 procgen comparison installed · Lead**
+
+Added `barrens_pgen40`, a deterministic 40×40 Modern Exterior candidate using profile `modernex`,
+Packed layout, seed `20260723`, and 253 generated environmental placeables. It is a separate branch
+from arrival with a labeled test exit and return trigger; the accepted authored Strip remains unchanged.
+The first `Streets` attempt correctly reported incomplete Alley shape coverage, so this feasibility
+candidate uses the compatible Packed layout. Prepare mirrored 172 blueprints; GFF validation passed;
+focused structural tests passed **18/18**. Live visual review of the comparison area remains pending.
+
+---
+
+**2026-07-23 · P2b · live mood gate passed · operator**
+
+The operator reviewed the deployed dgt04 re-themed Barrens Strip and reported that it looks good.
+The arrival → elevator → Strip route is therefore accepted for visual mood and the first exterior is
+cleared for expansion. Operational download, boot, transition-latency, and frame-time measurements
+remain follow-up release notes rather than blockers.

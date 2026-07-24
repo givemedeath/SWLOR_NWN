@@ -35,7 +35,7 @@ in-game gate. No package is called complete merely because it builds.
 | Glitches and wound penalties | Implemented | repeated player/NPC combat with log and VFX inspection |
 | Clean Erie module foundation (`P2m`) | Implemented; boot/existing-human login passed | complete new-character metatype matrix, reconnect, respawn, and inspect distribution |
 | Barrens district design (`P2a`) | Designed | one finished street mood gate |
-| Barrens area build (`P2b`) | Not started beyond arrival-area pipeline | walkable proof street |
+| Barrens area build (`P2b`) | Accepted (`barrens_strip`, dgt04 slum source) | build areas 2–6; retain operational perf notes |
 | Creature set (`P2c`) | Not started | encounter balance and visual-language gate |
 | NPCs, shops, fixers (`P2d`) | Not started | service loop works in-world |
 | Authored and repeatable runs | Not started | staffed and unstaffed session gate |
@@ -54,7 +54,7 @@ combat/content changes preserve a playable Star Wars world.
 | Runtime | `SWLOR_GAME_PROFILE=shadowrun`; boot fails if Erie has no data namespace |
 | Persistence | `SWLOR_DATA_NAMESPACE=erie`; entity keys and RediSearch indexes are isolated |
 | Module | `ModuleSR/` contains only committed Erie areas/resources plus shared script scaffolding |
-| Assets | Erie declares an explicit minimal HAK manifest; adding content adds only demonstrated dependencies |
+| Assets | Erie ships the full shared SWLOR HAK stack for now ([D25](DECISIONS.md)); the minimal allowlist ([D22](DECISIONS.md)) returns as a pre-release provenance/download-size gate |
 | Releases | every packed module emits SHA-256 hashes for module, custom TLK, server assembly, HAKs, and source revisions |
 | Content | new district and characters; inherited systems are enabled only as their player-facing data is converted |
 | Fidelity | Shadowrun-flavored mechanics, not a dice-pool rewrite |
@@ -76,7 +76,7 @@ The foundation exists before more content is admitted:
 - packaged starter knife, food, and street clothes;
 - 20,000-credit prototype stipend so the cyberware gate is reachable;
 - isolated Redis entity/index namespace;
-- 9-entry HAK allowlist instead of the inherited 113-entry stack;
+- HAK manifest (P2m shipped a 9-entry allowlist; reverted to the full shared stack in [D25](DECISIONS.md) so placeable/creature/item models render — minimal allowlist deferred to a pre-release gate);
 - reproducible preparation and release-manifest scripts;
 - legacy OOC/hangar content removed; private service area contains storage only.
 
@@ -217,8 +217,16 @@ combat feel, networking/reconnect behavior, or licensing.
 ## Immediate critical path
 
 1. `P2m` is accepted: preserve its release manifest and live evidence as the clean-module baseline.
-2. Run the consolidated Phase 1 live gate; tune only from recorded observations.
-3. Build and accept one finished Barrens street (`2b`), then its minimum creature/NPC set (`2c/2d`).
+2. Run the consolidated Phase 1 live gate; tune only from recorded observations. **Reconciliation
+   (2026-07-23):** P2m's operator evidence covers chargen/login/arrival/character-sheet and the
+   cyberclinic (install/remove with the Essence display confirmed) — the *identity* half of the gate.
+   Its remaining half is live **combat** — fight the same calibrated enemy before and after chrome and
+   inspect soak, wounds, glitches, and Magic loss in play — which is **blocked on P2c**: Erie has no
+   creatures to fight yet. This is a distinct still-open gate, not a completed one, and it does not
+   block P2b preparation.
+3. Accept the first Barrens exterior (`2b`, `barrens_strip` — implemented, live walk/mood gate
+   pending), then the rest of the proof street, then its minimum creature/NPC set (`2c/2d`). The
+   Phase 1 combat gate is best run in Gang Turf once `2c` places the Rustkings, as P2a intended.
 4. Ship one complete authored run plus repeatable contract (`3a–3c`) with lifecycle tests.
 5. Replace the prototype stipend with the measured economy and complete operations/provenance gates.
 6. Expand content only after retention and maintainability justify it.

@@ -33,9 +33,12 @@ indexes therefore cannot silently collide with the historical world.
 | `uti/` | the three items `PlayerInitialization` creates for new characters |
 | `fac/`, `jrl/` | faction and journal scaffolding |
 
-The 9 HAKs are shared mechanics/UI/VFX assets plus the five tilesets required by committed areas.
-This is an explicit dependency manifest, not a claim that inherited generic assets have completed a
-legal/provenance review.
+Erie ships the **full shared SWLOR HAK stack** (derived from the reference `Module/` IFO so the two
+stay in parity). The P2m 9-HAK allowlist was reverted in
+[D25](../design/shadowrun/DECISIONS.md) because placeables, creatures, and items render their models
+from the shared placeable/creature/item HAKs, not the tileset HAKs — a minimal tileset-only allowlist
+left committed street dressing silently invisible. This is not a claim that inherited generic assets
+have completed a legal/provenance review; the minimal allowlist returns as a pre-release gate.
 
 `ncs/` and `nss/` are mirrored from `../Module` at pack time because the C# event bridge remains
 shared. Other empty resource directories are created for the packer and ignored.

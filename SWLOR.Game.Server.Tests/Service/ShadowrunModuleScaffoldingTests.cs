@@ -124,25 +124,15 @@ public class ShadowrunModuleScaffoldingTests
             .Select(property => property.Name)
             .ToList();
         customArmorParts.Should().BeEmpty(
-            "starter clothing must use base-game body parts so Erie does not need the 23 body-part HAKs");
+            "starter clothing uses base-game body parts, so it renders identically regardless of HAK policy");
     }
 
     [Test]
-    public void FreshModuleHakManifestIsDeliberateAndCoversEveryCommittedAreaTileset()
+    public void FreshModuleHakManifestMatchesTheSharedStackAndCoversEveryCommittedAreaTileset()
     {
         var root = FindRepositoryRoot();
         var moduleRoot = Path.Combine(root.FullName, "ModuleSR");
-        using var moduleInfo = JsonDocument.Parse(
-            File.ReadAllText(Path.Combine(moduleRoot, "ifo", "module.ifo.json")));
-
-        var haks = moduleInfo.RootElement
-            .GetProperty("Mod_HakList")
-            .GetProperty("value")
-            .EnumerateArray()
-            .Select(hak => hak.GetProperty("Mod_Hak").GetProperty("value").GetString())
-            .Where(hak => !string.IsNullOrWhiteSpace(hak))
-            .Select(hak => hak!)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var haks = ReadHakList(Path.Combine(moduleRoot, "ifo", "module.ifo.json"));
         var tilesetHaks = Directory
             .EnumerateFiles(Path.Combine(root.FullName, "SWLOR_Haks"), "*.set", SearchOption.AllDirectories)
             .GroupBy(Path.GetFileNameWithoutExtension, StringComparer.OrdinalIgnoreCase)
@@ -151,7 +141,15 @@ public class ShadowrunModuleScaffoldingTests
                 group => new DirectoryInfo(Path.GetDirectoryName(group.First())!).Name,
                 StringComparer.OrdinalIgnoreCase);
 
-        haks.Should().HaveCountLessThanOrEqualTo(9, "Erie must not inherit the full legacy HAK stack");
+        // Erie ships the full shared SWLOR HAK stack (D25). The minimal allowlist was reverted
+        // because committed content (the Barrens street's frontage/street-dressing placeables, and
+        // every creature/item P2c/P2d will place) resolves its models from the shared placeable/
+        // creature/item HAKs. Parity with the reference module keeps the two in step; trimming to a
+        // demonstrated subset returns as a pre-release provenance gate.
+        var referenceHaks = ReadHakList(Path.Combine(root.FullName, "Module", "ifo", "module.ifo.json"));
+        haks.Should().BeEquivalentTo(referenceHaks,
+            "Erie includes the full shared SWLOR HAK stack (D25)");
+
         foreach (var areaPath in Directory.EnumerateFiles(Path.Combine(moduleRoot, "are"), "*.are.json"))
         {
             using var area = JsonDocument.Parse(File.ReadAllText(areaPath));
@@ -161,6 +159,19 @@ public class ShadowrunModuleScaffoldingTests
             containingHak.Should().NotBeNull($"the tileset for {Path.GetFileName(areaPath)} must exist");
             haks.Should().Contain(containingHak!, $"{Path.GetFileName(areaPath)} uses tileset {tileset}");
         }
+    }
+
+    private static HashSet<string> ReadHakList(string moduleInfoPath)
+    {
+        using var moduleInfo = JsonDocument.Parse(File.ReadAllText(moduleInfoPath));
+        return moduleInfo.RootElement
+            .GetProperty("Mod_HakList")
+            .GetProperty("value")
+            .EnumerateArray()
+            .Select(hak => hak.GetProperty("Mod_Hak").GetProperty("value").GetString())
+            .Where(hak => !string.IsNullOrWhiteSpace(hak))
+            .Select(hak => hak!)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
     }
 
     [Test]

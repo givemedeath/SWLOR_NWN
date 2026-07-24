@@ -34,6 +34,7 @@ namespace SWLOR.Game.Server.Feature.DungeonDefinition
         public const string DungeonIce = "dungeon_ice";
         public const string DungeonPit = "dungeon_pit";
         public const string CityInterior = "cityinterior";
+        public const string ModernExterior = "modernex";
 
         // Palette-variant profiles: recompose an already-onboarded tileset resref against one of its
         // alternate district/palette families (see DungeonTilesetProfile.IsPaletteVariant). Registered
@@ -8407,6 +8408,69 @@ namespace SWLOR.Game.Server.Feature.DungeonDefinition
                 .ExitGroup("CastleTowerGate1")
                 .ExitGroup("CastleTowerGate2")
                 .ExitGroup("PrisonTower");
+
+            // D20 Modern Exterior (dgt04) -- targeted Barrens procgen profile. This is deliberately
+            // smaller than the mature fcx01 family: prove that the real slum set can solve a large
+            // street network before curating its full dressing/frontage vocabulary. The authored
+            // dgt04 Strip remains the accepted production street; this profile exists for the
+            // requested large-area feasibility review.
+            _builder.Create(ModernExterior, "D20 Modern Exterior - Barrens Streets")
+                .Tileset("dgt04")
+                .Atmosphere(a =>
+                {
+                    a.SkyBox = 78;
+                    a.DayNightCycle = false;
+                    a.IsNight = true;
+                    a.SunAmbientColor = 3815774;
+                    a.SunDiffuseColor = 16777215;
+                    a.MoonAmbientColor = 2447339;
+                    a.MoonDiffuseColor = 2447339;
+                    a.SunFogAmount = 0;
+                    a.SunFogColor = 4210752;
+                    a.MoonFogAmount = 0;
+                    a.MoonFogColor = 2105376;
+                    a.SunShadows = true;
+                    a.MoonShadows = true;
+                    a.ShadowOpacity = 60;
+                    a.WindPower = 0;
+                    a.LightingScheme = 0;
+                    a.FogClipDist = 150f;
+                })
+                .SolidTerrainOverride("Slums1")
+                .PrimaryOpenTerrain("Concrete")
+                .MinimumOpeningWidth(2)
+                .RoadCrosser("Street")
+                .Placeholder("gen_placeholder1")
+                .TileLighting(0, 0, 0, 0)
+                .SetPiece("Street_Corner", 4)
+                .SetPiece("Street_Tee", 4)
+                .SetPiece("Street_Fourway", 2)
+                .SetPiece("Street_Driveway", 2)
+                .SetPiece("Street_Straight1", 4)
+                .SetPiece("Street_Straight2", 4)
+                .SetPiece("Street_Deadend", 2)
+                .SetPiece("Sidewalk_01", 4)
+                .SetPiece("Sidewalk_02", 4)
+                .SetPiece("Sidewalk_03", 4)
+                .SetPiece("Street_Raise", 1)
+                .ExitGroup("Street_Deadend")
+                .DecorationDensity(2.0)
+                .UrbanDressing()
+                .FrontageBuilding("swd_build003", 4, 19.3f, 9.3f, maxPerArea: 12, minSpacing: 15f)
+                .FrontageBuilding("swd_build007", 3, 13.8f, 15.1f, maxPerArea: 20, workhorse: true)
+                .FrontageBuilding("_mdrn_pl_kyru12", 2, 11.7f, 13.3f, maxPerArea: 8, minSpacing: 12f)
+                .FrontageBuilding("_mdrn_pl_indtowr", 2, 11.8f, 11.8f, maxPerArea: 8, minSpacing: 10f)
+                .FrontageScaleJitter()
+                .StreetDressing("swd_florrd01", 2, StreetDressingKind.RoadMarking, maxPerArea: 80)
+                .StreetDressing("swd_trash01", 3, StreetDressingKind.MarginAccent, maxPerArea: 40)
+                .StreetDressing("_mdrn_pl_barrimw", 2, StreetDressingKind.MarginAccent, maxPerArea: 40)
+                .Decoration("swd_barrel01", 2, DecorationContext.CorridorSide)
+                .Decoration("swd_streel01", 2, DecorationContext.CorridorSide)
+                .Decoration("_mdrn_pl_lights3", 2, DecorationContext.CorridorSide)
+                .Decoration("_mdrn_pl_barrim2", 2, DecorationContext.CorridorSide)
+                .Decoration("swd_dump003", 1, DecorationContext.RoomCenter)
+                .Decoration("_mdrn_pl_pape020", 1, DecorationContext.RoomCenter)
+                .SignatureComposition(StandardLayoutProfiles.Packed, 40);
 
             return _builder.Build();
         }
