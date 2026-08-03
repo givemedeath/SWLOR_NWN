@@ -8,6 +8,7 @@ using SWLOR.Game.Server.Service.CombatService;
 using SWLOR.Game.Server.Service.CraftService;
 using SWLOR.Game.Server.Service.SkillService;
 using SWLOR.Game.Server.Service.StatService;
+using SWLOR.NWN.API.NWScript.Enum;
 using SWLOR.NWN.API.NWScript.Enum.Item;
 using NativeDamageType = NWN.Native.API.DamageType;
 using NWNScriptDamageType = SWLOR.NWN.API.NWScript.Enum.DamageType;
@@ -239,6 +240,56 @@ public class CombatDamageTests
     }
 
     [Test]
+    public void MeleeAutoAttackScope_AllowsCrossSkillMeleeTraitsWithoutAffectingRangedWeapons()
+    {
+        Combat.IsMeleeWeaponSkill(SkillType.Vibroblade).Should().BeTrue();
+        Combat.IsMeleeWeaponSkill(SkillType.Spear).Should().BeTrue();
+        Combat.IsMeleeWeaponSkill(SkillType.Rifle).Should().BeFalse();
+        Combat.IsMeleeWeaponSkill(SkillType.Devices).Should().BeFalse();
+
+        Stat.GetStatTypeCategory(StatType.MeleeAutoAttackCycleRequiredCount)
+            .Should().Be(StatTypeCategory.NonBeneficial);
+        Stat.GetStatTypeCategory(StatType.MeleeAutoAttackCycleDamage)
+            .Should().Be(StatTypeCategory.BeneficialWhenPositive);
+        Stat.GetStatTypeCategory(StatType.MeleeRepeatedTargetDamageBonusPerHit)
+            .Should().Be(StatTypeCategory.BeneficialWhenPositive);
+        Stat.GetStatTypeCategory(StatType.MeleeRepeatedTargetDamageBonusMax)
+            .Should().Be(StatTypeCategory.BeneficialWhenPositive);
+        Stat.GetStatTypeCategory(StatType.MeleeRepeatedTargetDamageStatusEffectIcon)
+            .Should().Be(StatTypeCategory.NonBeneficial);
+    }
+
+    [Test]
+    public void MeleeRepeatedTargetDamage_UsesGenericPresentationAndClearsPerCreatureState()
+    {
+        var statusEffect = new MeleeRepeatedTargetDamageStatusEffect(
+            3,
+            EffectIconType.RundownStatusEffect);
+        statusEffect.Name.Should().Be("Melee Repeated Target Damage");
+        statusEffect.Icon.Should().Be(EffectIconType.RundownStatusEffect);
+        statusEffect.Stacks.Should().Be(3);
+
+        var clone = statusEffect.Clone().Should().BeOfType<MeleeRepeatedTargetDamageStatusEffect>().Subject;
+        clone.Icon.Should().Be(EffectIconType.RundownStatusEffect);
+        clone.Stacks.Should().Be(3);
+
+        var root = FindRepositoryRoot();
+        var combatSource = File.ReadAllText(Path.Combine(root.FullName, "SWLOR.Game.Server", "Service", "Combat.cs"));
+        combatSource.Should().Contain("_meleeRepeatedTargetDamageStates.Remove(creature);");
+        combatSource.Should().Contain("_meleeAutoAttackCycleCounts.Remove(creature);");
+        combatSource.Should().NotContain("RundownStatusEffect");
+    }
+
+    [Test]
+    public void TargetLowHPDamageAdjustment_AppliesAtTheExecutionerThreshold()
+    {
+        Combat.ApplyTargetHPDamageAdjustment(100, 25, 100, 25, 8).Should().Be(108);
+        Combat.ApplyTargetHPDamageAdjustment(100, 25, 100, 25, 10).Should().Be(110);
+        Combat.ApplyTargetHPDamageAdjustment(100, 26, 100, 25, 10).Should().Be(100);
+        Combat.ApplyTargetHPDamageAdjustment(7, 1, 100, 25, 8).Should().Be(8);
+    }
+
+    [Test]
     public void QueuedWeaponAbilityImpacts_DoNotRollSeparateAbilityHit()
     {
         var root = FindRepositoryRoot();
@@ -295,7 +346,7 @@ public class CombatDamageTests
             "var damage = CalculateTargetSpecificDamage",
             StringComparison.Ordinal);
         var guardedHitIndex = damageRollSource.IndexOf(
-            "Combat.ApplyGuardedHitModifiers(target.m_idSelf, attacker.m_idSelf, damage, damageType);",
+            "Combat.ApplyGuardedHitModifiers(",
             StringComparison.Ordinal);
 
         queuedAbilitySuppressionIndex.Should().BeGreaterThanOrEqualTo(0);
@@ -544,17 +595,26 @@ public class CombatDamageTests
         var combatSource = File.ReadAllText(Path.Combine(root.FullName, "SWLOR.Game.Server", "Service", "Combat.cs"));
         var damageRollSource = File.ReadAllText(Path.Combine(root.FullName, "SWLOR.Game.Server", "Native", "GetDamageRoll.cs"));
 
-        combatSource.Should().Contain("ApplyGuardedHitModifiers(uint defender, uint attacker, int damage, CombatDamageType damageType)");
+        combatSource.Should().Contain("bool isLandedAttack)");
         var guard = ExtractMethod(combatSource, "public static int ApplyGuardedHitModifiers(");
+        guard.Should().Contain("!isLandedAttack");
         guard.Should().Contain("!GetIsObjectValid(attacker)");
         guard.Should().Contain("defender == attacker");
         guard.Should().Contain("damage <= 0");
         guard.Should().Contain("!damageType.IsPhysicalDamageType()");
-        guard.IndexOf("damage <= 0", StringComparison.Ordinal).Should().BeLessThan(
+        guard.Should().Contain("!IsGuardableAttackSource(defender, attacker)");
+        guard.IndexOf("!isLandedAttack", StringComparison.Ordinal).Should().BeLessThan(
             guard.IndexOf("var guardChance", StringComparison.Ordinal),
-            "idle, self, and zero-damage events must never enter the Guard roll");
-        damageRollSource.Should().Contain("Combat.ApplyGuardedHitModifiers(target.m_idSelf, attacker.m_idSelf, damage, damageType);");
-        damageRollSource.Should().NotContain("Combat.ApplyGuardedHitModifiers(target.m_idSelf, attacker.m_idSelf, damage);");
+            "discarded swings must never enter the Guard roll");
+        var guardableSource = ExtractMethod(combatSource, "private static bool IsGuardableAttackSource(");
+        guardableSource.Should().Contain("GetIsReactionTypeHostile(attacker, defender)");
+        guardableSource.Should().Contain("GetIsReactionTypeHostile(defender, attacker)");
+        guardableSource.Should().Contain("GetIsEnemy(attacker, defender)");
+        guardableSource.Should().Contain("GetIsEnemy(defender, attacker)");
+        damageRollSource.Should().Contain("private static bool IsLandedAttackOnDamageableTarget(");
+        damageRollSource.Should().Contain("targetObject.m_bPlotObject == 1");
+        damageRollSource.Should().Contain("ResolveAttackRoll.IsSuccessfulAttackResult(attackData.m_nAttackResult)");
+        damageRollSource.Should().Contain("isLandedAttack);");
     }
 
     [Test]

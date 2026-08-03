@@ -166,6 +166,15 @@ public class FirstAidCombatUpgradeTests
             "                CombatPoint.AddCombatPointToAllTagged(activator, SkillType.FirstAid);");
         treatmentKit.Split("CombatPoint.AddCombatPointToAllTagged(activator, SkillType.FirstAid);").Length.Should().Be(2);
 
+        var resuscitation = File.ReadAllText(
+                (root / "SWLOR.Game.Server" / "Feature" / "AbilityDefinition" / "FirstAid" / "ResuscitationAbilityDefinition.cs").FullName)
+            .Replace("\r\n", "\n");
+        resuscitation.Should().Contain(
+            "DelayCommand(0.1f, () =>\n" +
+            "            {\n" +
+            "                AbilityEffectScaling.ApplyActivatedScaledHeal(activator, target, 20);",
+            "the rank-II heal must run after EffectResurrection settles or the engine silently discards it");
+
         var pain = File.ReadAllText((root / "SWLOR.Game.Server" / "Feature" / "AbilityDefinition" / "FirstAid" / "PainSuppressantAbilityDefinition.cs").FullName);
         pain.Should().Contain("AbilityEffectScaling.ApplyTemporaryHPPercent(activator, target, percent, durationSeconds)");
         pain.Should().NotContain("HealPercent(activator, friendly");
@@ -175,7 +184,9 @@ public class FirstAidCombatUpgradeTests
         koltoMist.Should().Contain("private const float Rank1HealPercentPerTick = 1f;");
         koltoMist.Should().Contain("private const float Rank2HealPercentPerTick = 2f;");
         koltoMist.Should().Contain("VisualEffect.Vfx_Fnf_Gas_Explosion_Mind");
-        koltoMist.Should().Contain("VisualEffect.Vfx_Dur_Aura_Blue_Light");
+        koltoMist.Should().Contain("EffectAreaOfEffect(AreaOfEffect.FogMind)");
+        koltoMist.Should().NotContain("VisualEffect.Vfx_Dur_Aura_Blue_Light",
+            "Kolto Mist needs the persistent blue gas cloud used by the live-server Kolto Bomb, not a body aura");
         koltoMist.Should().Contain("GetIsObjectValid(activator)");
         koltoMist.Should().Contain("GetCurrentHitPoints(activator) <= 0");
         koltoMist.Should().Contain("GetIsObjectValid(GetAreaFromLocation(location))");

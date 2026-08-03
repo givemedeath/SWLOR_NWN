@@ -522,16 +522,16 @@ namespace SWLOR.Game.Server.Service
             {
                 case StatusEffectStackType.Disabled:
                 case StatusEffectStackType.Invalid:
-                    RemoveStatusEffect(statusEffect.GetType(), creature, OBJECT_INVALID, false);
+                    RemoveStatusEffect(statusEffect.GetType(), creature, OBJECT_INVALID, false, true, true);
                     break;
                 case StatusEffectStackType.StackFromMultipleSources:
-                    RemoveStatusEffect(statusEffect.GetType(), creature, source, false);
+                    RemoveStatusEffect(statusEffect.GetType(), creature, source, false, true, true);
                     break;
             }
 
             foreach (var lessPowerful in statusEffect.LessPowerfulEffectTypes)
             {
-                RemoveStatusEffect(lessPowerful, creature, OBJECT_INVALID, false);
+                RemoveStatusEffect(lessPowerful, creature, OBJECT_INVALID, false, true, true);
             }
 
             statusEffect.AssignResistanceType(resistanceType);
@@ -902,11 +902,12 @@ namespace SWLOR.Game.Server.Service
             var logicalDurationSeconds = durationTicks * Math.Max(1f, statusEffect.Frequency);
 
             // NWN may remove an effect before delivering an interval callback scheduled for the
-            // exact same timestamp. Ticking effects therefore need one scheduler interval of
-            // native lifetime grace so their final logical tick can run and remove the effect.
+            // exact same timestamp. Ticking effects therefore keep one logical tick of native
+            // lifetime grace so a late callback can catch up and the final logical tick can remove
+            // the effect.
             // Passive effects have no interval callback and retain their exact duration.
             return statusEffect.ActivationType == StatusEffectActivationType.Tick
-                ? logicalDurationSeconds + Interval
+                ? logicalDurationSeconds + Math.Max(Interval, statusEffect.Frequency)
                 : logicalDurationSeconds;
         }
 
@@ -1419,7 +1420,8 @@ namespace SWLOR.Game.Server.Service
             uint creature,
             uint source,
             bool sendsWornOffMessage = true,
-            bool removeNativeEffect = true)
+            bool removeNativeEffect = true,
+            bool isReplacement = false)
         {
             if (!_creatureEffects.TryGetValue(creature, out var creatureEffects))
                 return;
@@ -1435,7 +1437,13 @@ namespace SWLOR.Game.Server.Service
                 if (source != OBJECT_INVALID && statusEffect.Source != source)
                     continue;
 
-                RemoveStatusEffectInstance(creature, creatureEffects, statusEffect, sendsWornOffMessage, removeNativeEffect);
+                RemoveStatusEffectInstance(
+                    creature,
+                    creatureEffects,
+                    statusEffect,
+                    sendsWornOffMessage,
+                    removeNativeEffect,
+                    isReplacement);
             }
 
             RemoveCreatureIfEmpty(creature, creatureEffects, removeNativeEffect);
@@ -1473,7 +1481,8 @@ namespace SWLOR.Game.Server.Service
             CreatureStatusEffect creatureEffects,
             IStatusEffect statusEffect,
             bool sendsWornOffMessage,
-            bool removeNativeEffect)
+            bool removeNativeEffect,
+            bool isReplacement = false)
         {
             if (sendsWornOffMessage &&
                 statusEffect.SendsWornOffMessage &&
@@ -1487,7 +1496,7 @@ namespace SWLOR.Game.Server.Service
             if (removeNativeEffect)
                 RemoveNativeStatusEffect(creature, statusEffect.Id);
 
-            statusEffect.RemoveEffect(creature);
+            statusEffect.RemoveEffect(creature, isReplacement);
             creatureEffects.Remove(statusEffect);
 
             if (statusEffect is ILeadershipDamageReductionStatusEffect)

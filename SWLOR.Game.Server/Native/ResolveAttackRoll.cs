@@ -220,7 +220,7 @@ namespace SWLOR.Game.Server.Native
                     attackerAccuracy + accuracyModifiers,
                     defenderEvasion,
                     hitChanceModifier);
-                var isHit = attackRoll <= hitRate;
+                var isHit = Combat.GetAutoAttackHitResolutionOverride() ?? attackRoll <= hitRate;
 
                 Log.Write(LogGroup.Attack, $"attackerAccuracy = {attackerAccuracy}, modifiers = {accuracyModifiers}, defenderEvasion = {defenderEvasion}");
                 Log.Write(LogGroup.Attack, $"Hit Rate: {hitRate}, Roll = {attackRoll}");
@@ -389,7 +389,12 @@ namespace SWLOR.Game.Server.Native
                 hitRate);
         }
 
-        private static bool IsSuccessfulAttackResult(int attackResultType)
+        /// <summary>
+        /// Returns whether the native attack result represents a landed hit. The damage-roll hook
+        /// also runs for attacks that the engine later discards, so on-hit riders must use this
+        /// result instead of treating every damage calculation as a successful attack.
+        /// </summary>
+        internal static bool IsSuccessfulAttackResult(int attackResultType)
         {
             return attackResultType == AttackResultAutomaticHit ||
                    attackResultType == AttackResultRegularHit ||

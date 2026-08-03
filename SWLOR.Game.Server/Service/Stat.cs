@@ -37,6 +37,7 @@ namespace SWLOR.Game.Server.Service
         public const int MaximumShieldDeflectionChance = 75;
         public const int MaximumGuardChance = 100;
         public const int MaximumCombatReadinessPercent = 15;
+        public const int MaximumNPCDetection = 50;
         public const float MinimumMovementSpeedMultiplier = 0f;
         public const float MaximumMovementSpeedMultiplier = 1.5f;
         private const float DeflectionEvasionBoostDurationSeconds = 30f;
@@ -57,6 +58,22 @@ namespace SWLOR.Game.Server.Service
             return _statTypeAttributes.TryGetValue(statType, out var attribute)
                 ? attribute.Category
                 : StatTypeCategory.NonBeneficial;
+        }
+
+        public static StatTypeAggregation GetStatTypeAggregation(StatType statType)
+        {
+            EnsureStatTypeAttributesCached();
+
+            return _statTypeAttributes.TryGetValue(statType, out var attribute)
+                ? attribute.Aggregation
+                : StatTypeAggregation.Additive;
+        }
+
+        public static int AggregateStatAdjustment(StatType statType, int current, int adjustment)
+        {
+            return GetStatTypeAggregation(statType) == StatTypeAggregation.BitwiseOr
+                ? current | adjustment
+                : current + adjustment;
         }
 
         public static bool IsBeneficialStatAdjustment(StatType statType, int value)
@@ -1445,12 +1462,18 @@ namespace SWLOR.Game.Server.Service
                 equipmentBonus = GetNPCSkinStat(creature, ItemPropertyType.Detection);
             }
 
-            return CalculateDetectionRating(
+            var detection = CalculateDetectionRating(
                 perception,
                 willpower,
                 equipmentBonus,
                 GetStatAdjustment(creature, StatType.Detection),
                 GetActionMode(creature, ActionMode.Detect));
+
+            return ApplyNPCDetectionCap(
+                detection,
+                !GetIsPC(creature) &&
+                !GetIsDM(creature) &&
+                !GetIsDMPossessed(creature));
         }
 
         public static int CalculateDetectionRating(
@@ -1462,6 +1485,14 @@ namespace SWLOR.Game.Server.Service
         {
             var detectModeBonus = detectMode ? 5 : 0;
             return Math.Max(0, perception + willpower + equipmentBonus + adjustment + detectModeBonus);
+        }
+
+        public static int ApplyNPCDetectionCap(int detection, bool isNPC)
+        {
+            detection = Math.Max(0, detection);
+            return isNPC
+                ? Math.Min(MaximumNPCDetection, detection)
+                : detection;
         }
 
         /// <summary>
@@ -2292,11 +2323,24 @@ namespace SWLOR.Game.Server.Service
         }
 
         /// <summary>
+        /// Set to 1 on an NPC to disable natural regeneration: the out-of-combat
+        /// 10%-per-tick HP heal and the 1-per-tick FP/STM restore. Engine-test fixtures
+        /// wound casters to observe an ability's own healing and verify EXACT resource
+        /// costs; a natural regen tick inside the assertion window would otherwise satisfy
+        /// a healing assertion for a broken impact, or drift a pool off the exact
+        /// post-deduction value.
+        /// </summary>
+        public const string SuppressNaturalRegenVariable = "ENGINE_TEST_SUPPRESS_NATURAL_REGEN";
+
+        /// <summary>
         /// Restores an NPC's STM and FP.
         /// </summary>
         public static void RestoreNPCStats(bool outOfCombatRegen)
         {
             var self = OBJECT_SELF;
+            if (GetLocalInt(self, SuppressNaturalRegenVariable) != 0)
+                return;
+
             var maxFP = GetMaxFP(self);
             var maxSTM = GetMaxStamina(self);
             var fp = GetLocalInt(self, "FP") + 1;

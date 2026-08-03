@@ -86,6 +86,22 @@ namespace SWLOR.Game.Server.Service
         }
 
         /// <summary>
+        /// Records player-initiated combat before the attack event can add pair enmity. This lets
+        /// infiltration distinguish the attack from combat caused by a successful detection.
+        /// </summary>
+        [NWNEventHandler(ScriptName.OnCreatureAttackBefore)]
+        public static void RecordPlayerCombatInitiation()
+        {
+            var enemy = OBJECT_SELF;
+            var attacker = GetLastAttacker(enemy);
+
+            if (!GetIsPC(attacker) || GetIsDM(attacker))
+                return;
+
+            EspionageInfiltration.RecordPlayerCombatInitiation(attacker);
+        }
+
+        /// <summary>
         /// Landing a hit is a hostile action, so it reveals the attacker. Abilities flagged
         /// BreaksStealth are already handled on activation; this covers auto-attacks and any
         /// damage-dealing path that does not route through an ability.
@@ -181,9 +197,19 @@ namespace SWLOR.Game.Server.Service
                 !GetActionMode(target, ActionMode.Stealth))
                 return;
 
-            AssignCommand(target, () =>
+            // Set the mode directly while the Spot hook is active, then retry after the native
+            // detection call has unwound. Hostile AI can immediately start combat from a
+            // successful verdict, and the deferred pass prevents that transition from leaving
+            // the player's native mode and tracked status out of sync.
+            SetActionMode(target, ActionMode.Stealth, false);
+            StatusEffect.RemoveStatusEffect<StealthStatusEffect>(target);
+            DelayCommand(0f, () =>
             {
+                if (!GetIsObjectValid(target) || !GetActionMode(target, ActionMode.Stealth))
+                    return;
+
                 SetActionMode(target, ActionMode.Stealth, false);
+                StatusEffect.RemoveStatusEffect<StealthStatusEffect>(target);
             });
             SendMessageToPC(target, ColorToken.Red("You have been detected and are forced out of stealth."));
         }

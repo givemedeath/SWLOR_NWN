@@ -77,10 +77,8 @@ namespace SWLOR.Game.Server.Service
         private static readonly Dictionary<(uint, uint), TargetHitSequenceState> _areaAbilityTargetHitSequences = new();
         private static readonly Dictionary<uint, float> _attackSwingDebts = new();
         private static readonly Dictionary<uint, RepeatedTargetDamageState> _repeatedTargetDamageStates = new();
-        private static readonly Dictionary<SkillType, Action<uint, int>> _repeatedTargetDamageStatusEffectRefreshers = new()
-        {
-            { SkillType.Vibroblade, RundownStatusEffect.Refresh }
-        };
+        private static readonly Dictionary<uint, RepeatedTargetDamageState> _meleeRepeatedTargetDamageStates = new();
+        private static readonly Dictionary<uint, int> _meleeAutoAttackCycleCounts = new();
         private static readonly Dictionary<uint, SameTargetPressureState> _sameTargetPressureStates = new();
         private static readonly Dictionary<(uint Creature, AbilityDetail Ability), AbilityStaminaCostState> _abilityStaminaCosts = new();
         private static bool _damageTypesCached;
@@ -865,6 +863,7 @@ namespace SWLOR.Game.Server.Service
                 isAbilityDamage,
                 canApplyRandomFlatBonuses);
             damage = ApplyRepeatedTargetDamageModifier(attacker, defender, skillType, damage, isAbilityDamage);
+            damage = ApplyMeleeRepeatedTargetDamageModifier(attacker, defender, skillType, damage, isAbilityDamage);
 
             var maxBonusDamage = damageBeforePercentStages +
                 (int)Math.Ceiling(damageBeforePercentStages * (MaximumDamageBonusPercent / 100f));
@@ -1104,6 +1103,7 @@ namespace SWLOR.Game.Server.Service
             if (!GetIsObjectValid(attacker) || skillType == SkillType.Invalid)
                 return 0;
 
+            var damageBonus = ConsumeMeleeAutoAttackCycleDamageBonus(attacker, skillType);
             var requiredSkillType = GetSkillTypeFromStat(Stat.GetStatAdjustment(attacker, StatType.AutoAttackCycleDamageSkillType));
             var requiredCount = Stat.GetStatAdjustment(attacker, StatType.AutoAttackCycleRequiredCount);
             var cycleDamage = Stat.GetStatAdjustment(attacker, StatType.AutoAttackCycleDamage);
@@ -1112,17 +1112,39 @@ namespace SWLOR.Game.Server.Service
                 requiredCount <= 0 ||
                 cycleDamage <= 0 ||
                 radius > 0)
-                return 0;
+                return damageBonus;
 
             _autoAttackCycleCounts.TryGetValue(attacker, out var count);
             count++;
             if (count < requiredCount)
             {
                 _autoAttackCycleCounts[attacker] = count;
-                return 0;
+                return damageBonus;
             }
 
             _autoAttackCycleCounts[attacker] = 0;
+            return damageBonus + cycleDamage;
+        }
+
+        private static int ConsumeMeleeAutoAttackCycleDamageBonus(uint attacker, SkillType skillType)
+        {
+            if (!IsMeleeWeaponSkill(skillType))
+                return 0;
+
+            var requiredCount = Stat.GetStatAdjustment(attacker, StatType.MeleeAutoAttackCycleRequiredCount);
+            var cycleDamage = Stat.GetStatAdjustment(attacker, StatType.MeleeAutoAttackCycleDamage);
+            if (requiredCount <= 0 || cycleDamage <= 0)
+                return 0;
+
+            _meleeAutoAttackCycleCounts.TryGetValue(attacker, out var count);
+            count++;
+            if (count < requiredCount)
+            {
+                _meleeAutoAttackCycleCounts[attacker] = count;
+                return 0;
+            }
+
+            _meleeAutoAttackCycleCounts[attacker] = 0;
             return cycleDamage;
         }
 
@@ -3045,13 +3067,20 @@ namespace SWLOR.Game.Server.Service
             ApplyEffectToObject(DurationType.Instant, EffectVisualEffect(VisualEffect.Vfx_Imp_Poison_S), attacker);
         }
 
-        public static int ApplyGuardedHitModifiers(uint defender, uint attacker, int damage, CombatDamageType damageType)
+        public static int ApplyGuardedHitModifiers(
+            uint defender,
+            uint attacker,
+            int damage,
+            CombatDamageType damageType,
+            bool isLandedAttack)
         {
-            if (!GetIsObjectValid(defender) ||
+            if (!isLandedAttack ||
+                !GetIsObjectValid(defender) ||
                 !GetIsObjectValid(attacker) ||
                 defender == attacker ||
                 damage <= 0 ||
-                !damageType.IsPhysicalDamageType())
+                !damageType.IsPhysicalDamageType() ||
+                !IsGuardableAttackSource(defender, attacker))
                 return damage;
 
             var guardChance = Stat.GetGuardChance(defender);
@@ -3070,6 +3099,18 @@ namespace SWLOR.Game.Server.Service
             SendGuardedHitFeedback(defender, attacker, preventedDamage);
 
             return adjustedDamage;
+        }
+
+        private static bool IsGuardableAttackSource(uint defender, uint attacker)
+        {
+            // Preserve PvP and DM-driven testing while rejecting clearly non-hostile NPC swings.
+            if (GetIsPC(attacker) || GetIsDM(attacker) || GetIsDMPossessed(attacker))
+                return true;
+
+            return GetIsReactionTypeHostile(attacker, defender) ||
+                   GetIsReactionTypeHostile(defender, attacker) ||
+                   GetIsEnemy(attacker, defender) ||
+                   GetIsEnemy(defender, attacker);
         }
 
         private static void SendGuardedHitFeedback(uint defender, uint attacker, int preventedDamage)
@@ -3589,12 +3630,34 @@ namespace SWLOR.Game.Server.Service
 
             if (threshold > 0 && adjustment != 0)
             {
-                var maxHP = GetMaxHitPoints(defender);
-                if (maxHP > 0 && GetCurrentHitPoints(defender) <= maxHP * (threshold / 100f))
-                    damage = ApplyPercentDamageAdjustment(damage, adjustment);
+                damage = ApplyTargetHPDamageAdjustment(
+                    damage,
+                    GetCurrentHitPoints(defender),
+                    GetMaxHitPoints(defender),
+                    threshold,
+                    adjustment);
             }
 
             return ApplyTargetLowHPStatusDamageModifier(attacker, defender, damage);
+        }
+
+        public static int ApplyTargetHPDamageAdjustment(
+            int damage,
+            int currentHP,
+            int maxHP,
+            int thresholdPercent,
+            int adjustmentPercent)
+        {
+            if (damage <= 0 ||
+                maxHP <= 0 ||
+                thresholdPercent <= 0 ||
+                adjustmentPercent == 0 ||
+                currentHP > maxHP * (thresholdPercent / 100f))
+            {
+                return damage;
+            }
+
+            return ApplyPercentDamageAdjustment(damage, adjustmentPercent);
         }
 
         private static int ApplyTargetLowHPStatusDamageModifier(uint attacker, uint defender, int damage)
@@ -3936,7 +3999,6 @@ namespace SWLOR.Game.Server.Service
                 (!hasPercentBonus && !hasFlatBonus))
             {
                 _repeatedTargetDamageStates.Remove(attacker);
-                ClearRepeatedTargetDamageStatusEffects(attacker);
                 return damage;
             }
 
@@ -3958,9 +4020,6 @@ namespace SWLOR.Game.Server.Service
             state.LastHit = now;
             _repeatedTargetDamageStates[attacker] = state;
 
-            if (_repeatedTargetDamageStatusEffectRefreshers.TryGetValue(requiredSkillType, out var refreshStatusEffect))
-                refreshStatusEffect(attacker, state.Stacks);
-
             if (hasPercentBonus)
             {
                 var adjustment = Math.Min(maxPercent, state.Stacks * percentPerHit);
@@ -3975,12 +4034,44 @@ namespace SWLOR.Game.Server.Service
             return damage;
         }
 
-        private static void ClearRepeatedTargetDamageStatusEffects(uint attacker)
+        private static int ApplyMeleeRepeatedTargetDamageModifier(
+            uint attacker,
+            uint defender,
+            SkillType skillType,
+            int damage,
+            bool isAbilityDamage)
         {
-            foreach (var refreshStatusEffect in _repeatedTargetDamageStatusEffectRefreshers.Values)
+            if (damage <= 0 || !GetIsObjectValid(attacker) || !GetIsObjectValid(defender) || attacker == defender)
+                return damage;
+
+            var bonusPerHit = Stat.GetStatAdjustment(attacker, StatType.MeleeRepeatedTargetDamageBonusPerHit);
+            var maxBonus = Stat.GetStatAdjustment(attacker, StatType.MeleeRepeatedTargetDamageBonusMax);
+            var statusEffectIcon = GetEffectIconTypeFromStat(Stat.GetStatAdjustment(
+                attacker,
+                StatType.MeleeRepeatedTargetDamageStatusEffectIcon));
+            if (isAbilityDamage ||
+                !IsMeleeWeaponSkill(skillType) ||
+                bonusPerHit <= 0 ||
+                maxBonus <= 0)
             {
-                refreshStatusEffect(attacker, 0);
+                _meleeRepeatedTargetDamageStates.Remove(attacker);
+                MeleeRepeatedTargetDamageStatusEffect.Refresh(attacker, 0, statusEffectIcon);
+                return damage;
             }
+
+            if (!_meleeRepeatedTargetDamageStates.TryGetValue(attacker, out var state) ||
+                state.Target != defender)
+            {
+                state = new RepeatedTargetDamageState(defender);
+            }
+
+            var maxStacks = Math.Max(1, (int)Math.Ceiling(maxBonus / (float)bonusPerHit));
+            state.Stacks = Math.Min(state.Stacks + 1, maxStacks);
+            state.LastHit = DateTime.UtcNow;
+            _meleeRepeatedTargetDamageStates[attacker] = state;
+
+            MeleeRepeatedTargetDamageStatusEffect.Refresh(attacker, state.Stacks, statusEffectIcon);
+            return damage + Math.Min(maxBonus, state.Stacks * bonusPerHit);
         }
 
         private static void ApplySameTargetPressureDamageEffects(uint attacker, uint defender, SkillType skillType)
@@ -4302,6 +4393,11 @@ namespace SWLOR.Game.Server.Service
                    skillType == SkillType.Throwing;
         }
 
+        public static bool IsMeleeWeaponSkill(SkillType skillType)
+        {
+            return IsWeaponSkillType(skillType) && !IsRangedWeaponSkill(skillType);
+        }
+
         private static int GetStatusSourceStatAdjustment(uint creature, uint source, StatType statType)
         {
             if (!GetIsObjectValid(creature) || !GetIsObjectValid(source))
@@ -4408,6 +4504,8 @@ namespace SWLOR.Game.Server.Service
 
             _attackSwingDebts.Remove(creature);
             _repeatedTargetDamageStates.Remove(creature);
+            _meleeRepeatedTargetDamageStates.Remove(creature);
+            _meleeAutoAttackCycleCounts.Remove(creature);
             ClearSameTargetPressureState(creature);
             foreach (var pressureState in _sameTargetPressureStates.Where(x => x.Value.Target == creature).Select(x => x.Key).ToList())
             {
@@ -6170,6 +6268,14 @@ namespace SWLOR.Game.Server.Service
             var window = Stat.GetStatAdjustment(activator, StatType.StatusAppliedNextSkillAbilityWindowSeconds);
             GrantNextSkillAbilityBonuses(activator, skillType, damageBonus, criticalRate, window);
 
+            var nextAttackDamage = Stat.GetStatAdjustment(
+                activator,
+                StatType.StatusAppliedNextAttackDamageBonus);
+            var nextAttackWindow = Stat.GetStatAdjustment(
+                activator,
+                StatType.StatusAppliedNextAttackWindowSeconds);
+            GrantStatusAppliedNextAttackDamageBonus(activator, nextAttackDamage, nextAttackWindow);
+
             ApplyStatusAppliedSelfEffects(activator);
             ApplyStatusAppliedTargetEffects(activator, target);
             ApplyStatusAppliedTargetStaminaDrain(
@@ -7121,6 +7227,43 @@ namespace SWLOR.Game.Server.Service
                 MaximumCriticalRate);
         }
 
+        private static bool? _abilityHitResolutionOverride;
+
+        /// <summary>
+        /// Forces every TryResolveAbilityHit call to the given outcome instead of rolling.
+        /// Intended solely for the in-engine test harness: ability behavior assertions cannot
+        /// be made against a hit roll that legitimately misses up to 5% of the time even at
+        /// capped hit rates. Pass null to restore normal resolution. Always restore in a
+        /// finally block.
+        /// </summary>
+        public static void SetAbilityHitResolutionOverride(bool? forcedOutcome)
+        {
+            _abilityHitResolutionOverride = forcedOutcome;
+        }
+
+        private static bool? _autoAttackHitResolutionOverride;
+
+        /// <summary>
+        /// Forces every native auto-attack roll (ResolveAttackRoll hook) to the given outcome
+        /// instead of rolling. Intended solely for the in-engine test harness: ability damage
+        /// assertions cannot distinguish ability damage from the activator's resumed
+        /// auto-attacks, so behavior sweeps force auto-attack misses. Pass null to restore
+        /// normal resolution. Always restore in a finally block.
+        /// </summary>
+        public static void SetAutoAttackHitResolutionOverride(bool? forcedOutcome)
+        {
+            _autoAttackHitResolutionOverride = forcedOutcome;
+        }
+
+        /// <summary>
+        /// The current auto-attack resolution override, if any. Read by the native
+        /// ResolveAttackRoll hook.
+        /// </summary>
+        public static bool? GetAutoAttackHitResolutionOverride()
+        {
+            return _autoAttackHitResolutionOverride;
+        }
+
         public static bool TryResolveAbilityHit(
             uint attacker,
             uint defender,
@@ -7168,7 +7311,7 @@ namespace SWLOR.Game.Server.Service
             }
 
             hitRate = CalculateHitRate(accuracy, evasion, modifier);
-            var isHit = Random.D100(1) <= hitRate;
+            var isHit = _abilityHitResolutionOverride ?? Random.D100(1) <= hitRate;
             if (!isHit && skillType == SkillType.Force)
             {
                 ApplyForceAbilityEvadedEffects(defender);
@@ -7675,6 +7818,22 @@ namespace SWLOR.Game.Server.Service
                 creature,
                 StatType.NextAttackGuardedHitCriticalRatePercentAdjustment,
                 StatType.NextAttackGuardedHitDMGBonus);
+        }
+
+        public static int ConsumeStatusAppliedNextAttackDamageBonus(uint creature)
+        {
+            return TemporaryStatModifier.Consume(
+                creature,
+                StatType.NextAttackStatusAppliedDMGBonus,
+                StatType.NextAttackStatusAppliedDMGBonus);
+        }
+
+        public static int GetStatusAppliedNextAttackDamageBonus(uint creature)
+        {
+            return TemporaryStatModifier.GetStatAdjustment(
+                creature,
+                StatType.NextAttackStatusAppliedDMGBonus,
+                StatType.NextAttackStatusAppliedDMGBonus);
         }
 
         public static void ApplyNextAttackGuardedHitEnmityBonus(
@@ -8807,6 +8966,13 @@ namespace SWLOR.Game.Server.Service
                 : 0;
         }
 
+        private static EffectIconType GetEffectIconTypeFromStat(int value)
+        {
+            return value > 0 && Enum.IsDefined(typeof(EffectIconType), value)
+                ? (EffectIconType)value
+                : EffectIconType.Invalid;
+        }
+
         private static CombatDamageType GetCombatDamageTypeFromStat(int value)
         {
             return value > 0 && Enum.IsDefined(typeof(CombatDamageType), value)
@@ -9116,6 +9282,22 @@ namespace SWLOR.Game.Server.Service
                     durationSeconds,
                     StatType.NextSkillAbilitySkillType);
             }
+        }
+
+        private static void GrantStatusAppliedNextAttackDamageBonus(
+            uint creature,
+            int damageBonus,
+            int durationSeconds)
+        {
+            if (!GetIsObjectValid(creature) || damageBonus == 0 || durationSeconds <= 0)
+                return;
+
+            TemporaryStatModifier.Replace(
+                creature,
+                StatType.NextAttackStatusAppliedDMGBonus,
+                damageBonus,
+                durationSeconds,
+                StatType.NextAttackStatusAppliedDMGBonus);
         }
 
         public static void GrantNextSkillAbilityStaminaCostAdjustment(

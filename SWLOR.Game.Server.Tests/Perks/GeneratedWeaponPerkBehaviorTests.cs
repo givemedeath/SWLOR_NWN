@@ -2,6 +2,7 @@ using FluentAssertions;
 using NUnit.Framework;
 using SWLOR.Game.Server.Feature.AbilityDefinition.Katar;
 using SWLOR.Game.Server.Feature.AbilityDefinition.Pistol;
+using SWLOR.Game.Server.Feature.AbilityDefinition.Saberstaff;
 using SWLOR.Game.Server.Feature.AbilityDefinition.Spear;
 using SWLOR.Game.Server.Feature.AbilityDefinition.Throwing;
 using SWLOR.Game.Server.Feature.AbilityDefinition.Vibroknife;
@@ -18,11 +19,26 @@ namespace SWLOR.Game.Server.Tests.Perks;
 public class GeneratedWeaponPerkBehaviorTests
 {
     [Test]
+    public void SaberCyclone_IsASelfBuffWithoutHostileAreaTargeting()
+    {
+        var ability = new SaberCycloneAbilityDefinition().BuildAbilities()[FeatType.SaberCyclone1];
+
+        ability.IsHostileAbility.Should().BeFalse();
+        ability.IsAreaAbility.Should().BeFalse();
+        ability.RequiresTarget.Should().BeFalse();
+        ability.Targeting.Should().BeNull();
+    }
+
+    [Test]
     public void GeneratedWeaponTraitPerks_EmitRepresentativeStatBonuses()
     {
         AssertSourceStat("VibrobladePerkDefinition.cs", StatType.AutoAttackDamageBonusChance, "15");
         AssertSourceStat("VibrobladePerkDefinition.cs", StatType.AutoAttackDamageBonus, "10");
-        AssertSourceStat("VibrobladePerkDefinition.cs", StatType.RepeatedTargetDamageAutoAttackOnly, "1");
+        AssertSourceStat("VibrobladePerkDefinition.cs", StatType.MeleeRepeatedTargetDamageBonusPerHit, "3");
+        AssertSourceStat("VibrobladePerkDefinition.cs", StatType.MeleeRepeatedTargetDamageBonusMax, "15");
+        AssertSourceStat("VibrobladePerkDefinition.cs", StatType.MeleeRepeatedTargetDamageStatusEffectIcon, "(int)EffectIconType.RundownStatusEffect");
+        AssertSourceStat("VibrobladePerkDefinition.cs", StatType.MeleeAutoAttackCycleRequiredCount, "3");
+        AssertSourceStat("VibrobladePerkDefinition.cs", StatType.MeleeAutoAttackCycleDamage, "10");
         AssertSourceContains("VibrobladePerkDefinition.cs", "EquipmentPredicates.HasOffHandShield(creature) ? 35 : 0");
 
         AssertSourceStat("VibroknifePerkDefinition.cs", StatType.SourceStatusHealingReceivedRequiredCategory, "(int)StatusEffectCategory.Venom");
@@ -107,7 +123,7 @@ public class GeneratedWeaponPerkBehaviorTests
         AssertSourceStat("KatarPerkDefinition.cs", StatType.DamageTakenNextSkillAbilityDamageBonus, "20");
 
         AssertSourceStat("StaffPerkDefinition.cs", StatType.CriticalDamageTargetStatusCategory, "(int)StatusEffectCategory.Control");
-        AssertSourceStat("StaffPerkDefinition.cs", StatType.StatusAppliedNextSkillAbilityDamageBonus, "26");
+        AssertSourceStat("StaffPerkDefinition.cs", StatType.StatusAppliedNextAttackDamageBonus, "26");
         AssertSourceStat("StaffPerkDefinition.cs", StatType.AbilityUsedPerkCategoryNearbyAllyAttackDeflectionCategoryId, "(int)PerkCategoryType.StaffSentinel");
         AssertSourceStat("StaffPerkDefinition.cs", StatType.AbilityUsedPerkCategoryNearbyAllyAttackDeflection, "8");
         AssertSourceStat("StaffPerkDefinition.cs", StatType.AbilityUsedPerkCategorySelfDefenseCategoryId, "(int)PerkCategoryType.StaffSentinel");
@@ -770,6 +786,35 @@ public class GeneratedWeaponPerkBehaviorTests
         var tagIn = new TagInAbilityDefinition().BuildAbilities()[FeatType.TwinIntercept1];
         tagIn.IsSingleTargetAbility.Should().BeTrue();
         tagIn.RequiresTarget.Should().BeFalse();
+
+        var featRows = Read2da(root, "SWLOR_Haks", "sw_2da", "feat.2da");
+        var tagInFeat = featRows[(int)FeatType.TwinIntercept1];
+        tagInFeat["TARGETSELF"].Should().Be("1",
+            "Tag In activates immediately and resolves the current Guarded ally on the server");
+        tagInFeat["HostileFeat"].Should().Be("****");
+
+        var generator = File.ReadAllText(Path.Combine(root.FullName, "tools", "GenerateWeaponArchetypeImplementation.py"));
+        generator.Should().Contain("is_automatic_guarded_target_active(row[\"Description\"])",
+            "regeneration must preserve Tag In's no-cursor feat metadata");
+    }
+
+    [Test]
+    public void Flash_IsAStatusAndEnmityAreaWithoutWeaponDamage()
+    {
+        var root = FindRepositoryRoot();
+        var source = File.ReadAllText(Path.Combine(
+            root.FullName,
+            "SWLOR.Game.Server",
+            "Feature",
+            "AbilityDefinition",
+            "HeavyVibroblade",
+            "FlashAbilityDefinition.cs"));
+
+        source.Should().Contain("statusEffectFactory: () => new FlashStatusEffect(20)");
+        source.Should().Contain("damagePercentAdjustment: _ => -100",
+            "the weapon-skill combat pipeline otherwise adds weapon damage even when base damage is zero");
+        source.Should().Contain("enmityBonus: 650");
+        source.Should().Contain("canCritical: false");
     }
 
     [Test]
